@@ -1,0 +1,21 @@
+[ignore]
+<PROJECT_ROOT>/build/.*
+
+;[untyped]
+;<PROJECT_ROOT>/patient/client/node_modules/graphql
+
+[options]
+module.name_mapper.extension='css' -> '<PROJECT_ROOT>/static/styles/CSSModule.flow.js'
+module.name_mapper.extension='scss' -> '<PROJECT_ROOT>/static/styles/CSSModule.flow.js'
+
+suppress_comment=\\(.\\|\n\\)*\\$FlowFixMe
+
+include_warnings=true
+
+emoji=true
+
+esproposal.optional_chaining=enable
+
+[lints]
+unnecessary-optional-chain=warn
+untyped-type-import=error
