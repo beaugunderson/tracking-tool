@@ -124,7 +124,7 @@ class PatientEncounterForm extends Component<
     } = this.state.form;
 
     return (
-      <Form onSubmit={this.handleSubmit}>
+      <Form onSubmit={this.handleSubmit} size="large">
         <Header>New Patient Encounter</Header>
 
         <Form.Field
