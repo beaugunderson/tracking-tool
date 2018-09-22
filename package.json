@@ -1,11 +1,36 @@
 {
   "name": "tracking-tool",
+  "author": "Beau Gunderson <beau@beaugunderson.com>",
+  "description": "Social work tracking tool",
   "version": "0.1.0",
   "private": true,
   "homepage": "./",
   "main": "public/electron.js",
+  "build": {
+    "appId": "com.beaugunderson.tracking-tool",
+    "files": [
+      "build/**/*",
+      "node_modules/**/*"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    },
+    "win": {
+      "target": "portable"
+    }
+  },
+  "scripts": {
+    "build": "react-scripts build",
+    "dist": "electron-builder --mac --win",
+    "eject": "react-scripts eject",
+    "pack": "electron-builder --dir --mac --win",
+    "predist": "yarn build",
+    "prepack": "yarn build",
+    "postinstall": "electron-builder install-app-deps",
+    "start": "concurrently \"cross-env BROWSER=none yarn react-scripts start\" \"wait-on http://localhost:3000 && electron .\"",
+    "test": "react-scripts test --env=jsdom"
+  },
   "dependencies": {
-    "cross-env": "^5.2.0",
     "electron-devtools-installer": "^2.2.4",
     "electron-is-dev": "^1.0.0",
     "react": "^16.4.2",
@@ -13,19 +38,14 @@
     "react-scripts": "1.1.5",
     "semantic-ui-css": "^2.3.3",
     "semantic-ui-react": "^0.82.3",
-    "wait-on": "^3.0.1"
-  },
-  "scripts": {
-    "build": "react-scripts build",
-    "eject": "react-scripts eject",
-    "pack": "electron-builder --dir",
-    "start": "concurrently \"cross-env BROWSER=none yarn react-scripts start\" \"wait-on http://localhost:3000 && electron .\"",
-    "test": "react-scripts test --env=jsdom"
+    "username": "^4.0.0"
   },
   "devDependencies": {
     "babel-eslint": "^9.0.0",
     "concurrently": "^4.0.1",
+    "cross-env": "^5.2.0",
     "electron": "^3.0.0",
+    "electron-builder": "^20.28.4",
     "eslint": "^5.5.0",
     "eslint-config-airbnb": "^17.1.0",
     "eslint-config-prettier": "^3.0.1",
@@ -38,6 +58,7 @@
     "eslint-plugin-react-perf": "^2.0.9",
     "eslint_d": "^7.1.0",
     "flow-bin": "^0.81.0",
-    "prettier": "^1.14.2"
+    "prettier": "^1.14.2",
+    "wait-on": "^3.0.1"
   }
 }
