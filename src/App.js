@@ -16,6 +16,13 @@ import {
   Popup
 } from 'semantic-ui-react';
 
+const electron = window.require('electron');
+const fs = electron.remote.require('fs');
+
+fs.readdir('.', (err, files) => {
+  console.log({ err, files });
+});
+
 const DOCTORS = [
   { value: 'Dr. Soma', text: 'Dr. Soma' },
   { value: 'Dr. Pants', text: 'Dr. Pants' }
