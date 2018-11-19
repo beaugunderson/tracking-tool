@@ -6,6 +6,7 @@ import './App.css';
 import React, { Component } from 'react';
 import {
   Button,
+  Checkbox,
   Container,
   Divider,
   Dropdown,
@@ -15,6 +16,8 @@ import {
   Form,
   Popup
 } from 'semantic-ui-react';
+import { DOCTORS } from './doctors';
+import { Formik } from 'formik';
 
 const electron = window.require('electron');
 const fs = electron.remote.require('fs');
@@ -23,50 +26,43 @@ fs.readdir('.', (err, files) => {
   console.log({ err, files });
 });
 
-const DOCTORS = [
-  { value: 'Dr. Soma', text: 'Dr. Soma' },
-  { value: 'Dr. Pants', text: 'Dr. Pants' }
-];
-
 function makeOptions(options) {
   return options.map(option => ({ value: option, text: option }));
 }
 
+const DOCTOR_OPTIONS = makeOptions(DOCTORS);
+
+const LOCATIONS = makeOptions([
+  'Ballard',
+  'Cherry Hill',
+  'Edmonds',
+  'Issaquah',
+  'First Hill',
+  'True Cancer Center'
+]);
+
 const CLINICS = makeOptions([
-  'Ballard Medical Oncology',
-  'Edmonds Medical Oncology',
-  'Edmonds Palliative Care',
-  'First Hill Medical Oncology (FHMO)',
-  'First Hill Palliative Care',
+  'Breast Surgery',
+  'Colorectal Surgery',
   'Gyn Onc',
-  'Heme',
+  'Head/Neck Surgery',
+  'Hematology',
   'Inpatient',
-  'Issaquah Medical Oncology',
   'Ivy',
-  'TCC Medical Oncology'
+  'Medical Oncology',
+  'Non-SCI MD',
+  'Palliative Care',
+  'Radiation Oncology',
+  'Radiosurgery',
+  'Thoracic Surgery'
 ]);
 
 const DIAGNOSES = makeOptions(['Malignant', 'Benign', 'Unknown']);
 
-const STAGES = makeOptions(['', '0', 'I', 'II', 'III', 'IV']);
+const STAGES = makeOptions(['Unknown', 'Early', 'Advanced', 'N/A']);
 
 type PatientEncounterFormProps = {
   onCancel: () => void
-};
-
-type PatientEncounterFormState = {
-  form: {
-    clinic?: ?string,
-    dateOfBirth?: string,
-    diagnosisFreeText?: string,
-    diagnosisStage?: string,
-    diagnosisType?: string,
-    encounterDate?: string,
-    md?: string[],
-    mrn?: string,
-    patientName?: string,
-    timeSpent?: string
-  }
 };
 
 function today() {
@@ -77,182 +73,283 @@ function today() {
   return date.toJSON().slice(0, 10);
 }
 
-class PatientEncounterForm extends Component<
-  PatientEncounterFormProps,
-  PatientEncounterFormState
-> {
-  state = {
-    form: {
-      clinic: '',
-      dateOfBirth: '',
-      diagnosisFreeText: '',
-      diagnosisStage: '',
-      diagnosisType: '',
-      encounterDate: today(),
-      md: [],
-      mrn: '',
-      patientName: '',
-      timeSpent: ''
-    }
-  };
+const INITIAL_VALUES = {
+  clinic: '',
+  dateOfBirth: '',
+  diagnosisFreeText: '',
+  diagnosisStage: '',
+  diagnosisType: '',
+  encounterDate: today(),
+  location: '',
+  md: [],
+  mrn: '',
+  numberOfTasks: '',
+  patientName: '',
+  research: false,
+  timeSpent: ''
+};
 
-  static getDerivedStateFromProps(props, state) {
-    console.log({ state });
+const HELP_ICON = <Icon name="help circle" />;
 
-    if (state.form.diagnosisType !== 'Malignant') {
-      return { form: { ...state.form, diagnosisStage: '' } };
-    }
-
-    return null;
+class InfoButton extends Component<*> {
+  render() {
+    return (
+      <Popup
+        content={this.props.content}
+        horizontalOffset={12}
+        on={this.props.on || 'click'}
+        trigger={HELP_ICON}
+      />
+    );
   }
+}
 
+class PatientEncounterForm extends Component<PatientEncounterFormProps> {
   handleCancel = () => this.props.onCancel();
 
-  handleChange = (e, { name, value }) => {
-    this.setState(state => ({ form: { ...state.form, [name]: value } }));
-  };
-
-  handleSubmit = () => {
-    console.log(this.state.form);
-  };
-
   render() {
-    const {
-      clinic,
-      dateOfBirth,
-      diagnosisFreeText,
-      diagnosisStage,
-      diagnosisType,
-      encounterDate,
-      md,
-      mrn,
-      patientName,
-      timeSpent
-    } = this.state.form;
-
     return (
-      <Form onSubmit={this.handleSubmit} size="large">
-        <Header>New Patient Encounter</Header>
+      <Formik
+        initialValues={INITIAL_VALUES}
+        validate={values => {
+          const errors = {};
 
-        <Form.Field
-          control={Input}
-          id="input-encounter-date"
-          label="Encounter Date"
-          name="encounterDate"
-          onChange={this.handleChange}
-          type="date"
-          value={encounterDate}
-        />
+          if (values.diagnosisType === 'Malignant' && !values.diagnosisStage) {
+            errors.diagnosisStage = true;
+          }
 
-        <Form.Field
-          control={Input}
-          id="input-patient-name"
-          label="Patient Name"
-          name="patientName"
-          onChange={this.handleChange}
-          placeholder="Last, First Middle"
-          value={patientName}
-        />
+          if (!/^\d+$/.test(values.timeSpent)) {
+            errors.timeSpent = true;
+          }
 
-        <Form.Field
-          control={Input}
-          id="input-date-of-birth"
-          label="Date of Birth"
-          name="dateOfBirth"
-          onChange={this.handleChange}
-          type="date"
-          value={dateOfBirth}
-        />
+          return errors;
+        }}
+        onSubmit={(values, { setSubmitting }) => {
+          setTimeout(() => {
+            alert(JSON.stringify(values, null, 2));
+            setSubmitting(false);
+          }, 400);
+        }}
+      >
+        {({
+          errors,
+          isSubmitting,
+          setFieldTouched,
+          setFieldValue,
+          submitForm,
+          touched,
+          values
+        }) => {
+          const handleBlur = (e, data) =>
+            setFieldTouched((data && data.name) || e.target.name, true);
 
-        <Form.Field
-          control={Input}
-          id="input-mrn"
-          label="MRN"
-          name="mrn"
-          onChange={this.handleChange}
-          value={mrn}
-        />
+          const handleChange = (e, { name, value, checked }) =>
+            setFieldValue(name, value !== undefined ? value : checked);
 
-        <Form.Field
-          control={Dropdown}
-          id="input-md"
-          label="MD"
-          multiple
-          name="md"
-          onChange={this.handleChange}
-          options={DOCTORS}
-          search
-          selection
-          value={md}
-        />
+          return (
+            <Form size="large">
+              <Header>New Patient Encounter</Header>
 
-        <Form.Field
-          control={Dropdown}
-          id="input-clinic"
-          label="Clinic"
-          name="clinic"
-          onChange={this.handleChange}
-          options={CLINICS}
-          search
-          selection
-          value={clinic}
-        />
+              <Form.Field
+                control={Input}
+                id="input-encounter-date"
+                label="Encounter Date"
+                name="encounterDate"
+                onBlur={handleBlur}
+                onChange={handleChange}
+                type="date"
+                value={values.encounterDate}
+              />
 
-        <Form.Group widths="equal">
-          <Form.Field
-            control={Dropdown}
-            id="input-diagnosis-type"
-            label="Diagnosis Type"
-            name="diagnosisType"
-            onChange={this.handleChange}
-            options={DIAGNOSES}
-            search
-            selection
-            value={diagnosisType}
-          />
+              <Form.Group widths="equal">
+                <Form.Field
+                  control={Input}
+                  id="input-mrn"
+                  label="MRN"
+                  name="mrn"
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  value={values.mrn}
+                />
 
-          <Form.Field
-            control={Input}
-            id="input-diagnosis-free-text"
-            label="Diagnosis"
-            name="diagnosisFreeText"
-            onChange={this.handleChange}
-            value={diagnosisFreeText}
-          />
+                <Form.Field
+                  control={Input}
+                  id="input-patient-name"
+                  label="Patient Name"
+                  name="patientName"
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  placeholder="Last, First Middle"
+                  value={values.patientName}
+                />
 
-          <Form.Field
-            control={Dropdown}
-            disabled={diagnosisType !== 'Malignant'}
-            id="input-diagnosis-stage"
-            label="Stage"
-            name="diagnosisStage"
-            options={STAGES}
-            onChange={this.handleChange}
-            selection
-            value={diagnosisStage}
-          />
-        </Form.Group>
+                <Form.Field
+                  control={Input}
+                  id="input-date-of-birth"
+                  label="Date of Birth"
+                  name="dateOfBirth"
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  type="date"
+                  value={values.dateOfBirth}
+                />
+              </Form.Group>
 
-        <Form.Field
-          control={Input}
-          label="Time spent"
-          name="timeSpent"
-          onChange={this.handleChange}
-          value={timeSpent}
-        />
+              <Form.Field
+                control={Dropdown}
+                deburr
+                id="input-md"
+                label="MD"
+                multiple
+                name="md"
+                onBlur={handleBlur}
+                onChange={handleChange}
+                onClose={handleBlur}
+                options={DOCTOR_OPTIONS}
+                search
+                selection
+                value={values.md}
+              />
 
-        <Form.Group>
-          <Form.Button primary size="big">
-            Save Encounter
-          </Form.Button>
+              <Form.Group widths="equal">
+                <Form.Field
+                  control={Dropdown}
+                  id="input-location"
+                  label="Location"
+                  name="location"
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  onClose={handleBlur}
+                  options={LOCATIONS}
+                  search
+                  selection
+                  selectOnBlur={false}
+                  value={values.location}
+                />
 
-          <Popup
-            trigger={<Form.Button content="Cancel" negative size="big" />}
-            content={<Form.Button content="Confirm?" onClick={this.handleCancel} />}
-            on="click"
-          />
-        </Form.Group>
-      </Form>
+                <Form.Field
+                  control={Dropdown}
+                  id="input-clinic"
+                  label="Clinic"
+                  name="clinic"
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  onClose={handleBlur}
+                  options={CLINICS}
+                  search
+                  selection
+                  selectOnBlur={false}
+                  value={values.clinic}
+                />
+              </Form.Group>
+
+              <Form.Group widths="equal">
+                <Form.Field
+                  control={Dropdown}
+                  id="input-diagnosis-type"
+                  label="Diagnosis Type"
+                  name="diagnosisType"
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  onClose={handleBlur}
+                  options={DIAGNOSES}
+                  search
+                  selection
+                  selectOnBlur={false}
+                  value={values.diagnosisType}
+                />
+
+                <Form.Field
+                  control={Input}
+                  disabled={values.diagnosisType !== 'Malignant'}
+                  id="input-diagnosis-free-text"
+                  label="Diagnosis"
+                  name="diagnosisFreeText"
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  value={values.diagnosisType === 'Malignant' ? values.diagnosisFreeText : ''}
+                />
+
+                <Form.Field
+                  clearable
+                  control={Dropdown}
+                  disabled={values.diagnosisType !== 'Malignant'}
+                  error={touched.diagnosisStage && errors.diagnosisStage}
+                  id="input-diagnosis-stage"
+                  label="Stage"
+                  name="diagnosisStage"
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  onClose={handleBlur}
+                  options={STAGES}
+                  selection
+                  selectOnBlur={false}
+                  value={values.diagnosisType === 'Malignant' ? values.diagnosisStage : ''}
+                />
+              </Form.Group>
+
+              <Form.Group widths="equal">
+                {/* could require a multiple of 5, could round up automatically */}
+                <Form.Field
+                  control={Input}
+                  error={touched.timeSpent && errors.timeSpent}
+                  label={
+                    <label>
+                      Time Spent{' '}
+                      <InfoButton content="The number of total minutes spent rounded up to the nearest 5, e.g. 75." />
+                    </label>
+                  }
+                  name="timeSpent"
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  value={values.timeSpent}
+                />
+
+                <Form.Field
+                  control={Input}
+                  label="Number of Tasks"
+                  name="numberOfTasks"
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  value={values.numberOfTasks}
+                />
+              </Form.Group>
+
+              <Form.Field
+                control={Checkbox}
+                id="input-research"
+                label={
+                  <label>
+                    Is patient involved in research?{' '}
+                    <InfoButton
+                      content="Mark this if you were referred by or coordinated with the research team, or are aware that the patient is on a research protocol, being considered for one, or is coming off of one."
+                      on="hover"
+                    />
+                  </label>
+                }
+                name="research"
+                onBlur={handleBlur}
+                onChange={handleChange}
+                checked={values.research}
+              />
+
+              <Form.Group>
+                <Form.Button disabled={isSubmitting} onClick={submitForm} primary size="big">
+                  Save Encounter
+                </Form.Button>
+
+                <Popup
+                  trigger={
+                    <Form.Button content="Cancel" disabled={isSubmitting} negative size="big" />
+                  }
+                  content={<Form.Button content="Confirm?" onClick={this.handleCancel} />}
+                  on="click"
+                />
+              </Form.Group>
+            </Form>
+          );
+        }}
+      </Formik>
     );
   }
 }
@@ -308,6 +405,16 @@ class App extends Component<{}, AppState> {
           >
             <Icon name="phone" />
             Community
+          </Button>
+
+          <Button
+            icon
+            labelPosition="left"
+            onClick={() => this.setState({ encounter: 'other' })}
+            size="big"
+          >
+            <Icon name="clock" />
+            Other
           </Button>
         </Container>
       </div>
