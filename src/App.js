@@ -60,7 +60,7 @@ const CLINICS = makeOptions([
 
 const DIAGNOSES = makeOptions(['Malignant', 'Benign', 'Unknown']);
 
-const STAGES = makeOptions(['Unknown', 'Early', 'Advanced', 'N/A']);
+const STAGES = makeOptions(['Unknown', 'Early', 'Advanced']);
 
 const INTERVENTIONS = makeOptions(['blah blah', 'bleh blah', 'etc.']);
 
