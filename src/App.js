@@ -284,6 +284,7 @@ class PatientEncounterForm extends Component<PatientEncounterFormProps> {
                   onChange={handleChange}
                   onClose={handleBlur}
                   options={STAGES}
+                  search
                   selection
                   selectOnBlur={false}
                   value={values.diagnosisType === 'Malignant' ? values.diagnosisStage : ''}
@@ -465,7 +466,7 @@ class PatientEncounterForm extends Component<PatientEncounterFormProps> {
                       <Form.Field label="Psychiatry, Psychotherapy" control={Checkbox} />
                       <Form.Field label="Behavioral, Safety Plan" control={Checkbox} />
                       <Form.Field label="External Supportive Care" control={Checkbox} />
-                      <Form.Field label="SCI Supportive Care Services" control={Checkbox} />
+                      <Form.Field label="SCI Supportive Care" control={Checkbox} />
                     </Form.Group>
 
                     <Form.Group grouped>
