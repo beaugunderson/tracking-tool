@@ -1,3 +1,18 @@
 body {
   padding: 2em;
 }
+
+.ui.form .grouped .inline.field {
+  display: inline-block ! important;
+  margin: 0;
+  width: 75px;
+}
+
+.inline.field + .transparent.input {
+  margin-left: 1em;
+}
+
+.hack {
+  margin-bottom: 0.25em;
+  padding: 0;
+}

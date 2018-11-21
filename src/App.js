@@ -10,6 +10,7 @@ import {
   Container,
   Divider,
   Dropdown,
+  Grid,
   Header,
   Icon,
   Input,
@@ -61,6 +62,8 @@ const DIAGNOSES = makeOptions(['Malignant', 'Benign', 'Unknown']);
 
 const STAGES = makeOptions(['Unknown', 'Early', 'Advanced', 'N/A']);
 
+const INTERVENTIONS = makeOptions(['blah blah', 'bleh blah', 'etc.']);
+
 type PatientEncounterFormProps = {
   onCancel: () => void
 };
@@ -89,7 +92,7 @@ const INITIAL_VALUES = {
   timeSpent: ''
 };
 
-const HELP_ICON = <Icon name="help circle" />;
+const HELP_ICON = <Icon color="grey" name="help circle" />;
 
 class InfoButton extends Component<*> {
   render() {
@@ -271,7 +274,6 @@ class PatientEncounterForm extends Component<PatientEncounterFormProps> {
                 />
 
                 <Form.Field
-                  clearable
                   control={Dropdown}
                   disabled={values.diagnosisType !== 'Malignant'}
                   error={touched.diagnosisStage && errors.diagnosisStage}
@@ -296,7 +298,7 @@ class PatientEncounterForm extends Component<PatientEncounterFormProps> {
                   label={
                     <label>
                       Time Spent{' '}
-                      <InfoButton content="The number of total minutes spent rounded up to the nearest 5, e.g. 75." />
+                      <InfoButton content="The number of total minutes spent rounded up to the nearest 5, e.g. 75, including documentation." />
                     </label>
                   }
                   name="timeSpent"
@@ -332,6 +334,173 @@ class PatientEncounterForm extends Component<PatientEncounterFormProps> {
                 onChange={handleChange}
                 checked={values.research}
               />
+
+              <Divider hidden />
+
+              <Form.Field
+                control={Dropdown}
+                fluid
+                openOnFocus={false}
+                options={INTERVENTIONS}
+                placeholder="Search for an intervention"
+                search
+                selection
+                selectOnBlur={false}
+                selectOnNavigation={false}
+                upward
+              />
+
+              <Divider hidden />
+
+              <Grid columns={3} divided>
+                <Grid.Row>
+                  <Grid.Column>
+                    <Form.Group grouped>
+                      <label>Encounter Type</label>
+
+                      <Form.Field label="Distress Screen" control={Checkbox} />
+                      <Form.Field label="Documentation" control={Checkbox} />
+                      <Form.Field label="Transplant Assessment" control={Checkbox} />
+                    </Form.Group>
+
+                    <Form.Group grouped>
+                      <label>Crisis</label>
+
+                      <Form.Field label="Severe Mental Illness" control={Checkbox} />
+                      <Form.Field label="Suicide/Homicide" control={Checkbox} />
+                      <Form.Field label="Substance Use" control={Checkbox} />
+                      <Form.Field label="Homelessness" control={Checkbox} />
+                      <Form.Field label="Adult Protection" control={Checkbox} />
+                      <Form.Field label="Child Protection" control={Checkbox} />
+                      <Form.Field label="Interpersonal Violence" control={Checkbox} />
+                      <Form.Field label="M&M (Mortality and Morbidity)" control={Checkbox} />
+                    </Form.Group>
+
+                    <Form.Group grouped>
+                      <label>Support Group Screening</label>
+
+                      <Form.Field label="Assessment, Referral" control={Checkbox} />
+                    </Form.Group>
+
+                    <Form.Group grouped>
+                      <label>Social, Practical</label>
+
+                      <Form.Field label="Food" control={Checkbox} />
+                      <Form.Field label="Transportation" control={Checkbox} />
+                      <Form.Field label="Lodging, Housing, Shelter" control={Checkbox} />
+                      <Form.Field label="Managing Work, Home Life, Illness" control={Checkbox} />
+                      <Form.Field label="Holiday Families" control={Checkbox} />
+                      <Form.Field label="Other Community Resources" control={Checkbox} />
+                    </Form.Group>
+                  </Grid.Column>
+                  <Grid.Column>
+                    <Form.Group grouped>
+                      <label>Advanced Care Planning</label>
+
+                      <Form.Field label="Facilitation" control={Checkbox} />
+                      <Form.Field label="Values Assessment" control={Checkbox} />
+                      <Form.Field label="Advanced Illness" control={Checkbox} />
+                      <Form.Field label="Death with Dignity" control={Checkbox} />
+                      <Form.Field label="Form Completion" control={Checkbox} />
+                    </Form.Group>
+
+                    <Form.Group grouped>
+                      <label>Family, Caregiver</label>
+
+                      <Form.Field
+                        label="Caregiver: Supportive Counseling, Education"
+                        control={Checkbox}
+                      />
+                      <Form.Field label="Family Meeting" control={Checkbox} />
+                      <Form.Field label="Respite Care" control={Checkbox} />
+                    </Form.Group>
+
+                    <Form.Group grouped>
+                      <label>Psychological, Emotional</label>
+                      <Form.Field label="New Diagnosis" control={Checkbox} />
+                      <Form.Field
+                        label="Patient: Supportive Counseling, Education"
+                        control={Checkbox}
+                      />
+                      <Form.Field label="Sexuality, Intimacy, Fertility" control={Checkbox} />
+                      <Form.Field label="Spiritual, Existential" control={Checkbox} />
+                      <Form.Field label="Survivorship" control={Checkbox} />
+                      <Divider hidden />
+                      <div className="hack">
+                        <Form.Field label="PHQ" control={Checkbox} inline />
+                        <Input
+                          transparent
+                          placeholder="Score"
+                          style={{ borderBottom: '1px solid black', width: '50px' }}
+                        />
+                      </div>
+                      <div className="hack">
+                        <Form.Field label="GAD" control={Checkbox} inline />
+                        <Input
+                          transparent
+                          placeholder="Score"
+                          style={{ borderBottom: '1px solid black', width: '50px' }}
+                        />
+                      </div>
+                      <div className="hack">
+                        <Form.Field label="MoCA" control={Checkbox} inline />
+                        <Input
+                          transparent
+                          placeholder="Score"
+                          style={{ borderBottom: '1px solid black', width: '50px' }}
+                        />
+                      </div>
+                    </Form.Group>
+                  </Grid.Column>
+
+                  <Grid.Column>
+                    <Form.Group grouped>
+                      <label>Care Coordination</label>
+
+                      <Form.Field label="Customer Service" control={Checkbox} />
+                      <Form.Field label="Care Coordination" control={Checkbox} />
+                      <Form.Field label="Home Health, Private Duty" control={Checkbox} />
+                      <Form.Field label="Palliative Care, Hospice" control={Checkbox} />
+                      <Form.Field label="Neuro-Cognitive Testing" control={Checkbox} />
+                      <Form.Field label="Psychiatry, Psychotherapy" control={Checkbox} />
+                      <Form.Field label="Behavioral, Safety Plan" control={Checkbox} />
+                      <Form.Field label="External Supportive Care" control={Checkbox} />
+                      <Form.Field label="SCI Supportive Care Services" control={Checkbox} />
+                    </Form.Group>
+
+                    <Form.Group grouped>
+                      <label>Financial, Legal</label>
+
+                      <Form.Field label="SCI Grant Funds" control={Checkbox} />
+                      <Form.Field label="Community Grant Funds" control={Checkbox} />
+                      <Form.Field label="Insurance Access, Assistance" control={Checkbox} />
+                      <Form.Field label="Swedish Financial Assistance" control={Checkbox} />
+                      <Form.Field label="Employment" control={Checkbox} />
+                      <Form.Field label="State/Federal Income" control={Checkbox} />
+                      <Form.Field label="VA Benefits" control={Checkbox} />
+                    </Form.Group>
+
+                    <Form.Group grouped>
+                      <label>Health Literacy</label>
+
+                      <Form.Field
+                        label="Accessing Accurate Medical Information"
+                        control={Checkbox}
+                      />
+                      <Form.Field
+                        label="Assessment: Understanding Treatment Options, Diagnosis"
+                        control={Checkbox}
+                      />
+                      <Form.Field
+                        label="Assisting: Talking to Healthcare Team"
+                        control={Checkbox}
+                      />
+                    </Form.Group>
+                  </Grid.Column>
+                </Grid.Row>
+              </Grid>
+
+              <Divider hidden />
 
               <Form.Group>
                 <Form.Button disabled={isSubmitting} onClick={submitForm} primary size="big">

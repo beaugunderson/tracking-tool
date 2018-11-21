@@ -3,7 +3,6 @@ module.exports = {
 
   env: {
     browser: true,
-    electron: true,
     node: true
   },
 

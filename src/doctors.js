@@ -13,6 +13,7 @@ export const DOCTORS = [
   'Brower, Jessica',
   'Brown, Thomas',
   'Buchanan, Claire',
+  'Buscariolo, Daniela',
   'Clay, Martha',
   'Cobbs, Charles',
   'Dong, David',
@@ -43,6 +44,7 @@ export const DOCTORS = [
   'Lee, Ellyn',
   'Lindsley, Skylar',
   'Loiselle, Christopher',
+  'Lopez, Jay',
   'Louie, Brian',
   'Lynn, Cecilia',
   'Marrs, Jessie',
@@ -88,5 +90,6 @@ export const DOCTORS = [
   'West, Howard - Jack',
   'Xie, Bin',
   'Yan, Fengting',
-  'Zhao, Song'
+  'Zhao, Song',
+  'Zucker, David'
 ];
