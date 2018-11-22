@@ -153,7 +153,6 @@ class PatientEncounterForm extends Component<PatientEncounterFormProps> {
           const handleChange = (e, { name, value, checked }) =>
             setFieldValue(name, value !== undefined ? value : checked);
 
-          // TODO figure out how to pass checked and not value
           const renderField = intervention => (
             <Form.Field
               checked={values[intervention.fieldName]}
@@ -161,7 +160,8 @@ class PatientEncounterForm extends Component<PatientEncounterFormProps> {
               key={intervention.fieldName}
               label={intervention.name}
               name={intervention.fieldName}
-              value={values[intervention.fieldName]}
+              onBlur={handleBlur}
+              onChange={handleChange}
             />
           );
 
@@ -173,12 +173,15 @@ class PatientEncounterForm extends Component<PatientEncounterFormProps> {
                 inline
                 label={intervention.name}
                 name={intervention.fieldName}
-                value={values[intervention.fieldName]}
+                onBlur={handleBlur}
+                onChange={handleChange}
               />
 
               <Input
                 className="score-field"
                 name={`${intervention.fieldName}-score`}
+                onBlur={handleBlur}
+                onChange={handleChange}
                 placeholder="Score"
                 transparent
                 value={values[`${intervention.fieldName}-score`]}
