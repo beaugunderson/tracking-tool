@@ -12,7 +12,12 @@ body {
   margin-left: 1em;
 }
 
-.hack {
+.score-field {
+  border-bottom: 1px solid black;
+  width: 50px;
+}
+
+.score-field-wrapper {
   margin-bottom: 0.25em;
   padding: 0;
 }
