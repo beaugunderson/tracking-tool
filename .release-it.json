@@ -1,7 +1,10 @@
 {
   "github": {
     "release": true,
-    "assets": ["dist/*.zip"],
+    "assets": [
+      "dist/*.exe",
+      "dist/*.zip"
+    ],
     "tokenRef": "RELEASE_IT_TOKEN"
   }
 }
