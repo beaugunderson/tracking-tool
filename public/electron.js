@@ -1,10 +1,10 @@
 const isDev = require('electron-is-dev');
 const path = require('path');
-const { app, BrowserWindow, shell, ipcMain, Menu } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu, shell } = require('electron');
 
 let mainWindow;
 
-createWindow = () => {
+const createWindow = () => {
   mainWindow = new BrowserWindow({
     backgroundColor: '#F7F7F7',
     minWidth: 400,
@@ -20,20 +20,22 @@ createWindow = () => {
     isDev ? 'http://localhost:3000' : `file://${path.join(__dirname, '../build/index.html')}`
   );
 
-  if (isDev) {
-    const {
-      default: installExtension,
-      REACT_DEVELOPER_TOOLS
-    } = require('electron-devtools-installer');
+  // if (isDev) {
+  //   const {
+  //     default: installExtension,
+  //     REACT_DEVELOPER_TOOLS
+  //   } = require('electron-devtools-installer');
 
-    installExtension(REACT_DEVELOPER_TOOLS)
-      .then(name => {
-        console.log(`Added Extension: ${name}`);
-      })
-      .catch(err => {
-        console.log('An error occurred: ', err);
-      });
-  }
+  //   installExtension(REACT_DEVELOPER_TOOLS)
+  //     .then(name => {
+  //       console.log(`Added Extension: ${name}`);
+  //     })
+  //     .catch(err => {
+  //       console.log(`An error occurred: ${err}`);
+  //     });
+
+  //   require('devtron').install();
+  // }
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
@@ -44,8 +46,10 @@ createWindow = () => {
   });
 };
 
-generateMenu = () => {
-  Menu.setApplicationMenu(null);
+const generateMenu = () => {
+  if (process.platform !== 'darwin') {
+    Menu.setApplicationMenu(null);
+  }
 };
 
 app.on('ready', () => {
