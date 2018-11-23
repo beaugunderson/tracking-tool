@@ -24,6 +24,7 @@ import {
   interventionGroups,
   interventionOptions
 } from './interventions';
+import { isEmpty } from 'lodash';
 
 const electron = window.require('electron');
 const fs = electron.remote.require('fs');
@@ -67,10 +68,6 @@ const DIAGNOSES = makeOptions(['Malignant', 'Benign', 'Unknown']);
 
 const STAGES = makeOptions(['Unknown', 'Early', 'Advanced']);
 
-type PatientEncounterFormProps = {
-  onCancel: () => void
-};
-
 function today() {
   const date = new Date();
 
@@ -96,22 +93,52 @@ const INITIAL_VALUES = {
   ...initialInterventionValues
 };
 
+const REQUIRED_FIELDS = [
+  'clinic',
+  'dateOfBirth',
+  'diagnosisType',
+  'encounterDate',
+  'location',
+  'md',
+  'mrn',
+  'patientName',
+  'timeSpent'
+];
+
 const HELP_ICON = <Icon color="grey" name="help circle" />;
 
 class InfoButton extends Component<*> {
   render() {
+    const { content, on, ...rest } = this.props;
+
     return (
       <Popup
-        content={this.props.content}
+        {...rest}
+        content={content}
         horizontalOffset={12}
-        on={this.props.on || 'click'}
+        on={on || 'click'}
         trigger={HELP_ICON}
       />
     );
   }
 }
 
-class PatientEncounterForm extends Component<PatientEncounterFormProps> {
+type PatientEncounterFormProps = {
+  onCancel: () => void
+};
+
+type PatientEncounterFormState = {
+  show: ?string
+};
+
+class PatientEncounterForm extends Component<
+  PatientEncounterFormProps,
+  PatientEncounterFormState
+> {
+  state = {
+    show: null
+  };
+
   handleCancel = () => this.props.onCancel();
 
   render() {
@@ -121,13 +148,29 @@ class PatientEncounterForm extends Component<PatientEncounterFormProps> {
         validate={values => {
           const errors = {};
 
-          if (values.diagnosisType === 'Malignant' && !values.diagnosisStage) {
-            errors.diagnosisStage = true;
+          if (values.diagnosisType === 'Malignant') {
+            if (!values.diagnosisFreeText) {
+              errors.diagnosisFreeText = true;
+            }
+
+            if (!values.diagnosisStage) {
+              errors.diagnosisStage = true;
+            }
+          }
+
+          if (!/^\d+$/.test(values.numberOfTasks)) {
+            errors.numberOfTasks = true;
           }
 
           if (!/^\d+$/.test(values.timeSpent)) {
             errors.timeSpent = true;
           }
+
+          REQUIRED_FIELDS.forEach(field => {
+            if (isEmpty(values[field])) {
+              errors[field] = true;
+            }
+          });
 
           return errors;
         }}
@@ -158,10 +201,25 @@ class PatientEncounterForm extends Component<PatientEncounterFormProps> {
               checked={values[intervention.fieldName]}
               control={Checkbox}
               key={intervention.fieldName}
-              label={intervention.name}
+              label={
+                <label>
+                  {intervention.name}{' '}
+                  {this.state.show === intervention.fieldName && (
+                    <InfoButton content={intervention.description} on="hover" />
+                  )}
+                </label>
+              }
               name={intervention.fieldName}
               onBlur={handleBlur}
               onChange={handleChange}
+              onMouseEnter={() => this.setState({ show: intervention.fieldName })}
+              onMouseLeave={() =>
+                this.setState(state => {
+                  if (state.show === intervention.fieldName) {
+                    return { show: null };
+                  }
+                })
+              }
             />
           );
 
@@ -215,6 +273,7 @@ class PatientEncounterForm extends Component<PatientEncounterFormProps> {
 
               <Form.Field
                 control={Input}
+                error={touched.encounterDate && errors.encounterDate}
                 id="input-encounter-date"
                 label="Encounter Date"
                 name="encounterDate"
@@ -227,6 +286,7 @@ class PatientEncounterForm extends Component<PatientEncounterFormProps> {
               <Form.Group widths="equal">
                 <Form.Field
                   control={Input}
+                  error={touched.mrn && errors.mrn}
                   id="input-mrn"
                   label="MRN"
                   name="mrn"
@@ -237,6 +297,7 @@ class PatientEncounterForm extends Component<PatientEncounterFormProps> {
 
                 <Form.Field
                   control={Input}
+                  error={touched.patientName && errors.patientName}
                   id="input-patient-name"
                   label="Patient Name"
                   name="patientName"
@@ -248,6 +309,7 @@ class PatientEncounterForm extends Component<PatientEncounterFormProps> {
 
                 <Form.Field
                   control={Input}
+                  error={touched.dateOfBirth && errors.dateOfBirth}
                   id="input-date-of-birth"
                   label="Date of Birth"
                   name="dateOfBirth"
@@ -261,6 +323,7 @@ class PatientEncounterForm extends Component<PatientEncounterFormProps> {
               <Form.Field
                 control={Dropdown}
                 deburr
+                error={touched.md && errors.md}
                 id="input-md"
                 label="MD"
                 multiple
@@ -277,6 +340,7 @@ class PatientEncounterForm extends Component<PatientEncounterFormProps> {
               <Form.Group widths="equal">
                 <Form.Field
                   control={Dropdown}
+                  error={touched.location && errors.location}
                   id="input-location"
                   label="Location"
                   name="location"
@@ -292,6 +356,7 @@ class PatientEncounterForm extends Component<PatientEncounterFormProps> {
 
                 <Form.Field
                   control={Dropdown}
+                  error={touched.clinic && errors.clinic}
                   id="input-clinic"
                   label="Clinic"
                   name="clinic"
@@ -309,6 +374,7 @@ class PatientEncounterForm extends Component<PatientEncounterFormProps> {
               <Form.Group widths="equal">
                 <Form.Field
                   control={Dropdown}
+                  error={touched.diagnosisType && errors.diagnosisType}
                   id="input-diagnosis-type"
                   label="Diagnosis Type"
                   name="diagnosisType"
@@ -325,6 +391,7 @@ class PatientEncounterForm extends Component<PatientEncounterFormProps> {
                 <Form.Field
                   control={Input}
                   disabled={values.diagnosisType !== 'Malignant'}
+                  error={touched.diagnosisFreeText && errors.diagnosisFreeText}
                   id="input-diagnosis-free-text"
                   label="Diagnosis"
                   name="diagnosisFreeText"
@@ -370,6 +437,7 @@ class PatientEncounterForm extends Component<PatientEncounterFormProps> {
 
                 <Form.Field
                   control={Input}
+                  error={touched.numberOfTasks && errors.numberOfTasks}
                   label="Number of Tasks"
                   name="numberOfTasks"
                   onBlur={handleBlur}
@@ -416,6 +484,7 @@ class PatientEncounterForm extends Component<PatientEncounterFormProps> {
                 selectOnBlur={false}
                 selectOnNavigation={false}
                 upward
+                value=""
               />
 
               <Divider hidden />

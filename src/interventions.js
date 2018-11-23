@@ -1,4 +1,6 @@
+import React from 'react';
 import slugify from 'slugify';
+import { Header } from 'semantic-ui-react';
 import { sortBy } from 'lodash';
 
 export const interventionGroups = [
@@ -331,9 +333,15 @@ interventionGroups.forEach(column => {
       _interventions.push(intervention);
 
       interventionOptions.push({
+        content: (
+          <div>
+            <Header as="h4" content={intervention.name} subheader={group.label} />
+            {intervention.description}
+          </div>
+        ),
         key: intervention.fieldName,
-        value: intervention.fieldName,
-        text: intervention.name
+        text: intervention.name,
+        value: intervention.fieldName
       });
     });
   });
