@@ -1,3 +1,4 @@
+import camelcase from 'camelcase';
 import React from 'react';
 import slugify from 'slugify';
 import { Header } from 'semantic-ui-react';
@@ -328,16 +329,18 @@ interventionGroups.forEach(column => {
   column.forEach(group => {
     group.interventions.forEach(intervention => {
       // eslint-disable-next-line
-      intervention.fieldName = slugify(intervention.name, { lower: true });
+      intervention.fieldName = camelcase(
+        slugify(intervention.name, { lower: true, remove: /[^a-zA-Z0-9 -]/ })
+      );
 
       _interventions.push(intervention);
 
       interventionOptions.push({
         content: (
-          <div>
+          <React.Fragment>
             <Header as="h4" content={intervention.name} subheader={group.label} />
             {intervention.description}
-          </div>
+          </React.Fragment>
         ),
         key: intervention.fieldName,
         text: intervention.name,

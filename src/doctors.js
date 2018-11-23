@@ -1,3 +1,5 @@
+// @flow
+
 export const DOCTORS = [
   'Alassas, Mohamed',
   'Aye, Ralph',

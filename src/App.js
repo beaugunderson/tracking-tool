@@ -4,31 +4,53 @@ import 'semantic-ui-css/semantic.min.css';
 
 import React from 'react';
 import { Button, Container, Divider, Header, Icon } from 'semantic-ui-react';
-import { PatientEncounterForm } from './PatientEncounterForm';
+import { ensureUserDirectoryExists, rootPathExists } from './store';
+import { Error } from './Error';
 import { FirstTimeSetup } from './FirstTimeSetup';
+import { PatientEncounterForm } from './PatientEncounterForm';
 
 function isFirstTime() {
-  return true;
+  return !rootPathExists();
 }
 
 type AppState = {
-  encounter: ?string
+  encounter: ?string,
+  error: ?string,
+  firstTimeSetup: boolean
 };
 
 class App extends React.Component<{}, AppState> {
   state = {
-    encounter: null
+    encounter: null,
+    error: null,
+    firstTimeSetup: isFirstTime()
   };
 
   render() {
-    const { encounter } = this.state;
+    const { encounter, error, firstTimeSetup } = this.state;
 
-    if (isFirstTime()) {
-      return <FirstTimeSetup />;
+    if (error) {
+      return <Error error={error} />;
+    }
+
+    if (firstTimeSetup) {
+      return <FirstTimeSetup onComplete={() => this.setState({ firstTimeSetup: false })} />;
+    }
+
+    try {
+      ensureUserDirectoryExists();
+    } catch (err) {
+      this.setState({ error: err });
     }
 
     if (encounter === 'patient') {
-      return <PatientEncounterForm onCancel={() => this.setState({ encounter: null })} />;
+      return (
+        <PatientEncounterForm
+          onCancel={() => this.setState({ encounter: null })}
+          onComplete={() => this.setState({ encounter: null })}
+          onError={err => this.setState({ error: err.message })}
+        />
+      );
     }
 
     return (

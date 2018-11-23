@@ -1,0 +1,17 @@
+#first-time-setup-header {
+  font-size: 4em;
+  font-weight: normal;
+  margin-bottom: 0;
+  margin-top: 1em;
+}
+
+#first-time-setup-description {
+  font-size: 1.7em;
+  font-weight: normal;
+  margin-bottom: 2em;
+  margin-top: 1.5em;
+}
+
+button .icon {
+  margin-left: 1.5em ! important;
+}

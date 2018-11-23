@@ -5,6 +5,7 @@ import './App.css';
 import React from 'react';
 import { Checkbox, Divider, Dropdown, Grid, Header, Input, Form, Popup } from 'semantic-ui-react';
 import { DOCTORS } from './doctors';
+import { openEncounters } from './data';
 import { Formik } from 'formik';
 import { InfoButton } from './InfoButton';
 import {
@@ -12,7 +13,7 @@ import {
   interventionGroups,
   interventionOptions
 } from './patient-interventions';
-import { isEmpty } from 'lodash';
+import { isEmpty, sortBy } from 'lodash';
 
 function makeOptions(options) {
   return options.map(option => ({ value: option, text: option }));
@@ -81,16 +82,19 @@ const REQUIRED_FIELDS = [
   'encounterDate',
   'location',
   'md',
-  'mrn',
-  'patientName',
-  'timeSpent'
+  'patientName'
 ];
 
+const NUMERIC_FIELDS = ['mrn', 'numberOfTasks', 'timeSpent'];
+
 type PatientEncounterFormProps = {
-  onCancel: () => void
+  onCancel: () => void,
+  onComplete: () => void,
+  onError: Error => void
 };
 
 type PatientEncounterFormState = {
+  patientOptions: { key: string, text: string, value: string, encounter: ?{} }[],
   show: ?string
 };
 
@@ -98,13 +102,34 @@ export class PatientEncounterForm extends React.Component<
   PatientEncounterFormProps,
   PatientEncounterFormState
 > {
+  encounters: *;
+
   state = {
+    patientOptions: [],
     show: null
   };
 
-  handleCancel = () => this.props.onCancel();
+  componentDidMount() {
+    this.encounters = openEncounters();
+  }
+
+  handlePatientSearchChange = (e: *, value: string) => {
+    this.encounters.find({ patientName: new RegExp(value, 'i') }, (err, docs) => {
+      // TODO add context like last visit data
+      const patientOptions = sortBy(docs, ['patientName']).map(doc => ({
+        key: doc.patientName,
+        value: doc.patientName,
+        text: doc.patientName,
+        encounter: doc
+      }));
+
+      this.setState({ patientOptions });
+    });
+  };
 
   render() {
+    const { patientOptions, show } = this.state;
+
     return (
       <Formik
         initialValues={INITIAL_VALUES}
@@ -121,13 +146,11 @@ export class PatientEncounterForm extends React.Component<
             }
           }
 
-          if (!/^\d+$/.test(values.numberOfTasks)) {
-            errors.numberOfTasks = true;
-          }
-
-          if (!/^\d+$/.test(values.timeSpent)) {
-            errors.timeSpent = true;
-          }
+          NUMERIC_FIELDS.forEach(field => {
+            if (!/^\d+$/.test(values[field])) {
+              errors[field] = true;
+            }
+          });
 
           REQUIRED_FIELDS.forEach(field => {
             if (isEmpty(values[field])) {
@@ -138,10 +161,15 @@ export class PatientEncounterForm extends React.Component<
           return errors;
         }}
         onSubmit={(values, { setSubmitting }) => {
-          setTimeout(() => {
-            alert(JSON.stringify(values, null, 2));
+          this.encounters.insert(values, err => {
             setSubmitting(false);
-          }, 400);
+
+            if (err) {
+              this.props.onError(err);
+            } else {
+              this.props.onComplete();
+            }
+          });
         }}
       >
         {({
@@ -159,6 +187,42 @@ export class PatientEncounterForm extends React.Component<
           const handleChange = (e, { name, value, checked }) =>
             setFieldValue(name, value !== undefined ? value : checked);
 
+          const handlePatientAddition = (e, { value }) => {
+            this.setState(state => ({
+              patientOptions: [
+                {
+                  key: value,
+                  text: value,
+                  value,
+                  encounter: null
+                },
+                ...state.patientOptions
+              ]
+            }));
+          };
+
+          const handlePatientChange = (e, { name, value, options }) => {
+            setFieldValue(name, value);
+
+            const selectedOption = options.find(option => option.value === value);
+
+            let encounter = selectedOption && selectedOption.encounter;
+
+            if (!encounter) {
+              encounter = INITIAL_VALUES;
+            }
+
+            setFieldValue('mrn', encounter.mrn);
+            setFieldValue('dateOfBirth', encounter.dateOfBirth);
+            setFieldValue('clinic', encounter.clinic);
+            setFieldValue('location', encounter.location);
+            setFieldValue('md', encounter.md);
+            setFieldValue('diagnosisType', encounter.diagnosisType);
+            setFieldValue('diagnosisFreeText', encounter.diagnosisFreeText);
+            setFieldValue('diagnosisStage', encounter.diagnosisStage);
+            setFieldValue('research', encounter.research);
+          };
+
           const renderField = intervention => (
             <Form.Field
               checked={values[intervention.fieldName]}
@@ -167,7 +231,7 @@ export class PatientEncounterForm extends React.Component<
               label={
                 <label>
                   {intervention.name}{' '}
-                  {this.state.show === intervention.fieldName && (
+                  {show === intervention.fieldName && (
                     <InfoButton content={intervention.description} on="hover" />
                   )}
                 </label>
@@ -250,14 +314,20 @@ export class PatientEncounterForm extends React.Component<
 
               <Form.Group widths="equal">
                 <Form.Field
-                  control={Input}
+                  allowAdditions
+                  control={Dropdown}
                   error={touched.patientName && errors.patientName}
                   id="input-patient-name"
                   label="Patient Name"
                   name="patientName"
+                  onAddItem={handlePatientAddition}
                   onBlur={handleBlur}
-                  onChange={handleChange}
+                  onChange={handlePatientChange}
+                  options={patientOptions}
+                  onSearchChange={this.handlePatientSearchChange}
                   placeholder="Last, First Middle"
+                  search
+                  selection
                   value={values.patientName}
                 />
 
@@ -469,7 +539,7 @@ export class PatientEncounterForm extends React.Component<
                   trigger={
                     <Form.Button content="Cancel" disabled={isSubmitting} negative size="big" />
                   }
-                  content={<Form.Button content="Confirm?" onClick={this.handleCancel} />}
+                  content={<Form.Button content="Confirm?" onClick={this.props.onCancel} />}
                   on="click"
                 />
               </Form.Group>

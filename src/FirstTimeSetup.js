@@ -1,34 +1,58 @@
-import React from 'react';
+// @flow
 
-import { Button, Header } from 'semantic-ui-react';
+import './first-time-setup.css';
+import React from 'react';
+import { Button, Container, Header, Icon } from 'semantic-ui-react';
+import { isEmpty } from 'lodash';
+import { setRootPath } from './store';
 
 const electron = window.require('electron');
-// const fs = electron.remote.require('fs');
+const fs = electron.remote.require('fs');
+const path = electron.remote.require('path');
 
-function selectDirectory() {
-  electron.remote.dialog.showOpenDialog({
-    buttonLabel: 'Choose Directory',
-    properties: ['openDirectory']
-  });
-}
+const ROOT_DIRECTORY_FILE = 'tracking-tool-root.txt';
 
-// fs.readdir('.', (err, files) => {
-//   console.log({ err, files });
-// });
+type FirstTimeSetupProps = {
+  onComplete: () => void
+};
 
-export class FirstTimeSetup extends React.Component<*> {
+export class FirstTimeSetup extends React.Component<FirstTimeSetupProps> {
+  handleOnClick = () => {
+    const selectedPaths = electron.remote.dialog.showOpenDialog({
+      buttonLabel: 'Choose Directory',
+      properties: ['openDirectory']
+    });
+
+    if (isEmpty(selectedPaths)) {
+      return;
+    }
+
+    const [selectedPath] = selectedPaths;
+
+    const rootFilePath = path.join(selectedPath, ROOT_DIRECTORY_FILE);
+
+    if (fs.existsSync(rootFilePath)) {
+      setRootPath(selectedPath);
+
+      this.props.onComplete();
+    }
+  };
+
   render() {
     return (
-      <React.Fragment>
-        <Header as="h1" content="First Time Setup" />
+      <Container text>
+        <Header as="h1" content="First Time Setup" id="first-time-setup-header" />
 
-        <p>
-          This is the first time you&#39;ve run Tracking Tool on this computer. Please choose your
-          team&#39;s data directory:
-        </p>
+        <Header
+          as="h2"
+          content="This is the first time you've run Tracking Tool on this computer. Please choose your team's data directory."
+          id="first-time-setup-description"
+        />
 
-        <Button content="Choose data directory" onClick={selectDirectory} size="big" />
-      </React.Fragment>
+        <Button icon onClick={this.handleOnClick} primary size="huge">
+          Choose Team Directory <Icon name="open folder" />
+        </Button>
+      </Container>
     );
   }
 }
