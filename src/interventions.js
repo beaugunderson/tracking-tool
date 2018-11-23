@@ -8,15 +8,18 @@ export const interventionGroups = [
       interventions: [
         {
           name: 'Distress Screen',
-          description: ''
+          description:
+            'Initial contact on DS (1st/2nd call, letter, letter only, clinic visit), not for subsequent follow-up'
         },
         {
           name: 'Documentation',
-          description: ''
+          description:
+            'When tracking an encounter where time/tasks includes documentation mark all categories that apply including Documentation. If completing documentation on the following day, enter a new encounter, mark Documentation only'
         },
         {
           name: 'Transplant Assessment',
-          description: ''
+          description:
+            'Coordination, assessment for consideration for transplant, including coordination with solid organ transplant team in support of their assessment'
         }
       ]
     },
@@ -26,35 +29,38 @@ export const interventionGroups = [
       interventions: [
         {
           name: 'Severe Mental Illness',
-          description: ''
+          description:
+            'Schizophrenia, bipolar, major depression, anxiety, etc. Any mental health issue severe enough to need social work to support patient through treatment'
         },
         {
           name: 'Suicide/Homicide',
-          description: ''
+          description: 'Assessment for suicidal, homicidal ideation'
         },
         {
           name: 'Substance Use',
-          description: ''
+          description:
+            'Assessment, support, referral for patient with SUD, including smoking cessation, AA'
         },
         {
           name: 'Homelessness',
-          description: ''
+          description: 'Imminent/chronic homelessness assessment, referral, coordination'
         },
         {
           name: 'Adult Protection',
-          description: ''
+          description: 'Referral to, coordination with APS'
         },
         {
           name: 'Child Protection',
-          description: ''
+          description: 'Referral to, coordination with CPS'
         },
         {
           name: 'Interpersonal Violence',
-          description: ''
+          description: 'Assessment, support, referral related to domestic violence'
         },
         {
           name: 'M&M (Mortality and Morbidity)',
-          description: ''
+          description:
+            'Create encounter, mark M&M upon patient’s death in cases where severe MH, SUD, homelessness are thought to have contributed to patient’s death regardless of if you actually had an encounter that would typically be tracked'
         }
       ]
     },
@@ -64,7 +70,7 @@ export const interventionGroups = [
       interventions: [
         {
           name: 'Assessment, Referral',
-          description: ''
+          description: 'Research, discussion of, referral to support groups'
         }
       ]
     },
@@ -74,27 +80,28 @@ export const interventionGroups = [
       interventions: [
         {
           name: 'Food',
-          description: ''
+          description: 'Food banks, Meals on Wheels, Chicken Soup Brigade'
         },
         {
           name: 'Transportation',
-          description: ''
+          description: 'ACS Road to Recovery, Hopelink, Paratransit, Access, Angel Flight'
         },
         {
           name: 'Lodging, Housing, Shelter',
-          description: ''
+          description: 'Information, referrals related to short-, long-term housing'
         },
         {
           name: 'Managing Work, Home Life, Illness',
-          description: ''
+          description: 'Cleaning for a Reason, home care, chore services, Caring Bridge, childcare'
         },
         {
           name: 'Holiday Families',
-          description: ''
+          description:
+            'Communication, coordination with, or about patients for Holiday Families Program'
         },
         {
           name: 'Other Community Resources',
-          description: ''
+          description: 'Choose if referrals do not match other more specific categories'
         }
       ]
     }
@@ -105,23 +112,25 @@ export const interventionGroups = [
       interventions: [
         {
           name: 'Facilitation',
-          description: ''
+          description:
+            'End of life discussions, including hospice/palliative care, Death with Dignity, activity related to advance directives'
         },
         {
           name: 'Values Assessment',
-          description: ''
+          description: 'Assessment of patient values to aid in treatment, end of life planning'
         },
         {
           name: 'Advanced Illness',
-          description: ''
+          description: 'Emotional, educational counseling related to advanced stage disease'
         },
         {
           name: 'Death with Dignity',
-          description: ''
+          description:
+            'Discussion, education, referrals, coordination with physicians, related to Death with Dignity'
         },
         {
           name: 'Form Completion',
-          description: ''
+          description: 'Helping patient complete advance directives'
         }
       ]
     },
@@ -131,15 +140,18 @@ export const interventionGroups = [
       interventions: [
         {
           name: 'Caregiver: Supportive Counseling, Education',
-          description: ''
+          description:
+            'Meeting with caregiver (with or without patient) for emotional, psychological support, information re caregiver role, resources'
         },
         {
           name: 'Family Meeting',
-          description: ''
+          description:
+            'Facilitate communication amongst patient and two or more family, caregivers, and healthcare providers where discussion is focused on issues related to treatment, care, decision-making'
         },
         {
           name: 'Respite Care',
-          description: ''
+          description:
+            'When caregiver is in need of services (if patient, use other categories), including in-home help with short-term custodial care placement, short-term assisted living placement, day program'
         }
       ]
     },
@@ -149,40 +161,47 @@ export const interventionGroups = [
       interventions: [
         {
           name: 'New Diagnosis',
-          description: ''
+          description: 'Interventions surrounding a new diagnosis, acute'
         },
         {
           name: 'Patient: Supportive Counseling, Education',
-          description: ''
+          description:
+            'Interactions involving supportive listening, validation, encouragement, other therapeutic interventions. Excludes survivorship, caregiver support'
         },
         {
           name: 'Sexuality, Intimacy, Fertility',
-          description: ''
+          description:
+            'Assessment, information, referral related to sexuality, intimacy, fertility'
         },
         {
           name: 'Spiritual, Existential',
-          description: ''
+          description:
+            'Spiritual assessment, including spirituality, belief systems, faith, religion, existential issues related to meaning/purpose, referrals to chaplain, spiritual leader, faith community'
         },
         {
           name: 'Survivorship',
-          description: ''
+          description:
+            'Supportive counseling, education, referrals for programs focused on survivorship issues, primarily for post-treatment, maintenance'
         },
 
         {
           name: 'PHQ',
-          description: '',
+          description:
+            'Mark when you have completed a PHQ with the patient in the encounter you are tracking, input the score',
           scored: true
         },
 
         {
           name: 'GAD',
-          description: '',
+          description:
+            'Mark when you have completed a GAD with the patient in the encounter you are tracking, input the score',
           scored: true
         },
 
         {
           name: 'MoCA',
-          description: '',
+          description:
+            'Mark when you have completed a MoCA with the patient in the encounter you are tracking, input the score',
           scored: true
         }
       ]
@@ -194,39 +213,46 @@ export const interventionGroups = [
       interventions: [
         {
           name: 'Customer Service',
-          description: ''
+          description:
+            'Introducing support services, quick check-ins, service recovery, patient relations'
         },
         {
           name: 'Care Coordination',
-          description: ''
+          description:
+            'Communication with healthcare team to include MD, RN, MA, PSC, outside care team members, case managers, other social workers. Excludes Palliative Care, Hospice, Psychiatry, Psychotherapy, Home Health, which should be tracked using the more specific categories'
         },
         {
           name: 'Home Health, Private Duty',
-          description: ''
+          description:
+            'Referrals, coordination, communication with home health or private duty caregiving'
         },
         {
           name: 'Palliative Care, Hospice',
-          description: ''
+          description:
+            'Referral, coordination with palliative care/hospice agency, including internal care coordination with Swedish Palliative Care team'
         },
         {
           name: 'Neuro-Cognitive Testing',
-          description: ''
+          description: 'Referral, coordination for neurological/cognitive assessment, treatment'
         },
         {
           name: 'Psychiatry, Psychotherapy',
-          description: ''
+          description: 'Research, referrals, coordination with psychiatry/psychotherapy resources'
         },
         {
           name: 'Behavioral, Safety Plan',
-          description: ''
+          description:
+            'Patient behavior challenges, including consult with staff, patient, family member, drafting behavioral agreement'
         },
         {
           name: 'External Supportive Care',
-          description: ''
+          description:
+            'Complementary, alternative medicine outside of SCI, including Swedish resources not associated with the Cancer Institute (e.g. acupuncture through the pain clinic), plus community resources'
         },
         {
           name: 'SCI Supportive Care',
-          description: ''
+          description:
+            'SCI Nutrition Counseling, Northwest Natural Health, Monroe Massage at SCI, Cancer Rehabilitation, Art & Music Therapy'
         }
       ]
     },
@@ -236,31 +262,35 @@ export const interventionGroups = [
       interventions: [
         {
           name: 'SCI Grant Funds',
-          description: ''
+          description: 'Discussion, facilitation of SCI grant funds'
         },
         {
           name: 'Community Grant Funds',
-          description: ''
+          description:
+            'Cancer Lifeline, LLS, other organizations providing direct funding to patients'
         },
         {
           name: 'Insurance Access, Assistance',
-          description: ''
+          description:
+            'Education, advocacy, referral on Medicare, Medicaid, Medicare Savings, COBRA, Healthcare Exchange, referral to PFA, SHIBA'
         },
         {
           name: 'Swedish Financial Assistance',
-          description: ''
+          description:
+            'Information re financial assistance, providing application, coordination, advocacy'
         },
         {
           name: 'Employment',
-          description: ''
+          description:
+            'Employment concerns, FMLA, talking with HR, work accommodations, referrals to Cancer & Careers, Bureau of Labor, career or job assistance, scholarships'
         },
         {
           name: 'State/Federal Income',
-          description: ''
+          description: 'SSI, SSDI, Food Stamps, LIHEAP, TANF'
         },
         {
           name: 'VA Benefits',
-          description: ''
+          description: 'Veteran benefit referral, coordination'
         }
       ]
     },
@@ -270,15 +300,18 @@ export const interventionGroups = [
       interventions: [
         {
           name: 'Accessing Accurate Medical Information',
-          description: ''
+          description:
+            'Talking to patient re where to find reputable resources for medical information'
         },
         {
           name: 'Assessment: Understanding Treatment Options, Diagnosis',
-          description: ''
+          description:
+            'Understanding of illness, if it is a values assessment track under ACP instead'
         },
         {
           name: 'Assisting: Talking to Healthcare Team',
-          description: ''
+          description:
+            'Communication assistance between patient and MD, RN, MA, PSC, etc. to clarify treatment plan or other needs, including coaching, informing, strategizing communication with clinical team, helping patient to formulate questions'
         }
       ]
     }
@@ -292,6 +325,7 @@ export const interventionOptions = [];
 interventionGroups.forEach(column => {
   column.forEach(group => {
     group.interventions.forEach(intervention => {
+      // eslint-disable-next-line
       intervention.fieldName = slugify(intervention.name, { lower: true });
 
       _interventions.push(intervention);
