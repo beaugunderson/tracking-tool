@@ -23,7 +23,7 @@ import {
   initialInterventionValues,
   interventionGroups,
   interventionOptions
-} from './interventions';
+} from './patient-interventions';
 import { isEmpty } from 'lodash';
 
 const electron = window.require('electron');
@@ -235,15 +235,17 @@ class PatientEncounterForm extends Component<
                 onChange={handleChange}
               />
 
-              <Input
-                className="score-field"
-                name={`${intervention.fieldName}-score`}
-                onBlur={handleBlur}
-                onChange={handleChange}
-                placeholder="Score"
-                transparent
-                value={values[`${intervention.fieldName}-score`]}
-              />
+              {values[intervention.fieldName] && (
+                <Input
+                  className="score-field"
+                  name={`${intervention.fieldName}-score`}
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  placeholder="Score"
+                  transparent
+                  value={values[`${intervention.fieldName}-score`]}
+                />
+              )}
             </div>
           );
 
@@ -286,17 +288,6 @@ class PatientEncounterForm extends Component<
               <Form.Group widths="equal">
                 <Form.Field
                   control={Input}
-                  error={touched.mrn && errors.mrn}
-                  id="input-mrn"
-                  label="MRN"
-                  name="mrn"
-                  onBlur={handleBlur}
-                  onChange={handleChange}
-                  value={values.mrn}
-                />
-
-                <Form.Field
-                  control={Input}
                   error={touched.patientName && errors.patientName}
                   id="input-patient-name"
                   label="Patient Name"
@@ -305,6 +296,17 @@ class PatientEncounterForm extends Component<
                   onChange={handleChange}
                   placeholder="Last, First Middle"
                   value={values.patientName}
+                />
+
+                <Form.Field
+                  control={Input}
+                  error={touched.mrn && errors.mrn}
+                  id="input-mrn"
+                  label="MRN"
+                  name="mrn"
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  value={values.mrn}
                 />
 
                 <Form.Field
