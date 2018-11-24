@@ -225,9 +225,9 @@ export const interventionGroups = [
             'Communication with healthcare team to include MD, RN, MA, PSC, outside care team members, case managers, other social workers. Excludes Palliative Care, Hospice, Psychiatry, Psychotherapy, Home Health, which should be tracked using the more specific categories'
         },
         {
-          name: 'Home Health, Private Duty',
+          name: 'Home Care, Facility',
           description:
-            'Referrals, coordination, communication with home health or private duty caregiving'
+            'Referrals, coordination, communication with home health, private duty caregiving, and facility, includes pre-discharge planning'
         },
         {
           name: 'Palliative Care, Hospice',
@@ -236,7 +236,8 @@ export const interventionGroups = [
         },
         {
           name: 'Neuro-Cognitive Testing',
-          description: 'Referral, coordination for neurological/cognitive assessment, treatment'
+          description:
+            'Referral, coordination for neurological/cognitive assessment, treatment; excludes completion of MoCA, which should be tracked using the more specific category'
         },
         {
           name: 'Psychiatry, Psychotherapy',
@@ -289,7 +290,8 @@ export const interventionGroups = [
         },
         {
           name: 'State/Federal Income',
-          description: 'SSI, SSDI, Food Stamps, LIHEAP, TANF'
+          description:
+            'Benefits consultation, assistance with SSI, SSDI, Food Stamps, LIHEAP, TANF'
         }
       ]
     },

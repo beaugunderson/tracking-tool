@@ -249,16 +249,8 @@ class UnwrappedPatientEncounterForm extends React.Component<
   );
 
   render() {
-    const { patientOptions, show } = this.state;
-    const {
-      errors,
-      isSubmitting,
-      setFieldTouched,
-      setFieldValue,
-      submitForm,
-      touched,
-      values
-    } = this.props;
+    const { patientOptions } = this.state;
+    const { errors, isSubmitting, setFieldValue, submitForm, touched, values } = this.props;
 
     const columns = interventionGroups.map((column, i) => {
       return (
@@ -347,7 +339,15 @@ class UnwrappedPatientEncounterForm extends React.Component<
           deburr
           error={touched.md && errors.md}
           id="input-md"
-          label="MD"
+          label={
+            <label>
+              MD{' '}
+              <InfoButton
+                content="Input multiple providers as appropriate, first MD listed should be primary MD associated with that day's encounter"
+                on="hover"
+              />
+            </label>
+          }
           multiple
           name="md"
           onBlur={this.handleBlur}
@@ -448,7 +448,10 @@ class UnwrappedPatientEncounterForm extends React.Component<
             label={
               <label>
                 Time Spent{' '}
-                <InfoButton content="The number of total minutes spent rounded up to the nearest 5, e.g. 75, including documentation." />
+                <InfoButton
+                  content="The number of total minutes on all encounters for this patient on this day, rounded up to the nearest 5, e.g. 75 minutes, including full representation of time spent documenting"
+                  on="hover"
+                />
               </label>
             }
             name="timeSpent"
@@ -475,7 +478,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
             <label>
               Is patient involved in research?{' '}
               <InfoButton
-                content="Mark this if you were referred by or coordinated with the research team, or are aware that the patient is on a research protocol, being considered for one, or is coming off of one."
+                content="Mark this if you were referred by or coordinated with the research team, or are aware that the patient is on a research protocol, being considered for one, or is coming off of one"
                 on="hover"
               />
             </label>
