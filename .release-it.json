@@ -1,4 +1,5 @@
 {
+  "buildCommand": "yarn dist",
   "github": {
     "release": true,
     "assets": [
