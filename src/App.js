@@ -7,6 +7,7 @@ import { Button, Container, Divider, Header, Icon } from 'semantic-ui-react';
 import { ensureUserDirectoryExists, rootPathExists } from './store';
 import { Error } from './Error';
 import { FirstTimeSetup } from './FirstTimeSetup';
+import { openEncounters } from './data';
 import { PatientEncounterForm } from './PatientEncounterForm';
 
 function isFirstTime() {
@@ -43,9 +44,12 @@ class App extends React.Component<{}, AppState> {
       this.setState({ error: err });
     }
 
+    const encounters = openEncounters();
+
     if (encounter === 'patient') {
       return (
         <PatientEncounterForm
+          encounters={encounters}
           onCancel={() => this.setState({ encounter: null })}
           onComplete={() => this.setState({ encounter: null })}
           onError={err => this.setState({ error: err.message })}
