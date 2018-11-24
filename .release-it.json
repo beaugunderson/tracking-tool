@@ -3,8 +3,8 @@
   "github": {
     "release": true,
     "assets": [
-      "dist/*.exe",
-      "dist/*.zip"
+      "dist/*${version}.exe",
+      "dist/*${version}-mac.zip"
     ],
     "tokenRef": "RELEASE_IT_TOKEN"
   }
