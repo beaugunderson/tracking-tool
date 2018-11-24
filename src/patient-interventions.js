@@ -290,10 +290,6 @@ export const interventionGroups = [
         {
           name: 'State/Federal Income',
           description: 'SSI, SSDI, Food Stamps, LIHEAP, TANF'
-        },
-        {
-          name: 'VA Benefits',
-          description: 'Veteran benefit referral, coordination'
         }
       ]
     },
