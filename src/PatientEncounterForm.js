@@ -3,7 +3,17 @@
 import './App.css';
 
 import React from 'react';
-import { Checkbox, Divider, Dropdown, Grid, Header, Input, Form, Popup } from 'semantic-ui-react';
+import {
+  Checkbox,
+  Divider,
+  Dropdown,
+  Grid,
+  Header,
+  Input,
+  Form,
+  Popup,
+  Ref
+} from 'semantic-ui-react';
 import { DOCTORS } from './doctors';
 import { InfoButton } from './InfoButton';
 import {
@@ -11,7 +21,7 @@ import {
   interventionGroups,
   interventionOptions
 } from './patient-interventions';
-import { isEmpty, sortBy } from 'lodash';
+import { chain, isEmpty } from 'lodash';
 import { withFormik } from 'formik';
 
 function makeOptions(options) {
@@ -98,6 +108,46 @@ const docToOption = doc => ({
   encounter: doc
 });
 
+const NUMBER_OF_TASKS_LABEL = (
+  <label>
+    Number of Tasks{' '}
+    <InfoButton
+      content="The number of tasks associated with the encounter, equal to the number of lines you would have completed in the old spreadsheet format.  For example, discussion with MD, seeing patient, and coordinating with PFA would equal 3 tasks"
+      on="hover"
+    />
+  </label>
+);
+
+const TIME_SPENT_LABEL = (
+  <label>
+    Time Spent{' '}
+    <InfoButton
+      content="The number of total minutes on all encounters for this patient on this day, rounded up to the nearest 5, e.g. 75 minutes, including full representation of time spent documenting"
+      on="hover"
+    />
+  </label>
+);
+
+const MD_LABEL = (
+  <label>
+    MD{' '}
+    <InfoButton
+      content="Input multiple providers as appropriate, first MD listed should be primary MD associated with that day's encounter"
+      on="hover"
+    />
+  </label>
+);
+
+const RESEARCH_LABEL = (
+  <label>
+    Is patient involved in research?{' '}
+    <InfoButton
+      content="Mark this if you were referred by or coordinated with the research team, or are aware that the patient is on a research protocol, being considered for one, or is coming off of one"
+      on="hover"
+    />
+  </label>
+);
+
 type PatientEncounterFormProps = {
   encounters: *,
   errors: { [string]: boolean },
@@ -121,34 +171,49 @@ class UnwrappedPatientEncounterForm extends React.Component<
   PatientEncounterFormProps,
   PatientEncounterFormState
 > {
-  patientNameRef: { current: React$ElementRef<typeof HTMLInputElement> | null };
+  patientNameRef: React$ElementRef<typeof HTMLInputElement> | null;
 
   state = {
     patientOptions: [],
     show: null
   };
 
-  constructor(props: PatientEncounterFormProps) {
-    super(props);
-    this.patientNameRef = React.createRef();
-  }
-
   componentDidMount() {
     this.props.encounters
       .find({})
       .sort({ encounterDate: -1, patientName: 1 })
-      .limit(5)
+      .limit(25)
       .exec((err, docs) => {
-        this.setState({ patientOptions: sortBy(docs, ['patientName']).map(docToOption) });
+        const patientOptions = chain(docs)
+          .sortBy(doc => doc.patientName.toLowerCase())
+          .uniqBy('patientName')
+          .map(docToOption)
+          .slice(0, 5)
+          .value();
+
+        this.setState({ patientOptions });
       });
+
+    if (this.patientNameRef) {
+      const input = this.patientNameRef.querySelector('input');
+
+      if (input) {
+        input.focus();
+      }
+    }
   }
 
-  handlePatientSearchChange = (e: *, value: string) => {
+  handlePatientSearchChange = (e: *, { searchQuery }) => {
     this.props.encounters
-      .find({ patientName: new RegExp(value, 'i') })
+      .find({ patientName: new RegExp(searchQuery, 'i') })
       .sort({ patientName: 1 })
       .exec((err, docs) => {
-        this.setState({ patientOptions: sortBy(docs, ['patientName']).map(docToOption) });
+        const patientOptions = chain(docs)
+          .uniqBy('patientName')
+          .map(docToOption)
+          .value();
+
+        this.setState({ patientOptions });
       });
   };
 
@@ -193,6 +258,14 @@ class UnwrappedPatientEncounterForm extends React.Component<
     setFieldValue('diagnosisFreeText', encounter.diagnosisFreeText);
     setFieldValue('diagnosisStage', encounter.diagnosisStage);
     setFieldValue('research', encounter.research);
+  };
+
+  handleInterventionChange = (e, data) => {
+    if (!data) {
+      return;
+    }
+
+    this.props.setFieldValue(data.value, true);
   };
 
   renderField = intervention => (
@@ -250,7 +323,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
 
   render() {
     const { patientOptions } = this.state;
-    const { errors, isSubmitting, setFieldValue, submitForm, touched, values } = this.props;
+    const { errors, isSubmitting, submitForm, touched, values } = this.props;
 
     const columns = interventionGroups.map((column, i) => {
       return (
@@ -289,26 +362,28 @@ class UnwrappedPatientEncounterForm extends React.Component<
         />
 
         <Form.Group widths="equal">
-          <Form.Field
-            allowAdditions
-            autocomplete
-            control={Dropdown}
-            error={touched.patientName && errors.patientName}
-            id="input-patient-name"
-            label="Patient Name"
-            name="patientName"
-            onAddItem={this.handlePatientAddition}
-            onBlur={this.handleBlur}
-            onChange={this.handlePatientChange}
-            onClose={this.handleBlur}
-            options={patientOptions}
-            onSearchChange={this.handlePatientSearchChange}
-            placeholder="Last, First Middle"
-            search
-            selectOnBlur={false}
-            selection
-            value={values.patientName}
-          />
+          <Ref innerRef={ref => (this.patientNameRef = ref)}>
+            <Form.Field
+              allowAdditions
+              control={Dropdown}
+              defaultOpen
+              error={touched.patientName && errors.patientName}
+              id="input-patient-name"
+              label="Patient Name"
+              name="patientName"
+              onAddItem={this.handlePatientAddition}
+              onBlur={this.handleBlur}
+              onChange={this.handlePatientChange}
+              onClose={this.handleBlur}
+              options={patientOptions}
+              onSearchChange={this.handlePatientSearchChange}
+              placeholder="Last, First Middle"
+              search
+              selectOnBlur={false}
+              selection
+              value={values.patientName}
+            />
+          </Ref>
 
           <Form.Field
             control={Input}
@@ -339,15 +414,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
           deburr
           error={touched.md && errors.md}
           id="input-md"
-          label={
-            <label>
-              MD{' '}
-              <InfoButton
-                content="Input multiple providers as appropriate, first MD listed should be primary MD associated with that day's encounter"
-                on="hover"
-              />
-            </label>
-          }
+          label={MD_LABEL}
           multiple
           name="md"
           onBlur={this.handleBlur}
@@ -445,15 +512,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
           <Form.Field
             control={Input}
             error={touched.timeSpent && errors.timeSpent}
-            label={
-              <label>
-                Time Spent{' '}
-                <InfoButton
-                  content="The number of total minutes on all encounters for this patient on this day, rounded up to the nearest 5, e.g. 75 minutes, including full representation of time spent documenting"
-                  on="hover"
-                />
-              </label>
-            }
+            label={TIME_SPENT_LABEL}
             name="timeSpent"
             onBlur={this.handleBlur}
             onChange={this.handleChange}
@@ -463,7 +522,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
           <Form.Field
             control={Input}
             error={touched.numberOfTasks && errors.numberOfTasks}
-            label="Number of Tasks"
+            label={NUMBER_OF_TASKS_LABEL}
             name="numberOfTasks"
             onBlur={this.handleBlur}
             onChange={this.handleChange}
@@ -474,15 +533,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
         <Form.Field
           control={Checkbox}
           id="input-research"
-          label={
-            <label>
-              Is patient involved in research?{' '}
-              <InfoButton
-                content="Mark this if you were referred by or coordinated with the research team, or are aware that the patient is on a research protocol, being considered for one, or is coming off of one"
-                on="hover"
-              />
-            </label>
-          }
+          label={RESEARCH_LABEL}
           name="research"
           onBlur={this.handleBlur}
           onChange={this.handleChange}
@@ -494,13 +545,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
         <Form.Field
           control={Dropdown}
           fluid
-          onChange={(e, data) => {
-            if (!data) {
-              return;
-            }
-
-            setFieldValue(data.value, true);
-          }}
+          onChange={this.handleInterventionChange}
           openOnFocus={false}
           options={interventionOptions}
           placeholder="Search for an intervention"
@@ -568,7 +613,7 @@ export const PatientEncounterForm = withFormik({
   },
 
   handleSubmit: (values, { props, setSubmitting }) => {
-    props.encounters.insert({ ...values, created: new Date() }, err => {
+    props.encounters.insert(values, err => {
       setSubmitting(false);
 
       if (err) {
