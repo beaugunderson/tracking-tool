@@ -1,10 +1,10 @@
 {
-  "buildCommand": "yarn dist",
+  "buildCommand": "rm -rf dist/ && yarn dist",
   "github": {
     "release": true,
     "assets": [
-      "dist/*${version}.exe",
-      "dist/*${version}-mac.zip"
+      "dist/*.exe",
+      "dist/*-mac.zip"
     ],
     "tokenRef": "RELEASE_IT_TOKEN"
   }
