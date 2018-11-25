@@ -55,7 +55,7 @@ const CLINICS = makeOptions([
   'Thoracic Surgery'
 ]);
 
-const DIAGNOSES = makeOptions(['Malignant', 'Benign', 'Unknown']);
+const DIAGNOSES = makeOptions(['Malignant', 'Benign/Other', 'Unknown']);
 
 const STAGES = makeOptions(['Unknown', 'Early', 'Advanced']);
 
