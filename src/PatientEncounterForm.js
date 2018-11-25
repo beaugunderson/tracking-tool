@@ -507,29 +507,6 @@ class UnwrappedPatientEncounterForm extends React.Component<
           />
         </Form.Group>
 
-        <Form.Group widths="equal">
-          {/* could require a multiple of 5, could round up automatically */}
-          <Form.Field
-            control={Input}
-            error={touched.timeSpent && errors.timeSpent}
-            label={TIME_SPENT_LABEL}
-            name="timeSpent"
-            onBlur={this.handleBlur}
-            onChange={this.handleChange}
-            value={values.timeSpent}
-          />
-
-          <Form.Field
-            control={Input}
-            error={touched.numberOfTasks && errors.numberOfTasks}
-            label={NUMBER_OF_TASKS_LABEL}
-            name="numberOfTasks"
-            onBlur={this.handleBlur}
-            onChange={this.handleChange}
-            value={values.numberOfTasks}
-          />
-        </Form.Group>
-
         <Form.Field
           control={Checkbox}
           id="input-research"
@@ -562,6 +539,31 @@ class UnwrappedPatientEncounterForm extends React.Component<
         <Grid columns={interventionGroups.length} divided>
           <Grid.Row>{columns}</Grid.Row>
         </Grid>
+
+        <Divider hidden />
+
+        <Form.Group widths="equal">
+          {/* could require a multiple of 5, could round up automatically */}
+          <Form.Field
+            control={Input}
+            error={touched.timeSpent && errors.timeSpent}
+            label={TIME_SPENT_LABEL}
+            name="timeSpent"
+            onBlur={this.handleBlur}
+            onChange={this.handleChange}
+            value={values.timeSpent}
+          />
+
+          <Form.Field
+            control={Input}
+            error={touched.numberOfTasks && errors.numberOfTasks}
+            label={NUMBER_OF_TASKS_LABEL}
+            name="numberOfTasks"
+            onBlur={this.handleBlur}
+            onChange={this.handleChange}
+            value={values.numberOfTasks}
+          />
+        </Form.Group>
 
         <Divider hidden />
 
