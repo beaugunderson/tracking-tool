@@ -615,7 +615,7 @@ export const PatientEncounterForm = withFormik({
   },
 
   handleSubmit: (values, { props, setSubmitting }) => {
-    props.encounters.insert(values, err => {
+    props.encounters.insert({ ...values, encounterType: 'patient' }, err => {
       setSubmitting(false);
 
       if (err) {
