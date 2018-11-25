@@ -3,8 +3,8 @@
   "author": "Beau Gunderson <beau@beaugunderson.com>",
   "description": "Social work tracking tool",
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/beaugunderson/tracking-tool.git"
+    "type": "git",
+    "url": "https://github.com/beaugunderson/tracking-tool.git"
   },
   "version": "1.0.0",
   "private": true,
@@ -30,7 +30,7 @@
   },
   "scripts": {
     "build": "react-scripts build",
-    "dist": "electron-builder --mac --win",
+    "dist": "rm -rf dist/ && electron-builder --mac --win",
     "eject": "react-scripts eject",
     "pack": "electron-builder --dir --mac --win",
     "predist": "yarn build",

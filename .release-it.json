@@ -1,5 +1,5 @@
 {
-  "buildCommand": "rm -rf dist/ && yarn dist",
+  "buildCommand": "yarn dist",
   "github": {
     "release": true,
     "assets": [
