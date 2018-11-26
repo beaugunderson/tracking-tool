@@ -131,6 +131,8 @@ const docToOption = doc => {
     ),
     // the doc itself, so we can auto-fill
     encounter: doc,
+    // specify a key since Semantic uses the value otherwise and it may not be unique
+    key: `${doc.patientName}-${doc.mrn}-${doc.dateOfBirth}`,
     // the text that's searched by the Dropdown as we type; we add DOB so we can add patients with
     // duplicate names; this is also what's displayed in the Dropdown on change
     text: (
