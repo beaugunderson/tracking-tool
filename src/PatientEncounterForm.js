@@ -2,6 +2,7 @@
 
 import './App.css';
 
+import moment from 'moment';
 import React from 'react';
 import {
   Checkbox,
@@ -22,7 +23,7 @@ import {
   interventionGroups,
   interventionOptions
 } from './patient-interventions';
-import { chain, isEmpty } from 'lodash';
+import { chain, deburr, escapeRegExp, isEmpty } from 'lodash';
 import { withFormik } from 'formik';
 
 const debug = Debug('tracking-tool:patient-encounter-form');
@@ -97,21 +98,59 @@ const REQUIRED_FIELDS = [
   'patientName'
 ];
 
-const NUMERIC_FIELDS = ['mrn', 'numberOfTasks', 'timeSpent'];
+const NUMERIC_FIELDS = ['numberOfTasks', 'timeSpent'];
 
 const SCORED_FIELDS = ['phq', 'gad', 'moca'];
 
-const docToOption = doc => ({
-  content: (
-    <React.Fragment>
-      <strong>{doc.patientName}</strong> &mdash; {doc.encounterDate}
-    </React.Fragment>
-  ),
-  key: doc.patientName,
-  value: doc.patientName,
-  text: doc.patientName,
-  encounter: doc
-});
+const docToOption = doc => {
+  const _today = moment()
+    .hour(0)
+    .minute(0)
+    .second(0)
+    .millisecond(0);
+  const dateOfBirth = moment(doc.dateOfBirth);
+
+  let relativeTime = moment(doc.encounterDate).from(_today);
+  // let relativeTime = moment(doc.encounterDate).format('MM/DD');
+
+  if (doc.encounterDate === _today.format('YYYY-MM-DD')) {
+    relativeTime = 'today';
+  } else if (doc.encounterDate === _today.subtract(1, 'day').format('YYYY-MM-DD')) {
+    relativeTime = 'yesterday';
+  }
+
+  let yearFormat = 'YY';
+
+  // 1918 - 1900 == 18 <= 2018 - 2000 == 18: true
+  // 1982 - 1900 == 82 <= 2018 - 2000 == 18: false
+  if (dateOfBirth.year() - 1900 <= _today.year() - 2000) {
+    yearFormat = 'YYYY';
+  }
+
+  const formattedDateOfBirth = dateOfBirth.format(`M/D/${yearFormat}`);
+
+  return {
+    // displayed in the search results as a row
+    content: (
+      <React.Fragment>
+        <strong>{doc.patientName}</strong>{' '}
+        <span style={{ color: '#666' }}>{formattedDateOfBirth}</span>{' '}
+        <span style={{ color: '#aaa' }}>{relativeTime}</span>
+      </React.Fragment>
+    ),
+    // the doc itself, so we can auto-fill
+    encounter: doc,
+    // the text that's searched by the Dropdown as we type; we add DOB so we can add patients with
+    // duplicate names; this is also what's displayed in the Dropdown on change
+    text: (
+      <React.Fragment>
+        {doc.patientName} <input type="hidden" value={doc.dateOfBirth} />
+      </React.Fragment>
+    ),
+    // the value stored in the field upon selection
+    value: doc.patientName
+  };
+};
 
 const NUMBER_OF_TASKS_LABEL = (
   <label>
@@ -178,6 +217,7 @@ type PatientEncounterFormProps = {
   onError: Error => void,
   setFieldTouched: (string, boolean) => void,
   setFieldValue: (string, string | boolean | Array<*>) => void,
+  setValues: ({ [string]: string | boolean | Array<*> }) => void,
   submitForm: () => void,
   touched: { [string]: boolean },
   values: { [string]: string | boolean | Array<*> }
@@ -199,21 +239,43 @@ class UnwrappedPatientEncounterForm extends React.Component<
     patientOptions: []
   };
 
-  componentDidMount() {
+  setInitialEncounterList = () => {
     this.props.encounters
       .find({})
       .sort({ encounterDate: -1, patientName: 1 })
       .limit(25)
       .exec((err, docs) => {
         const patientOptions = chain(docs)
-          .sortBy(doc => doc.patientName.toLowerCase())
-          .uniqBy('patientName')
+          .sortBy(['encounterDate', 'createdAt'])
+          .reverse()
+          .uniqBy('mrn')
           .map(docToOption)
           .slice(0, 5)
           .value();
 
         this.setState({ patientOptions });
       });
+  };
+
+  setSearchEncounterList = searchQuery => {
+    this.props.encounters
+      .find({ patientName: new RegExp(searchQuery, 'i') })
+      .sort({ patientName: 1 })
+      .exec((err, docs) => {
+        const patientOptions = chain(docs)
+          .sortBy('encounterDate')
+          .reverse()
+          .uniqBy('mrn')
+          .sortBy('patientName')
+          .map(docToOption)
+          .value();
+
+        this.setState({ patientOptions });
+      });
+  };
+
+  componentDidMount() {
+    this.setInitialEncounterList();
 
     if (this.patientNameRef) {
       const input = this.patientNameRef.querySelector('input');
@@ -223,20 +285,6 @@ class UnwrappedPatientEncounterForm extends React.Component<
       }
     }
   }
-
-  handlePatientSearchChange = (e: *, { searchQuery }) => {
-    this.props.encounters
-      .find({ patientName: new RegExp(searchQuery, 'i') })
-      .sort({ patientName: 1 })
-      .exec((err, docs) => {
-        const patientOptions = chain(docs)
-          .uniqBy('patientName')
-          .map(docToOption)
-          .value();
-
-        this.setState({ patientOptions });
-      });
-  };
 
   componentDidUpdate() {
     debug('componentDidUpdate %o', { props: this.props, state: this.state });
@@ -251,10 +299,10 @@ class UnwrappedPatientEncounterForm extends React.Component<
     this.setState(state => ({
       patientOptions: [
         {
-          key: value,
+          content: value,
+          encounter: null,
           text: value,
-          value,
-          encounter: null
+          value
         },
         ...state.patientOptions
       ]
@@ -262,27 +310,40 @@ class UnwrappedPatientEncounterForm extends React.Component<
   };
 
   handlePatientChange = (e, { name, value, options }) => {
-    const { setFieldValue } = this.props;
-
-    setFieldValue(name, value);
+    const { setValues, values } = this.props;
 
     const selectedOption = options.find(option => option.value === value);
+    const encounter = (selectedOption && selectedOption.encounter) || INITIAL_VALUES;
 
-    let encounter = selectedOption && selectedOption.encounter;
+    // this is faster than calling setFieldValue multiple times
+    setValues({
+      ...values,
+      [name]: value.replace(/ \d{4}-\d{2}-\d{2}$/, ''),
+      mrn: encounter.mrn,
+      dateOfBirth: encounter.dateOfBirth,
+      clinic: encounter.clinic,
+      location: encounter.location,
+      md: encounter.md,
+      diagnosisType: encounter.diagnosisType,
+      diagnosisFreeText: encounter.diagnosisFreeText,
+      diagnosisStage: encounter.diagnosisStage,
+      research: encounter.research
+    });
+  };
 
-    if (!encounter) {
-      encounter = INITIAL_VALUES;
+  handlePatientNameSearch = (options, searchQuery) => {
+    const strippedQuery = deburr(searchQuery);
+    const re = new RegExp(escapeRegExp(strippedQuery), 'i');
+
+    return options.filter(option => re.test(deburr(option.value)));
+  };
+
+  handlePatientSearchChange = (e: *, { searchQuery }) => {
+    if (searchQuery) {
+      this.setSearchEncounterList(searchQuery);
+    } else {
+      this.setInitialEncounterList();
     }
-
-    setFieldValue('mrn', encounter.mrn);
-    setFieldValue('dateOfBirth', encounter.dateOfBirth);
-    setFieldValue('clinic', encounter.clinic);
-    setFieldValue('location', encounter.location);
-    setFieldValue('md', encounter.md);
-    setFieldValue('diagnosisType', encounter.diagnosisType);
-    setFieldValue('diagnosisFreeText', encounter.diagnosisFreeText);
-    setFieldValue('diagnosisStage', encounter.diagnosisStage);
-    setFieldValue('research', encounter.research);
   };
 
   handleInterventionChange = (e, data) => {
@@ -410,7 +471,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
               options={patientOptions}
               onSearchChange={this.handlePatientSearchChange}
               placeholder="Last, First Middle"
-              search
+              search={this.handlePatientNameSearch}
               selectOnBlur={false}
               selection
               value={values.patientName}
