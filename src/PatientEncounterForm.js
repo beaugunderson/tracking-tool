@@ -229,9 +229,11 @@ class UnwrappedPatientEncounterForm extends React.Component<
 
   setSearchEncounterList = searchQuery => {
     this.props.encounters
-      .find({ patientName: new RegExp(searchQuery, 'i') })
+      .find({ patientName: new RegExp(escapeRegExp(searchQuery), 'i') })
       .sort({ patientName: 1 })
       .exec((err, docs) => {
+        // get the most recent encounter for each patient matching the query,
+        // sorted by patient name
         const patientOptions = chain(docs)
           .sortBy('encounterDate')
           .reverse()

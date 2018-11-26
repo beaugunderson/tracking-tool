@@ -4,17 +4,6 @@ function makeOptions(options) {
   return options.map(option => ({ value: option, text: option }));
 }
 
-export const DOCTORS = makeOptions(RAW_DOCTORS);
-
-export const LOCATIONS = makeOptions([
-  'Ballard',
-  'Cherry Hill',
-  'Edmonds',
-  'Issaquah',
-  'First Hill',
-  'True Cancer Center'
-]);
-
 export const CLINICS = makeOptions([
   'Breast Surgery',
   'Colorectal Surgery',
@@ -32,5 +21,18 @@ export const CLINICS = makeOptions([
 ]);
 
 export const DIAGNOSES = makeOptions(['Malignant', 'Benign/Other', 'Unknown']);
+
+export const DOCTORS = makeOptions(RAW_DOCTORS);
+
+export const ENCOUNTER_TYPES = makeOptions(['Patient', 'Staff', 'Community', 'Other']);
+
+export const LOCATIONS = makeOptions([
+  'Ballard',
+  'Cherry Hill',
+  'Edmonds',
+  'Issaquah',
+  'First Hill',
+  'True Cancer Center'
+]);
 
 export const STAGES = makeOptions(['Unknown', 'Early', 'Advanced']);
