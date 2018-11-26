@@ -16,7 +16,7 @@ import {
   Ref
 } from 'semantic-ui-react';
 import { debug as Debug } from 'debug';
-import { DOCTORS } from './doctors';
+import { CLINICS, DIAGNOSES, DOCTORS, LOCATIONS, STAGES } from './options';
 import { InfoButton } from './InfoButton';
 import {
   initialInterventionValues,
@@ -27,41 +27,6 @@ import { chain, deburr, escapeRegExp, isEmpty } from 'lodash';
 import { withFormik } from 'formik';
 
 const debug = Debug('tracking-tool:patient-encounter-form');
-
-function makeOptions(options) {
-  return options.map(option => ({ value: option, text: option }));
-}
-
-const DOCTOR_OPTIONS = makeOptions(DOCTORS);
-
-const LOCATIONS = makeOptions([
-  'Ballard',
-  'Cherry Hill',
-  'Edmonds',
-  'Issaquah',
-  'First Hill',
-  'True Cancer Center'
-]);
-
-const CLINICS = makeOptions([
-  'Breast Surgery',
-  'Colorectal Surgery',
-  'Gyn Onc',
-  'Head/Neck Surgery',
-  'Hematology',
-  'Inpatient',
-  'Ivy',
-  'Medical Oncology',
-  'Non-SCI MD',
-  'Palliative Care',
-  'Radiation Oncology',
-  'Radiosurgery',
-  'Thoracic Surgery'
-]);
-
-const DIAGNOSES = makeOptions(['Malignant', 'Benign/Other', 'Unknown']);
-
-const STAGES = makeOptions(['Unknown', 'Early', 'Advanced']);
 
 function today() {
   const date = new Date();
@@ -514,7 +479,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
           onBlur={this.handleBlur}
           onChange={this.handleChange}
           onClose={this.handleBlur}
-          options={DOCTOR_OPTIONS}
+          options={DOCTORS}
           search
           selection
           value={values.md}
