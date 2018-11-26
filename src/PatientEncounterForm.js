@@ -639,6 +639,10 @@ export const PatientEncounterForm = withFormik({
       }
     });
 
+    if (!/^100\d{7}$/.test(values.mrn)) {
+      errors.mrn = true;
+    }
+
     NUMERIC_FIELDS.forEach(field => {
       if (!/^\d+$/.test(values[field])) {
         errors[field] = true;
