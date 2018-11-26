@@ -347,6 +347,20 @@ class UnwrappedPatientEncounterForm extends React.Component<
     this.props.setFieldValue(data.value, true);
   };
 
+  handleInterventionOnMouseEnter = e => {
+    e.persist();
+    this.setState({ activeInfoButton: e.target.parentElement.firstChild.name });
+  };
+
+  handleInterventionOnMouseLeave = e => {
+    e.persist();
+    this.setState(state => {
+      if (state.activeInfoButton === e.target.parentElement.firstChild.name) {
+        return { activeInfoButton: null };
+      }
+    });
+  };
+
   renderField = intervention => (
     <Form.Field
       checked={this.props.values[intervention.fieldName]}
@@ -363,14 +377,8 @@ class UnwrappedPatientEncounterForm extends React.Component<
       name={intervention.fieldName}
       onBlur={this.handleBlur}
       onChange={this.handleChange}
-      onMouseEnter={() => this.setState({ activeInfoButton: intervention.fieldName })}
-      onMouseLeave={() =>
-        this.setState(state => {
-          if (state.activeInfoButton === intervention.fieldName) {
-            return { activeInfoButton: null };
-          }
-        })
-      }
+      onMouseEnter={this.handleInterventionOnMouseEnter}
+      onMouseLeave={this.handleInterventionOnMouseLeave}
     />
   );
 
