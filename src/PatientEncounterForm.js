@@ -88,6 +88,8 @@ const INITIAL_VALUES = {
   ...initialInterventionValues
 };
 
+const NUMERIC_FIELDS = ['numberOfTasks', 'timeSpent'];
+
 const REQUIRED_FIELDS = [
   'clinic',
   'dateOfBirth',
@@ -97,8 +99,6 @@ const REQUIRED_FIELDS = [
   'md',
   'patientName'
 ];
-
-const NUMERIC_FIELDS = ['numberOfTasks', 'timeSpent'];
 
 const SCORED_FIELDS = ['phq', 'gad', 'moca'];
 
