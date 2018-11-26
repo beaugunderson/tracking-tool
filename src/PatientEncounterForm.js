@@ -184,8 +184,8 @@ type PatientEncounterFormProps = {
 };
 
 type PatientEncounterFormState = {
-  patientOptions: { key: string, text: string, value: string, encounter: ?{} }[],
-  show: ?string
+  activeInfoButton: ?string,
+  patientOptions: { content: *, encounter: ?{}, text: string, value: string }[]
 };
 
 class UnwrappedPatientEncounterForm extends React.Component<
@@ -195,8 +195,8 @@ class UnwrappedPatientEncounterForm extends React.Component<
   patientNameRef: React$ElementRef<typeof HTMLInputElement> | null;
 
   state = {
-    patientOptions: [],
-    show: null
+    activeInfoButton: null,
+    patientOptions: []
   };
 
   componentDidMount() {
@@ -301,7 +301,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
       label={
         <label>
           {intervention.name}{' '}
-          {this.state.show === intervention.fieldName && (
+          {this.state.activeInfoButton === intervention.fieldName && (
             <InfoButton content={intervention.description} on="hover" />
           )}
         </label>
@@ -309,11 +309,11 @@ class UnwrappedPatientEncounterForm extends React.Component<
       name={intervention.fieldName}
       onBlur={this.handleBlur}
       onChange={this.handleChange}
-      onMouseEnter={() => this.setState({ show: intervention.fieldName })}
+      onMouseEnter={() => this.setState({ activeInfoButton: intervention.fieldName })}
       onMouseLeave={() =>
         this.setState(state => {
-          if (state.show === intervention.fieldName) {
-            return { show: null };
+          if (state.activeInfoButton === intervention.fieldName) {
+            return { activeInfoButton: null };
           }
         })
       }
