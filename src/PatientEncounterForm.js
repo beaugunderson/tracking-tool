@@ -128,6 +128,23 @@ const TIME_SPENT_LABEL = (
   </label>
 );
 
+const STAGE_LABEL_CONTENT = (
+  <React.Fragment>
+    Select <strong>Unknown</strong> if cancer has not yet been staged, then change your selection
+    on the next encounter after staging is complete. Select <strong>Early</strong> if cancer is
+    Stage 0-2. Select <strong>Advanced</strong> if cancer is Stage 3-4, has metastases, is
+    described as locally advanced or end-stage, or if the cancer remains of unknown primary after
+    staging is complete. Do not change your selection if cancer progresses or recurs, instead
+    select the box below
+  </React.Fragment>
+);
+
+const STAGE_LABEL = (
+  <label>
+    Initial Stage <InfoButton content={STAGE_LABEL_CONTENT} on="hover" />
+  </label>
+);
+
 const MD_LABEL = (
   <label>
     MD{' '}
@@ -494,7 +511,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
             disabled={values.diagnosisType !== 'Malignant'}
             error={touched.diagnosisStage && errors.diagnosisStage}
             id="input-diagnosis-stage"
-            label="Stage"
+            label={STAGE_LABEL}
             name="diagnosisStage"
             onBlur={this.handleBlur}
             onChange={this.handleChange}
