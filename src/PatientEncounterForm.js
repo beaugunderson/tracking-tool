@@ -118,7 +118,7 @@ const docToOption = doc => {
     relativeTime = 'yesterday';
   }
 
-  const formattedDateOfBirth = dateOfBirth.format('M/D/YYY');
+  const formattedDateOfBirth = dateOfBirth.format('M/D/YYYY');
 
   return {
     // displayed in the search results as a row
