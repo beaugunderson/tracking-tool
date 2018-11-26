@@ -17,7 +17,20 @@ body {
   width: 50px;
 }
 
+.ui.transparent.input.score-field > input {
+  padding: 1px ! important;
+}
+
 .score-field-wrapper {
   margin-bottom: 0.25em;
   padding: 0;
+}
+
+.score-field-wrapper .error.score-field {
+  background-color: #fff6f6;
+  border-bottom: 1px solid #e0b4b4;
+}
+
+.score-field-wrapper .error.score-field input {
+  color: #9f3a38;
 }

@@ -354,7 +354,7 @@ export const initialInterventionValues = {};
 
 interventions.forEach(intervention => {
   if (intervention.scored) {
-    initialInterventionValues[`${intervention.fieldName}-scored`] = '';
+    initialInterventionValues[`${intervention.fieldName}Score`] = '';
   }
 
   initialInterventionValues[intervention.fieldName] = false;

@@ -96,6 +96,8 @@ const REQUIRED_FIELDS = [
 
 const NUMERIC_FIELDS = ['mrn', 'numberOfTasks', 'timeSpent'];
 
+const SCORED_FIELDS = ['phq', 'gad', 'moca'];
+
 const docToOption = doc => ({
   content: (
     <React.Fragment>
@@ -312,31 +314,37 @@ class UnwrappedPatientEncounterForm extends React.Component<
     />
   );
 
-  renderScoredField = intervention => (
-    <div className="score-field-wrapper" key={intervention.fieldName}>
-      <Form.Field
-        checked={this.props.values[intervention.fieldName]}
-        control={Checkbox}
-        inline
-        label={intervention.name}
-        name={intervention.fieldName}
-        onBlur={this.handleBlur}
-        onChange={this.handleChange}
-      />
+  renderScoredField = intervention => {
+    const scoreFieldName = `${intervention.fieldName}Score`;
+    const { errors, touched, values } = this.props;
 
-      {this.props.values[intervention.fieldName] && (
-        <Input
-          className="score-field"
-          name={`${intervention.fieldName}-score`}
+    return (
+      <div className="score-field-wrapper" key={intervention.fieldName}>
+        <Form.Field
+          checked={values[intervention.fieldName]}
+          control={Checkbox}
+          inline
+          label={intervention.name}
+          name={intervention.fieldName}
           onBlur={this.handleBlur}
           onChange={this.handleChange}
-          placeholder="Score"
-          transparent
-          value={this.props.values[`${intervention.fieldName}-score`]}
         />
-      )}
-    </div>
-  );
+
+        {this.props.values[intervention.fieldName] && (
+          <Input
+            className="score-field"
+            error={touched[scoreFieldName] && errors[scoreFieldName]}
+            name={scoreFieldName}
+            onBlur={this.handleBlur}
+            onChange={this.handleChange}
+            placeholder="Score"
+            transparent
+            value={values[scoreFieldName]}
+          />
+        )}
+      </div>
+    );
+  };
 
   render() {
     const { patientOptions } = this.state;
@@ -615,6 +623,14 @@ export const PatientEncounterForm = withFormik({
         errors.diagnosisStage = true;
       }
     }
+
+    SCORED_FIELDS.forEach(field => {
+      const scoredFieldName = `${field}Score`;
+
+      if (values[field] && !/^\d+$/.test(values[scoredFieldName])) {
+        errors[scoredFieldName] = true;
+      }
+    });
 
     NUMERIC_FIELDS.forEach(field => {
       if (!/^\d+$/.test(values[field])) {
