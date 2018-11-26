@@ -1,9 +1,6 @@
 [ignore]
 <PROJECT_ROOT>/build/.*
 
-;[untyped]
-;<PROJECT_ROOT>/patient/client/node_modules/graphql
-
 [options]
 module.name_mapper.extension='css' -> '<PROJECT_ROOT>/static/styles/CSSModule.flow.js'
 module.name_mapper.extension='scss' -> '<PROJECT_ROOT>/static/styles/CSSModule.flow.js'
