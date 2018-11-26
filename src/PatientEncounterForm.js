@@ -94,19 +94,25 @@ const docToOption = doc => {
         <span style={{ color: '#aaa' }}>{relativeTime}</span>
       </React.Fragment>
     ),
+
     // the doc itself, so we can auto-fill
-    encounter: doc,
+    'data-encounter': doc,
+
+    // store the patient name separately for easy access in the onChange handler
+    'data-patient-name': doc.patientName,
+
     // specify a key since Semantic uses the value otherwise and it may not be unique
     key: `${doc.patientName}-${doc.mrn}-${doc.dateOfBirth}`,
+
     // the text that's searched by the Dropdown as we type; we add DOB so we can add patients with
     // duplicate names; this is also what's displayed in the Dropdown on change
     text: (
       <React.Fragment>
         {doc.patientName} <input type="hidden" value={doc.dateOfBirth} />
       </React.Fragment>
-    ),
-    // the value stored in the field upon selection
-    value: doc.patientName
+    )
+
+    // note: the value is handled by indexValues and becomes the array index of the option
   };
 };
 
@@ -166,6 +172,10 @@ const RESEARCH_LABEL = (
   </label>
 );
 
+function indexValues(values) {
+  return values.map((value, i) => ({ ...value, value: `${i}` }));
+}
+
 type PatientEncounterFormProps = {
   encounters: *,
   errors: { [string]: boolean },
@@ -183,6 +193,7 @@ type PatientEncounterFormProps = {
 
 type PatientEncounterFormState = {
   activeInfoButton: ?string,
+  patientNameIndex: string,
   patientOptions: { content: *, encounter: ?{}, text: string, value: string }[]
 };
 
@@ -194,6 +205,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
 
   state = {
     activeInfoButton: null,
+    patientNameIndex: '',
     patientOptions: []
   };
 
@@ -211,7 +223,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
           .slice(0, 5)
           .value();
 
-        this.setState({ patientOptions });
+        this.setState({ patientOptions: indexValues(patientOptions) });
       });
   };
 
@@ -228,7 +240,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
           .map(docToOption)
           .value();
 
-        this.setState({ patientOptions });
+        this.setState({ patientOptions: indexValues(patientOptions) });
       });
   };
 
@@ -254,29 +266,31 @@ class UnwrappedPatientEncounterForm extends React.Component<
     this.props.setFieldValue(name, value !== undefined ? value : checked);
 
   handlePatientAddition = (e, { value }) => {
-    this.setState(state => ({
-      patientOptions: [
-        {
-          content: value,
-          encounter: null,
-          text: value,
-          value
-        },
-        ...state.patientOptions
-      ]
-    }));
+    this.setState(
+      state => ({
+        patientOptions: indexValues([
+          {
+            content: value,
+            'data-encounter': null,
+            'data-patient-name': value,
+            text: value
+          },
+          ...state.patientOptions
+        ])
+      }),
+      () => {
+        this.updatePatientIndexAndValue('0', INITIAL_VALUES, value);
+      }
+    );
   };
 
-  handlePatientChange = (e, { name, value, options }) => {
+  updatePatientIndexAndValue = (patientNameIndex, encounter, patientName) => {
     const { setValues, values } = this.props;
-
-    const selectedOption = options.find(option => option.value === value);
-    const encounter = (selectedOption && selectedOption.encounter) || INITIAL_VALUES;
 
     // this is faster than calling setFieldValue multiple times
     setValues({
       ...values,
-      [name]: value.replace(/ \d{4}-\d{2}-\d{2}$/, ''),
+      patientName,
       mrn: encounter.mrn,
       dateOfBirth: encounter.dateOfBirth,
       clinic: encounter.clinic,
@@ -287,13 +301,28 @@ class UnwrappedPatientEncounterForm extends React.Component<
       diagnosisStage: encounter.diagnosisStage,
       research: encounter.research
     });
+
+    this.setState({ patientNameIndex });
+  };
+
+  handlePatientChange = (e, { value, options }) => {
+    const selectedOption = options.find(option => option.value === value);
+
+    if (!selectedOption) {
+      return this.updatePatientIndexAndValue('', INITIAL_VALUES, '');
+    }
+
+    const encounter = (selectedOption && selectedOption['data-encounter']) || INITIAL_VALUES;
+    const patientName = selectedOption && selectedOption['data-patient-name'];
+
+    this.updatePatientIndexAndValue(selectedOption.value, encounter, patientName);
   };
 
   handlePatientNameSearch = (options, searchQuery) => {
     const strippedQuery = deburr(searchQuery);
     const re = new RegExp(escapeRegExp(strippedQuery), 'i');
 
-    return options.filter(option => re.test(deburr(option.value)));
+    return options.filter(option => re.test(deburr(option['data-patient-name'])));
   };
 
   handlePatientSearchChange = (e: *, { searchQuery }) => {
@@ -440,7 +469,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
               search={this.handlePatientNameSearch}
               selectOnBlur={false}
               selection
-              value={values.patientName}
+              value={this.state.patientNameIndex}
             />
           </Ref>
 
