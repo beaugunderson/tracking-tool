@@ -111,7 +111,6 @@ const docToOption = doc => {
   const dateOfBirth = moment(doc.dateOfBirth);
 
   let relativeTime = moment(doc.encounterDate).from(_today);
-  // let relativeTime = moment(doc.encounterDate).format('MM/DD');
 
   if (doc.encounterDate === _today.format('YYYY-MM-DD')) {
     relativeTime = 'today';
@@ -119,15 +118,7 @@ const docToOption = doc => {
     relativeTime = 'yesterday';
   }
 
-  let yearFormat = 'YY';
-
-  // 1918 - 1900 == 18 <= 2018 - 2000 == 18: true
-  // 1982 - 1900 == 82 <= 2018 - 2000 == 18: false
-  if (dateOfBirth.year() - 1900 <= _today.year() - 2000) {
-    yearFormat = 'YYYY';
-  }
-
-  const formattedDateOfBirth = dateOfBirth.format(`M/D/${yearFormat}`);
+  const formattedDateOfBirth = dateOfBirth.format('M/D/YYY');
 
   return {
     // displayed in the search results as a row
