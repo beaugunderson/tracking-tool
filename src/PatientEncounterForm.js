@@ -14,6 +14,7 @@ import {
   Popup,
   Ref
 } from 'semantic-ui-react';
+import { debug as Debug } from 'debug';
 import { DOCTORS } from './doctors';
 import { InfoButton } from './InfoButton';
 import {
@@ -23,6 +24,8 @@ import {
 } from './patient-interventions';
 import { chain, isEmpty } from 'lodash';
 import { withFormik } from 'formik';
+
+const debug = Debug('tracking-tool:patient-encounter-form');
 
 function makeOptions(options) {
   return options.map(option => ({ value: option, text: option }));
@@ -235,6 +238,10 @@ class UnwrappedPatientEncounterForm extends React.Component<
         this.setState({ patientOptions });
       });
   };
+
+  componentDidUpdate() {
+    debug('componentDidUpdate %o', { props: this.props, state: this.state });
+  }
 
   handleBlur = (e, data) => this.props.setFieldTouched((data && data.name) || e.target.name, true);
 
