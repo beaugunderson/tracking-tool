@@ -395,6 +395,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
         <Form.Group widths="equal">
           <Ref innerRef={ref => (this.patientNameRef = ref)}>
             <Form.Field
+              additionLabel="Add new patient "
               allowAdditions
               control={Dropdown}
               defaultOpen
