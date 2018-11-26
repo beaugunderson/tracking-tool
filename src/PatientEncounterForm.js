@@ -139,8 +139,7 @@ const STAGE_LABEL_CONTENT = (
     on the next encounter after staging is complete. Select <strong>Early</strong> if cancer is
     Stage 0-2. Select <strong>Advanced</strong> if cancer is Stage 3-4, has metastases, is
     described as locally advanced or end-stage, or if the cancer remains of unknown primary after
-    staging is complete. Do not change your selection if cancer progresses or recurs, instead
-    select the box below
+    staging is complete
   </React.Fragment>
 );
 
