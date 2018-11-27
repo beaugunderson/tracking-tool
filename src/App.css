@@ -3,7 +3,7 @@ body {
 }
 
 .ui.form .grouped .inline.field {
-  display: inline-block ! important;
+  display: inline-block !important;
   margin: 0;
   width: 75px;
 }
@@ -13,12 +13,8 @@ body {
 }
 
 .score-field {
-  border-bottom: 1px solid black;
+  border-bottom: 1px solid #000;
   width: 50px;
-}
-
-.ui.transparent.input.score-field > input {
-  padding: 1px ! important;
 }
 
 .score-field-wrapper {
@@ -33,4 +29,23 @@ body {
 
 .score-field-wrapper .error.score-field input {
   color: #9f3a38;
+}
+
+.ui.transparent.input.score-field > input {
+  padding: 1px !important;
+}
+
+#encounter-type-dropdown,
+#encounter-patient-input {
+  margin-left: -12px;
+  margin-right: 12px;
+}
+
+.big-section {
+  padding-top: 3em !important;
+  padding-bottom: 3em !important;
+}
+
+.big-section h1 {
+  font-size: 3em !important;
 }

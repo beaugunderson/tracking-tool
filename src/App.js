@@ -4,7 +4,7 @@ import 'semantic-ui-css/semantic.min.css';
 
 import React from 'react';
 import { Button, Divider, Dropdown, Header, Icon, Input, Segment, Table } from 'semantic-ui-react';
-import { ENCOUNTER_TYPES } from './options';
+import { ENCOUNTER_TYPES, ENCOUNTER_TYPE_NAMES } from './options';
 import { ensureUserDirectoryExists, rootPathExists } from './store';
 import { Error } from './Error';
 import { chain, escapeRegExp } from 'lodash';
@@ -20,6 +20,8 @@ type AppState = {
   edit: *,
   encounter: ?string,
   encounters: *,
+  encounterSearchPatientName: string,
+  encounterSearchType: string,
   error: ?string,
   firstTimeSetup: boolean
 };
@@ -31,6 +33,8 @@ class App extends React.Component<{}, AppState> {
     edit: null,
     encounter: null,
     encounters: [],
+    encounterSearchPatientName: '',
+    encounterSearchType: 'All',
     error: null,
     firstTimeSetup: isFirstTime()
   };
@@ -39,23 +43,29 @@ class App extends React.Component<{}, AppState> {
     this.setState({ edit: encounter });
   };
 
-  searchPatients = (value: string) => {
-    this.encounters
-      .find({ patientName: new RegExp(escapeRegExp(value), 'i') })
-      .exec((err, docs) => {
-        const encounters = chain(docs)
-          .sortBy('patientName')
-          .reverse()
-          .sortBy('encounterDate')
-          .reverse()
-          .value();
+  searchPatients = () => {
+    const criteria = {
+      patientName: new RegExp(escapeRegExp(this.state.encounterSearchPatientName), 'i')
+    };
 
-        this.setState({ encounters });
-      });
+    if (this.state.encounterSearchType !== 'All') {
+      criteria.encounterType = this.state.encounterSearchType.toLowerCase();
+    }
+
+    this.encounters.find(criteria).exec((err, docs) => {
+      const encounters = chain(docs)
+        .sortBy('patientName')
+        .reverse()
+        .sortBy('encounterDate')
+        .reverse()
+        .value();
+
+      this.setState({ encounters });
+    });
   };
 
   handlePatientSearchChange = (e: *, { value }: *) => {
-    this.searchPatients(value);
+    this.setState({ encounterSearchPatientName: value });
   };
 
   componentDidMount() {
@@ -71,7 +81,11 @@ class App extends React.Component<{}, AppState> {
 
     this.encounters = openEncounters();
 
-    this.searchPatients('');
+    this.searchPatients();
+  }
+
+  componentDidUpdate() {
+    this.searchPatients();
   }
 
   render() {
@@ -98,10 +112,8 @@ class App extends React.Component<{}, AppState> {
 
     return (
       <React.Fragment>
-        <Segment inverted style={{ paddingTop: '4em', paddingBottom: '4em' }} textAlign="center">
-          <Header as="h1" style={{ fontSize: '3em' }}>
-            Create an Encounter
-          </Header>
+        <Segment className="big-section" inverted textAlign="center">
+          <Header as="h1">Create an Encounter</Header>
 
           <Divider hidden />
 
@@ -146,22 +158,33 @@ class App extends React.Component<{}, AppState> {
           </Button>
         </Segment>
 
-        <Segment inverted style={{ paddingTop: '4em', paddingBottom: '4em' }} textAlign="center">
-          <Header as="h1" style={{ fontSize: '3em' }}>
-            Edit an Encounter
-          </Header>
+        <Segment className="big-section" inverted textAlign="center">
+          <Header as="h1">Edit an Encounter</Header>
 
           <Divider hidden />
 
           <Table selectable>
             <Table.Header>
               <Table.Row>
-                <Table.HeaderCell width={3}>
-                  <Dropdown options={ENCOUNTER_TYPES} placeholder="Encounter Type" selection />
-                </Table.HeaderCell>
                 <Table.HeaderCell width={3}>Encounter Date</Table.HeaderCell>
+                <Table.HeaderCell width={3}>
+                  <Dropdown
+                    id="encounter-type-dropdown"
+                    onChange={(e, { value }) => this.setState({ encounterSearchType: value })}
+                    options={ENCOUNTER_TYPES}
+                    placeholder="Encounter Type"
+                    selection
+                    value={this.state.encounterSearchType}
+                  />
+                </Table.HeaderCell>
                 <Table.HeaderCell width={12}>
-                  <Input onChange={this.handlePatientSearchChange} placeholder="Search..." />
+                  <Input
+                    id="encounter-patient-input"
+                    onChange={(e, { value }) =>
+                      this.setState({ encounterSearchPatientName: value })
+                    }
+                    placeholder="Search..."
+                  />
                 </Table.HeaderCell>
               </Table.Row>
             </Table.Header>
@@ -169,8 +192,8 @@ class App extends React.Component<{}, AppState> {
             <Table.Body>
               {this.state.encounters.map((doc, i) => (
                 <Table.Row key={i} onClick={() => this.editEncounter(doc)}>
-                  <Table.Cell>{doc.encounterType}</Table.Cell>
                   <Table.Cell>{doc.encounterDate}</Table.Cell>
+                  <Table.Cell>{ENCOUNTER_TYPE_NAMES[doc.encounterType] || 'Patient'}</Table.Cell>
                   <Table.Cell>{doc.patientName}</Table.Cell>
                 </Table.Row>
               ))}

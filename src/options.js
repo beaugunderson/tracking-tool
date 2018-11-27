@@ -26,6 +26,13 @@ export const DOCTORS = makeOptions(RAW_DOCTORS);
 
 export const ENCOUNTER_TYPES = makeOptions(['All', 'Patient', 'Community', 'Staff', 'Other']);
 
+export const ENCOUNTER_TYPE_NAMES = {
+  patient: 'Patient',
+  community: 'Community',
+  staff: 'Staff',
+  other: 'Other'
+};
+
 export const LOCATIONS = makeOptions([
   'Ballard',
   'Cherry Hill',
