@@ -1,0 +1,24 @@
+---
+  extends:
+    - stylelint-config-standard
+
+  plugins:
+    - stylelint-declaration-block-no-ignored-properties
+    - stylelint-no-unsupported-browser-features
+
+  rules:
+    color-named: never
+    declaration-block-no-redundant-longhand-properties: null
+    max-line-length: 99
+    no-empty-source: null
+    no-descending-specificity:
+      - true
+      - severity: warning
+    plugin/declaration-block-no-ignored-properties: true
+    plugin/no-unsupported-browser-features:
+      - true
+      - browsers: ['Electron 3.0']
+        severity: warning
+    property-no-vendor-prefix: true
+    shorthand-property-no-redundant-values: null
+    selector-list-comma-newline-after: always-multi-line
