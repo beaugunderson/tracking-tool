@@ -24,7 +24,7 @@ export const DIAGNOSES = makeOptions(['Malignant', 'Benign/Other', 'Unknown']);
 
 export const DOCTORS = makeOptions(RAW_DOCTORS);
 
-export const ENCOUNTER_TYPES = makeOptions(['Patient', 'Staff', 'Community', 'Other']);
+export const ENCOUNTER_TYPES = makeOptions(['All', 'Patient', 'Community', 'Staff', 'Other']);
 
 export const LOCATIONS = makeOptions([
   'Ballard',

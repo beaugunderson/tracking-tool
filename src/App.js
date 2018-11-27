@@ -118,21 +118,21 @@ class App extends React.Component<{}, AppState> {
           <Button
             icon
             labelPosition="left"
-            onClick={() => this.setState({ encounter: 'staff' })}
-            size="big"
-          >
-            <Icon name="user md" />
-            Staff
-          </Button>
-
-          <Button
-            icon
-            labelPosition="left"
             onClick={() => this.setState({ encounter: 'community' })}
             size="big"
           >
             <Icon name="phone" />
             Community
+          </Button>
+
+          <Button
+            icon
+            labelPosition="left"
+            onClick={() => this.setState({ encounter: 'staff' })}
+            size="big"
+          >
+            <Icon name="user md" />
+            Staff
           </Button>
 
           <Button
