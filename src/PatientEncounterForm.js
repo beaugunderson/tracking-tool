@@ -4,19 +4,18 @@ import './App.css';
 
 import moment from 'moment';
 import React from 'react';
-import {
-  Checkbox,
-  Divider,
-  Dropdown,
-  Grid,
-  Header,
-  Input,
-  Form,
-  Popup,
-  Ref
-} from 'semantic-ui-react';
+import { Checkbox, Divider, Dropdown, Grid, Header, Input, Form, Ref } from 'semantic-ui-react';
 import { debug as Debug } from 'debug';
-import { CLINICS, DIAGNOSES, DOCTORS, LOCATIONS, STAGES } from './options';
+import { DIAGNOSES, DOCTORS, STAGES } from './options';
+import {
+  EncounterClinicField,
+  EncounterDateField,
+  EncounterLocationField,
+  EncounterNumberOfTasksField,
+  EncounterTimeSpentField,
+  SubmitButtons,
+  today
+} from './shared-fields';
 import { InfoButton } from './InfoButton';
 import {
   initialInterventionValues,
@@ -27,14 +26,6 @@ import { chain, deburr, escapeRegExp, isEmpty } from 'lodash';
 import { withFormik } from 'formik';
 
 const debug = Debug('tracking-tool:patient-encounter-form');
-
-function today() {
-  const date = new Date();
-
-  date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
-
-  return date.toJSON().slice(0, 10);
-}
 
 const INITIAL_VALUES = {
   clinic: '',
@@ -115,26 +106,6 @@ const docToOption = doc => {
     // note: the value is handled by indexValues and becomes the array index of the option
   };
 };
-
-const NUMBER_OF_TASKS_LABEL = (
-  <label>
-    Number of Tasks{' '}
-    <InfoButton
-      content="The number of tasks associated with the encounter, equal to the number of lines you would have completed in the old spreadsheet format.  For example, discussion with MD, seeing patient, and coordinating with PFA would equal 3 tasks"
-      on="hover"
-    />
-  </label>
-);
-
-const TIME_SPENT_LABEL = (
-  <label>
-    Time Spent{' '}
-    <InfoButton
-      content="The number of total minutes on all encounters for this patient on this day, rounded up to the nearest 5, e.g. 75 minutes, including full representation of time spent documenting"
-      on="hover"
-    />
-  </label>
-);
 
 const STAGE_LABEL_CONTENT = (
   <React.Fragment>
@@ -412,7 +383,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
 
   render() {
     const { patientOptions } = this.state;
-    const { errors, isSubmitting, submitForm, touched, values } = this.props;
+    const { errors, isSubmitting, onCancel, submitForm, touched, values } = this.props;
 
     const columns = interventionGroups.map((column, i) => {
       return (
@@ -438,15 +409,10 @@ class UnwrappedPatientEncounterForm extends React.Component<
       <Form size="large">
         <Header>New Patient Encounter</Header>
 
-        <Form.Field
-          control={Input}
+        <EncounterDateField
           error={touched.encounterDate && errors.encounterDate}
-          id="input-encounter-date"
-          label="Encounter Date"
-          name="encounterDate"
           onBlur={this.handleBlur}
           onChange={this.handleChange}
-          type="date"
           value={values.encounterDate}
         />
 
@@ -517,35 +483,17 @@ class UnwrappedPatientEncounterForm extends React.Component<
         />
 
         <Form.Group widths="equal">
-          <Form.Field
-            control={Dropdown}
+          <EncounterLocationField
             error={touched.location && errors.location}
-            id="input-location"
-            label="Location"
-            name="location"
             onBlur={this.handleBlur}
             onChange={this.handleChange}
-            onClose={this.handleBlur}
-            options={LOCATIONS}
-            search
-            selection
-            selectOnBlur={false}
             value={values.location}
           />
 
-          <Form.Field
-            control={Dropdown}
+          <EncounterClinicField
             error={touched.clinic && errors.clinic}
-            id="input-clinic"
-            label="Clinic"
-            name="clinic"
             onBlur={this.handleBlur}
             onChange={this.handleChange}
-            onClose={this.handleBlur}
-            options={CLINICS}
-            search
-            selection
-            selectOnBlur={false}
             value={values.clinic}
           />
         </Form.Group>
@@ -633,22 +581,15 @@ class UnwrappedPatientEncounterForm extends React.Component<
         <Divider hidden />
 
         <Form.Group widths="equal">
-          {/* could require a multiple of 5, could round up automatically */}
-          <Form.Field
-            control={Input}
+          <EncounterTimeSpentField
             error={touched.timeSpent && errors.timeSpent}
-            label={TIME_SPENT_LABEL}
-            name="timeSpent"
             onBlur={this.handleBlur}
             onChange={this.handleChange}
             value={values.timeSpent}
           />
 
-          <Form.Field
-            control={Input}
+          <EncounterNumberOfTasksField
             error={touched.numberOfTasks && errors.numberOfTasks}
-            label={NUMBER_OF_TASKS_LABEL}
-            name="numberOfTasks"
             onBlur={this.handleBlur}
             onChange={this.handleChange}
             value={values.numberOfTasks}
@@ -657,17 +598,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
 
         <Divider hidden />
 
-        <Form.Group>
-          <Form.Button disabled={isSubmitting} onClick={submitForm} primary size="big">
-            Save Encounter
-          </Form.Button>
-
-          <Popup
-            trigger={<Form.Button content="Cancel" disabled={isSubmitting} negative size="big" />}
-            content={<Form.Button content="Confirm?" onClick={this.props.onCancel} />}
-            on="click"
-          />
-        </Form.Group>
+        <SubmitButtons isSubmitting={isSubmitting} onCancel={onCancel} submitForm={submitForm} />
       </Form>
     );
   }

@@ -5,17 +5,15 @@ import 'semantic-ui-css/semantic.min.css';
 import moment from 'moment';
 import React from 'react';
 import { Button, Divider, Dropdown, Header, Icon, Input, Segment, Table } from 'semantic-ui-react';
+import { chain, escapeRegExp } from 'lodash';
+import { CommunityEncounterForm } from './CommunityEncounterForm';
 import { ENCOUNTER_TYPES, ENCOUNTER_TYPE_NAMES } from './options';
 import { ensureUserDirectoryExists, rootPathExists } from './store';
 import { Error } from './Error';
-import { chain, escapeRegExp } from 'lodash';
 import { FirstTimeSetup } from './FirstTimeSetup';
 import { openEncounters } from './data';
 import { PatientEncounterForm } from './PatientEncounterForm';
-
-function isFirstTime() {
-  return !rootPathExists();
-}
+import { StaffEncounterForm } from './StaffEncounterForm';
 
 type AppState = {
   edit: *,
@@ -37,7 +35,7 @@ class App extends React.Component<{}, AppState> {
     encounterSearchPatientName: '',
     encounterSearchType: 'All',
     error: null,
-    firstTimeSetup: isFirstTime()
+    firstTimeSetup: !rootPathExists()
   };
 
   editEncounter = (encounter: *) => {
@@ -45,12 +43,17 @@ class App extends React.Component<{}, AppState> {
   };
 
   searchPatients = () => {
-    const criteria = {
-      patientName: new RegExp(escapeRegExp(this.state.encounterSearchPatientName), 'i')
-    };
+    const criteria = {};
 
     if (this.state.encounterSearchType !== 'All') {
       criteria.encounterType = this.state.encounterSearchType.toLowerCase();
+    }
+
+    if (
+      (this.state.encounterSearchType === 'All' || this.state.encounterSearchType === 'Patient') &&
+      this.state.encounterSearchPatientName
+    ) {
+      criteria.patientName = new RegExp(escapeRegExp(this.state.encounterSearchPatientName), 'i');
     }
 
     this.encounters.find(criteria).exec((err, docs) => {
@@ -63,10 +66,6 @@ class App extends React.Component<{}, AppState> {
 
       this.setState({ encounters });
     });
-  };
-
-  handlePatientSearchChange = (e: *, { value }: *) => {
-    this.setState({ encounterSearchPatientName: value });
   };
 
   componentDidMount() {
@@ -110,6 +109,28 @@ class App extends React.Component<{}, AppState> {
     if (encounter === 'patient') {
       return (
         <PatientEncounterForm
+          encounters={this.encounters}
+          onCancel={() => this.setState({ encounter: null })}
+          onComplete={() => this.setState({ encounter: null })}
+          onError={err => this.setState({ error: err.message })}
+        />
+      );
+    }
+
+    if (encounter === 'community') {
+      return (
+        <CommunityEncounterForm
+          encounters={this.encounters}
+          onCancel={() => this.setState({ encounter: null })}
+          onComplete={() => this.setState({ encounter: null })}
+          onError={err => this.setState({ error: err.message })}
+        />
+      );
+    }
+
+    if (encounter === 'staff') {
+      return (
+        <StaffEncounterForm
           encounters={this.encounters}
           onCancel={() => this.setState({ encounter: null })}
           onComplete={() => this.setState({ encounter: null })}
@@ -185,7 +206,7 @@ class App extends React.Component<{}, AppState> {
                     value={this.state.encounterSearchType}
                   />
                 </Table.HeaderCell>
-                <Table.HeaderCell width={12}>
+                <Table.HeaderCell width={4}>
                   <Input
                     id="encounter-patient-input"
                     onChange={(e, { value }) =>
@@ -194,6 +215,8 @@ class App extends React.Component<{}, AppState> {
                     placeholder="Search..."
                   />
                 </Table.HeaderCell>
+                <Table.HeaderCell width={3}>Location</Table.HeaderCell>
+                <Table.HeaderCell width={3}>Clinic</Table.HeaderCell>
               </Table.Row>
             </Table.Header>
 
@@ -203,6 +226,8 @@ class App extends React.Component<{}, AppState> {
                   <Table.Cell>{moment(doc.encounterDate).format('M/D/YYYY')}</Table.Cell>
                   <Table.Cell>{ENCOUNTER_TYPE_NAMES[doc.encounterType] || 'Patient'}</Table.Cell>
                   <Table.Cell>{doc.patientName}</Table.Cell>
+                  <Table.Cell>{doc.location}</Table.Cell>
+                  <Table.Cell>{doc.clinic}</Table.Cell>
                 </Table.Row>
               ))}
             </Table.Body>
