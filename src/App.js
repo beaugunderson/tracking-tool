@@ -2,6 +2,7 @@
 
 import 'semantic-ui-css/semantic.min.css';
 
+import moment from 'moment';
 import React from 'react';
 import { Button, Divider, Dropdown, Header, Icon, Input, Segment, Table } from 'semantic-ui-react';
 import { ENCOUNTER_TYPES, ENCOUNTER_TYPE_NAMES } from './options';
@@ -84,8 +85,15 @@ class App extends React.Component<{}, AppState> {
     this.searchPatients();
   }
 
-  componentDidUpdate() {
-    this.searchPatients();
+  componentDidUpdate(prevProps: *, prevState: AppState) {
+    if (
+      this.state.edit !== prevState.edit ||
+      this.state.encounter !== prevState.encounter ||
+      this.state.encounterSearchPatientName !== prevState.encounterSearchPatientName ||
+      this.state.encounterSearchType !== prevState.encounterSearchType
+    ) {
+      this.searchPatients();
+    }
   }
 
   render() {
@@ -192,7 +200,7 @@ class App extends React.Component<{}, AppState> {
             <Table.Body>
               {this.state.encounters.map((doc, i) => (
                 <Table.Row key={i} onClick={() => this.editEncounter(doc)}>
-                  <Table.Cell>{doc.encounterDate}</Table.Cell>
+                  <Table.Cell>{moment(doc.encounterDate).format('M/D/YYYY')}</Table.Cell>
                   <Table.Cell>{ENCOUNTER_TYPE_NAMES[doc.encounterType] || 'Patient'}</Table.Cell>
                   <Table.Cell>{doc.patientName}</Table.Cell>
                 </Table.Row>
