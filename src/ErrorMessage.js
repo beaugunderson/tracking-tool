@@ -3,6 +3,7 @@
 import React from 'react';
 import { Header, Icon, List, Message, Segment } from 'semantic-ui-react';
 import { rootPath, store, userDirectoryPath } from './store';
+import { isError } from 'lodash';
 
 const electron = window.require('electron');
 const osName = window.require('os-name');
@@ -10,9 +11,14 @@ const username = window.require('username');
 
 const { app } = electron.remote;
 
-export class Error extends React.Component<*> {
+type ErrorProps = {
+  error: Error | string
+};
+
+export class ErrorMessage extends React.Component<ErrorProps> {
   render() {
     const { error } = this.props;
+    const message: string = isError(error) ? error.message : error;
 
     return (
       <React.Fragment>
@@ -20,9 +26,9 @@ export class Error extends React.Component<*> {
           <Icon name="exclamation triangle" />
 
           <Message.Content>
-            <Message.Header as="h1">Tracking Tool encountered an error:</Message.Header>
+            <Message.Header as="h1">Tracking Tool encountered an error</Message.Header>
 
-            <p>{error}</p>
+            <p>{message}</p>
           </Message.Content>
         </Message>
 

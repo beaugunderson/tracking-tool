@@ -3,7 +3,7 @@
 import './first-time-setup.css';
 import React from 'react';
 import { Button, Container, Header, Icon } from 'semantic-ui-react';
-import { Error } from './Error';
+import { ErrorMessage } from './ErrorMessage';
 import { isEmpty } from 'lodash';
 import { DEFAULT_PATH, ensureUserDirectoryExists, setRootPath, userDirectoryPath } from './store';
 
@@ -63,7 +63,7 @@ export class FirstTimeSetup extends React.Component<FirstTimeSetupProps, FirstTi
     const defaultExists = fs.existsSync(DEFAULT_PATH);
 
     if (this.state.error) {
-      return <Error error={this.state.error} />;
+      return <ErrorMessage error={this.state.error} />;
     }
 
     return (

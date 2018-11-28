@@ -7,7 +7,7 @@ import { chain, escapeRegExp } from 'lodash';
 import { CommunityEncounterForm } from './CommunityEncounterForm';
 import { ENCOUNTER_TYPES, ENCOUNTER_TYPE_NAMES } from './options';
 import { ensureUserDirectoryExists, rootPathExists } from './store';
-import { Error } from './Error';
+import { ErrorMessage } from './ErrorMessage';
 import { FirstTimeSetup } from './FirstTimeSetup';
 import { openEncounters } from './data';
 import { fieldNameToName, OtherEncounterForm } from './OtherEncounterForm';
@@ -20,7 +20,7 @@ type AppState = {
   encounters: *,
   encounterSearchPatientName: string,
   encounterSearchType: string,
-  error: ?string,
+  error: ?string | ?Error,
   firstTimeSetup: boolean
 };
 
@@ -37,9 +37,8 @@ export class App extends React.Component<{}, AppState> {
     firstTimeSetup: !rootPathExists()
   };
 
-  editEncounter = (encounter: *) => {
+  editEncounter = (encounter: *) =>
     this.setState({ encounterForm: encounter.encounterType, encounter });
-  };
 
   searchPatients = () => {
     const criteria = {};
@@ -72,11 +71,7 @@ export class App extends React.Component<{}, AppState> {
       return;
     }
 
-    try {
-      ensureUserDirectoryExists();
-    } catch (error) {
-      return this.setState({ error: error.toString() });
-    }
+    ensureUserDirectoryExists();
 
     this.encounters = openEncounters();
 
@@ -96,12 +91,13 @@ export class App extends React.Component<{}, AppState> {
 
   handleCancel = () => this.setState({ encounter: null, encounterForm: null });
   handleComplete = () => this.setState({ encounter: null, encounterForm: null });
+  handleError = (error: Error | string) => this.setState({ error });
 
   render() {
     const { encounter, encounterForm, error, firstTimeSetup } = this.state;
 
     if (error) {
-      return <Error error={error} />;
+      return <ErrorMessage error={error} />;
     }
 
     if (firstTimeSetup) {
@@ -115,7 +111,7 @@ export class App extends React.Component<{}, AppState> {
           encounters={this.encounters}
           onCancel={this.handleCancel}
           onComplete={this.handleComplete}
-          onError={err => this.setState({ error: err.message })}
+          onError={this.handleError}
         />
       );
     }
@@ -127,7 +123,7 @@ export class App extends React.Component<{}, AppState> {
           encounters={this.encounters}
           onCancel={this.handleCancel}
           onComplete={this.handleComplete}
-          onError={err => this.setState({ error: err.message })}
+          onError={this.handleError}
         />
       );
     }
@@ -139,7 +135,7 @@ export class App extends React.Component<{}, AppState> {
           encounters={this.encounters}
           onCancel={this.handleCancel}
           onComplete={this.handleComplete}
-          onError={err => this.setState({ error: err.message })}
+          onError={this.handleError}
         />
       );
     }
@@ -151,7 +147,7 @@ export class App extends React.Component<{}, AppState> {
           encounters={this.encounters}
           onCancel={this.handleCancel}
           onComplete={this.handleComplete}
-          onError={err => this.setState({ error: err.message })}
+          onError={this.handleError}
         />
       );
     }

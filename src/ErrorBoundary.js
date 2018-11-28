@@ -1,5 +1,5 @@
 import React from 'react';
-import { Error } from './Error';
+import { ErrorMessage } from './ErrorMessage';
 
 export class ErrorBoundary extends React.Component<*> {
   state = {
@@ -12,7 +12,7 @@ export class ErrorBoundary extends React.Component<*> {
 
   render() {
     if (this.state.error) {
-      return <Error error={this.state.error.message} />;
+      return <ErrorMessage error={this.state.error} />;
     }
 
     return this.props.children;
