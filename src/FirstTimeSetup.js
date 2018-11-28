@@ -3,8 +3,9 @@
 import './first-time-setup.css';
 import React from 'react';
 import { Button, Container, Header, Icon } from 'semantic-ui-react';
+import { Error } from './Error';
 import { isEmpty } from 'lodash';
-import { setRootPath } from './store';
+import { DEFAULT_PATH, ensureUserDirectoryExists, setRootPath, userDirectoryPath } from './store';
 
 const electron = window.require('electron');
 const fs = electron.remote.require('fs');
@@ -16,8 +17,16 @@ type FirstTimeSetupProps = {
   onComplete: () => void
 };
 
-export class FirstTimeSetup extends React.Component<FirstTimeSetupProps> {
-  handleOnClick = () => {
+type FirstTimeSetupState = {
+  error: ?string
+};
+
+export class FirstTimeSetup extends React.Component<FirstTimeSetupProps, FirstTimeSetupState> {
+  state = {
+    error: null
+  };
+
+  handleChooseClick = () => {
     const selectedPaths = electron.remote.dialog.showOpenDialog({
       buttonLabel: 'Choose Directory',
       properties: ['openDirectory']
@@ -38,7 +47,25 @@ export class FirstTimeSetup extends React.Component<FirstTimeSetupProps> {
     }
   };
 
+  handleDefaultClick = () => {
+    setRootPath(DEFAULT_PATH);
+
+    try {
+      ensureUserDirectoryExists();
+    } catch (error) {
+      return this.setState({ error: `Unable to create directory "${userDirectoryPath()}"` });
+    }
+
+    this.props.onComplete();
+  };
+
   render() {
+    const defaultExists = fs.existsSync(DEFAULT_PATH);
+
+    if (this.state.error) {
+      return <Error error={this.state.error} />;
+    }
+
     return (
       <Container text>
         <Header as="h1" content="First Time Setup" id="first-time-setup-header" />
@@ -49,8 +76,14 @@ export class FirstTimeSetup extends React.Component<FirstTimeSetupProps> {
           id="first-time-setup-description"
         />
 
-        <Button icon onClick={this.handleOnClick} primary size="huge">
-          Choose Team Directory <Icon name="open folder" />
+        {defaultExists && (
+          <Button icon onClick={this.handleDefaultClick} primary size="huge">
+            Use Default Directory
+          </Button>
+        )}
+
+        <Button icon onClick={this.handleChooseClick} secondary size="huge">
+          Choose a Directory <Icon name="open folder" />
         </Button>
       </Container>
     );
