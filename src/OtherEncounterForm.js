@@ -6,13 +6,12 @@ import slugify from 'slugify';
 import { Divider, Form, Header, Radio } from 'semantic-ui-react';
 import {
   EncounterDateField,
-  EncounterNumberOfTasksField,
   EncounterTimeSpentField,
   SubmitButtons,
   today
 } from './shared-fields';
 import { InfoButton } from './InfoButton';
-import { isEmpty } from 'lodash';
+import { find, isEmpty } from 'lodash';
 import { withFormik } from 'formik';
 
 function addFieldNames(options) {
@@ -54,23 +53,20 @@ const OPTIONS = addFieldNames([
   }
 ]);
 
-// function toInitialValues(options) {
-//   const values = {};
+export function fieldNameToName(fieldName: string) {
+  const option = find(OPTIONS, { fieldName });
 
-//   options.forEach(option => (values[option.fieldName] = false));
-
-//   return values;
-// }
+  return (option && option.name) || '';
+}
 
 const INITIAL_VALUES = {
   encounterDate: today(),
   location: '',
-  numberOfTasks: '',
   timeSpent: '',
   activity: ''
 };
 
-const NUMERIC_FIELDS = ['numberOfTasks', 'timeSpent'];
+const NUMERIC_FIELDS = ['timeSpent'];
 
 const REQUIRED_FIELDS = ['encounterDate'];
 
@@ -164,34 +160,23 @@ class UnwrappedOtherEncounterForm extends React.Component<
       <Form size="large">
         <Header>New Other Encounter</Header>
 
-        <EncounterDateField
-          error={touched.encounterDate && errors.encounterDate}
-          onBlur={this.handleBlur}
-          onChange={this.handleChange}
-          value={values.encounterDate}
-        />
-
-        <Divider hidden />
-
-        <Form.Group grouped>{options}</Form.Group>
-
-        <Divider hidden />
-
         <Form.Group widths="equal">
+          <EncounterDateField
+            error={touched.encounterDate && errors.encounterDate}
+            onBlur={this.handleBlur}
+            onChange={this.handleChange}
+            value={values.encounterDate}
+          />
+
           <EncounterTimeSpentField
             error={touched.timeSpent && errors.timeSpent}
             onBlur={this.handleBlur}
             onChange={this.handleChange}
             value={values.timeSpent}
           />
-
-          <EncounterNumberOfTasksField
-            error={touched.numberOfTasks && errors.numberOfTasks}
-            onBlur={this.handleBlur}
-            onChange={this.handleChange}
-            value={values.numberOfTasks}
-          />
         </Form.Group>
+
+        <Form.Group grouped>{options}</Form.Group>
 
         <Divider hidden />
 
@@ -202,7 +187,13 @@ class UnwrappedOtherEncounterForm extends React.Component<
 }
 
 export const OtherEncounterForm = withFormik({
-  mapPropsToValues: () => INITIAL_VALUES,
+  mapPropsToValues: props => {
+    if (props.encounter) {
+      return props.encounter;
+    }
+
+    return INITIAL_VALUES;
+  },
 
   validate: values => {
     const errors = {};
@@ -223,13 +214,25 @@ export const OtherEncounterForm = withFormik({
   },
 
   handleSubmit: (values, { props, setSubmitting }) => {
-    props.encounters.insert({ ...values, encounterType: 'other' }, err => {
+    const { encounters, encounter, onComplete, onError } = props;
+
+    if (encounter) {
+      return encounters.update({ _id: encounter._id }, values, (err, numAffected) => {
+        if (err || numAffected !== 1) {
+          onError(err || new Error('Failed to update encounter'));
+        } else {
+          onComplete();
+        }
+      });
+    }
+
+    encounters.insert({ ...values, encounterType: 'other' }, err => {
       setSubmitting(false);
 
       if (err) {
-        props.onError(err);
+        onError(err);
       } else {
-        props.onComplete();
+        onComplete();
       }
     });
   }

@@ -15,8 +15,8 @@ import { PatientEncounterForm } from './PatientEncounterForm';
 import { StaffEncounterForm } from './StaffEncounterForm';
 
 type AppState = {
-  edit: *,
-  encounter: ?string,
+  encounter: *,
+  encounterForm: ?string,
   encounters: *,
   encounterSearchPatientName: string,
   encounterSearchType: string,
@@ -24,12 +24,12 @@ type AppState = {
   firstTimeSetup: boolean
 };
 
-class App extends React.Component<{}, AppState> {
+export class App extends React.Component<{}, AppState> {
   encounters: *;
 
   state = {
-    edit: null,
     encounter: null,
+    encounterForm: null,
     encounters: [],
     encounterSearchPatientName: '',
     encounterSearchType: 'All',
@@ -38,7 +38,7 @@ class App extends React.Component<{}, AppState> {
   };
 
   editEncounter = (encounter: *) => {
-    this.setState({ edit: encounter });
+    this.setState({ encounterForm: encounter.encounterType, encounter });
   };
 
   searchPatients = () => {
@@ -85,8 +85,8 @@ class App extends React.Component<{}, AppState> {
 
   componentDidUpdate(prevProps: *, prevState: AppState) {
     if (
-      this.state.edit !== prevState.edit ||
       this.state.encounter !== prevState.encounter ||
+      this.state.encounterForm !== prevState.encounterForm ||
       this.state.encounterSearchPatientName !== prevState.encounterSearchPatientName ||
       this.state.encounterSearchType !== prevState.encounterSearchType
     ) {
@@ -94,8 +94,11 @@ class App extends React.Component<{}, AppState> {
     }
   }
 
+  handleCancel = () => this.setState({ encounter: null, encounterForm: null });
+  handleComplete = () => this.setState({ encounter: null, encounterForm: null });
+
   render() {
-    const { encounter, error, firstTimeSetup } = this.state;
+    const { encounter, encounterForm, error, firstTimeSetup } = this.state;
 
     if (error) {
       return <Error error={error} />;
@@ -105,45 +108,49 @@ class App extends React.Component<{}, AppState> {
       return <FirstTimeSetup onComplete={() => this.setState({ firstTimeSetup: false })} />;
     }
 
-    if (encounter === 'patient') {
+    if (encounterForm === 'patient') {
       return (
         <PatientEncounterForm
+          encounter={encounter}
           encounters={this.encounters}
-          onCancel={() => this.setState({ encounter: null })}
-          onComplete={() => this.setState({ encounter: null })}
+          onCancel={this.handleCancel}
+          onComplete={this.handleComplete}
           onError={err => this.setState({ error: err.message })}
         />
       );
     }
 
-    if (encounter === 'community') {
+    if (encounterForm === 'community') {
       return (
         <CommunityEncounterForm
+          encounter={encounter}
           encounters={this.encounters}
-          onCancel={() => this.setState({ encounter: null })}
-          onComplete={() => this.setState({ encounter: null })}
+          onCancel={this.handleCancel}
+          onComplete={this.handleComplete}
           onError={err => this.setState({ error: err.message })}
         />
       );
     }
 
-    if (encounter === 'staff') {
+    if (encounterForm === 'staff') {
       return (
         <StaffEncounterForm
+          encounter={encounter}
           encounters={this.encounters}
-          onCancel={() => this.setState({ encounter: null })}
-          onComplete={() => this.setState({ encounter: null })}
+          onCancel={this.handleCancel}
+          onComplete={this.handleComplete}
           onError={err => this.setState({ error: err.message })}
         />
       );
     }
 
-    if (encounter === 'other') {
+    if (encounterForm === 'other') {
       return (
         <OtherEncounterForm
+          encounter={encounter}
           encounters={this.encounters}
-          onCancel={() => this.setState({ encounter: null })}
-          onComplete={() => this.setState({ encounter: null })}
+          onCancel={this.handleCancel}
+          onComplete={this.handleComplete}
           onError={err => this.setState({ error: err.message })}
         />
       );
@@ -159,7 +166,7 @@ class App extends React.Component<{}, AppState> {
           <Button
             icon
             labelPosition="left"
-            onClick={() => this.setState({ encounter: 'patient' })}
+            onClick={() => this.setState({ encounterForm: 'patient' })}
             size="big"
           >
             <Icon name="user" />
@@ -169,7 +176,7 @@ class App extends React.Component<{}, AppState> {
           <Button
             icon
             labelPosition="left"
-            onClick={() => this.setState({ encounter: 'community' })}
+            onClick={() => this.setState({ encounterForm: 'community' })}
             size="big"
           >
             <Icon name="phone" />
@@ -179,7 +186,7 @@ class App extends React.Component<{}, AppState> {
           <Button
             icon
             labelPosition="left"
-            onClick={() => this.setState({ encounter: 'staff' })}
+            onClick={() => this.setState({ encounterForm: 'staff' })}
             size="big"
           >
             <Icon name="user md" />
@@ -189,7 +196,7 @@ class App extends React.Component<{}, AppState> {
           <Button
             icon
             labelPosition="left"
-            onClick={() => this.setState({ encounter: 'other' })}
+            onClick={() => this.setState({ encounterForm: 'other' })}
             size="big"
           >
             <Icon name="clock" />
@@ -253,5 +260,3 @@ class App extends React.Component<{}, AppState> {
     );
   }
 }
-
-export default App;

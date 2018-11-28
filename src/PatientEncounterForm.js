@@ -148,6 +148,7 @@ function indexValues(values) {
 }
 
 type PatientEncounterFormProps = {
+  encounter: *,
   encounters: *,
   errors: { [string]: boolean },
   isSubmitting: boolean,
@@ -181,6 +182,20 @@ class UnwrappedPatientEncounterForm extends React.Component<
   };
 
   setInitialEncounterList = () => {
+    if (this.props.encounter) {
+      return this.setState({
+        patientOptions: [
+          {
+            content: this.props.encounter.patientName,
+            encounter: null,
+            text: this.props.encounter.patientName,
+            value: '0'
+          }
+        ],
+        patientNameIndex: '0'
+      });
+    }
+
     this.props.encounters
       .find({ encounterType: 'patient' })
       .sort({ encounterDate: -1, patientName: 1 })
@@ -220,7 +235,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
   componentDidMount() {
     this.setInitialEncounterList();
 
-    if (this.patientNameRef) {
+    if (!this.props.encounter && this.patientNameRef) {
       const input = this.patientNameRef.querySelector('input');
 
       if (input) {
@@ -422,7 +437,8 @@ class UnwrappedPatientEncounterForm extends React.Component<
               additionLabel="Add new patient "
               allowAdditions
               control={Dropdown}
-              defaultOpen
+              defaultOpen={!this.props.encounter}
+              disabled={!!this.props.encounter}
               error={touched.patientName && errors.patientName}
               id="input-patient-name"
               label="Patient Name"
@@ -605,7 +621,13 @@ class UnwrappedPatientEncounterForm extends React.Component<
 }
 
 export const PatientEncounterForm = withFormik({
-  mapPropsToValues: () => INITIAL_VALUES,
+  mapPropsToValues: props => {
+    if (props.encounter) {
+      return props.encounter;
+    }
+
+    return INITIAL_VALUES;
+  },
 
   validate: values => {
     const errors = {};
@@ -648,13 +670,25 @@ export const PatientEncounterForm = withFormik({
   },
 
   handleSubmit: (values, { props, setSubmitting }) => {
-    props.encounters.insert({ ...values, encounterType: 'patient' }, err => {
+    const { encounters, encounter, onComplete, onError } = props;
+
+    if (encounter) {
+      return encounters.update({ _id: encounter._id }, values, (err, numAffected) => {
+        if (err || numAffected !== 1) {
+          onError(err || new Error('Failed to update encounter'));
+        } else {
+          onComplete();
+        }
+      });
+    }
+
+    encounters.insert({ ...values, encounterType: 'patient' }, err => {
       setSubmitting(false);
 
       if (err) {
-        props.onError(err);
+        onError(err);
       } else {
-        props.onComplete();
+        onComplete();
       }
     });
   }

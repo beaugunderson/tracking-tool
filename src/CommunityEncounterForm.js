@@ -194,7 +194,13 @@ class UnwrappedCommunityEncounterForm extends React.Component<
 }
 
 export const CommunityEncounterForm = withFormik({
-  mapPropsToValues: () => INITIAL_VALUES,
+  mapPropsToValues: props => {
+    if (props.encounter) {
+      return props.encounter;
+    }
+
+    return INITIAL_VALUES;
+  },
 
   validate: values => {
     const errors = {};
@@ -215,13 +221,25 @@ export const CommunityEncounterForm = withFormik({
   },
 
   handleSubmit: (values, { props, setSubmitting }) => {
-    props.encounters.insert({ ...values, encounterType: 'community' }, err => {
+    const { encounters, encounter, onComplete, onError } = props;
+
+    if (encounter) {
+      return encounters.update({ _id: encounter._id }, values, (err, numAffected) => {
+        if (err || numAffected !== 1) {
+          onError(err || new Error('Failed to update encounter'));
+        } else {
+          onComplete();
+        }
+      });
+    }
+
+    encounters.insert({ ...values, encounterType: 'community' }, err => {
       setSubmitting(false);
 
       if (err) {
-        props.onError(err);
+        onError(err);
       } else {
-        props.onComplete();
+        onComplete();
       }
     });
   }
