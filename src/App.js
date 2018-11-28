@@ -1,7 +1,5 @@
 // @flow
 
-import 'semantic-ui-css/semantic.min.css';
-
 import moment from 'moment';
 import React from 'react';
 import { Button, Divider, Dropdown, Header, Icon, Input, Segment, Table } from 'semantic-ui-react';
