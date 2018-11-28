@@ -12,6 +12,7 @@ import { ensureUserDirectoryExists, rootPathExists } from './store';
 import { Error } from './Error';
 import { FirstTimeSetup } from './FirstTimeSetup';
 import { openEncounters } from './data';
+import { OtherEncounterForm } from './OtherEncounterForm';
 import { PatientEncounterForm } from './PatientEncounterForm';
 import { StaffEncounterForm } from './StaffEncounterForm';
 
@@ -131,6 +132,17 @@ class App extends React.Component<{}, AppState> {
     if (encounter === 'staff') {
       return (
         <StaffEncounterForm
+          encounters={this.encounters}
+          onCancel={() => this.setState({ encounter: null })}
+          onComplete={() => this.setState({ encounter: null })}
+          onError={err => this.setState({ error: err.message })}
+        />
+      );
+    }
+
+    if (encounter === 'other') {
+      return (
+        <OtherEncounterForm
           encounters={this.encounters}
           onCancel={() => this.setState({ encounter: null })}
           onComplete={() => this.setState({ encounter: null })}
