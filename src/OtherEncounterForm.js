@@ -3,7 +3,7 @@
 import camelcase from 'camelcase';
 import React from 'react';
 import slugify from 'slugify';
-import { Checkbox, Divider, Form, Header } from 'semantic-ui-react';
+import { Divider, Form, Header, Radio } from 'semantic-ui-react';
 import {
   EncounterDateField,
   EncounterNumberOfTasksField,
@@ -54,22 +54,20 @@ const OPTIONS = addFieldNames([
   }
 ]);
 
-function toInitialValues(options) {
-  const values = {};
+// function toInitialValues(options) {
+//   const values = {};
 
-  options.forEach(option => (values[option.fieldName] = false));
+//   options.forEach(option => (values[option.fieldName] = false));
 
-  return values;
-}
-
-const initialValues = toInitialValues(OPTIONS);
+//   return values;
+// }
 
 const INITIAL_VALUES = {
   encounterDate: today(),
   location: '',
   numberOfTasks: '',
   timeSpent: '',
-  ...initialValues
+  activity: ''
 };
 
 const NUMERIC_FIELDS = ['numberOfTasks', 'timeSpent'];
@@ -88,7 +86,13 @@ type OtherEncounterFormProps = {
   setValues: ({ [string]: string | boolean | Array<*> }) => void,
   submitForm: () => void,
   touched: { [string]: boolean },
-  values: { [string]: string | boolean | Array<*> }
+  values: {
+    activity: string,
+    encounterDate: string,
+    location: string,
+    numberOfTasks: string,
+    timeSpent: string
+  }
 };
 
 type OtherEncounterFormState = {
@@ -113,7 +117,7 @@ class UnwrappedOtherEncounterForm extends React.Component<
       return;
     }
 
-    this.props.setFieldValue(data.value, true);
+    this.props.setFieldValue('activity', data.value);
   };
 
   handleOptionOnMouseEnter = e => {
@@ -133,8 +137,8 @@ class UnwrappedOtherEncounterForm extends React.Component<
   // TODO put this somewhere else
   renderField = option => (
     <Form.Field
-      checked={this.props.values[option.fieldName]}
-      control={Checkbox}
+      checked={this.props.values.activity === option.fieldName}
+      control={Radio}
       key={option.fieldName}
       label={
         <label>
@@ -146,7 +150,7 @@ class UnwrappedOtherEncounterForm extends React.Component<
       }
       name={option.fieldName}
       onBlur={this.handleBlur}
-      onChange={this.handleChange}
+      onChange={() => this.props.setFieldValue('activity', option.fieldName)}
       onMouseEnter={this.handleOptionOnMouseEnter}
       onMouseLeave={this.handleOptionOnMouseLeave}
     />
