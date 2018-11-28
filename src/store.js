@@ -36,8 +36,10 @@ export const ensureUserDirectoryExists = () => {
     fs.mkdirSync(backupPath());
   }
 
-  fs.copyFileSync(
-    userFilePath('encounters.json'),
-    userFilePath('backups', `${new Date().valueOf()}.json`)
-  );
+  if (fs.existsSync(userFilePath('encounters.json'))) {
+    fs.copyFileSync(
+      userFilePath('encounters.json'),
+      userFilePath('backups', `${new Date().valueOf()}.json`)
+    );
+  }
 };
