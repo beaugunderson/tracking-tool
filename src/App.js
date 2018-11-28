@@ -207,10 +207,11 @@ class App extends React.Component<{}, AppState> {
           <Table selectable>
             <Table.Header>
               <Table.Row>
-                <Table.HeaderCell width={3}>Encounter Date</Table.HeaderCell>
-                <Table.HeaderCell width={3}>
+                <Table.HeaderCell width={2}>Encounter Date</Table.HeaderCell>
+                <Table.HeaderCell width={2}>
                   <Dropdown
                     id="encounter-type-dropdown"
+                    fluid
                     onChange={(e, { value }) => this.setState({ encounterSearchType: value })}
                     options={ENCOUNTER_TYPES}
                     placeholder="Encounter Type"
@@ -218,17 +219,19 @@ class App extends React.Component<{}, AppState> {
                     value={this.state.encounterSearchType}
                   />
                 </Table.HeaderCell>
-                <Table.HeaderCell width={4}>
+                <Table.HeaderCell width={3}>
                   <Input
                     id="encounter-patient-input"
+                    fluid
                     onChange={(e, { value }) =>
                       this.setState({ encounterSearchPatientName: value })
                     }
                     placeholder="Search..."
                   />
                 </Table.HeaderCell>
-                <Table.HeaderCell width={3}>Location</Table.HeaderCell>
-                <Table.HeaderCell width={3}>Clinic</Table.HeaderCell>
+                <Table.HeaderCell width={2}>Location</Table.HeaderCell>
+                <Table.HeaderCell width={2}>Clinic</Table.HeaderCell>
+                <Table.HeaderCell width={2}>Time / Tasks</Table.HeaderCell>
               </Table.Row>
             </Table.Header>
 
@@ -240,6 +243,9 @@ class App extends React.Component<{}, AppState> {
                   <Table.Cell>{doc.patientName}</Table.Cell>
                   <Table.Cell>{doc.location}</Table.Cell>
                   <Table.Cell>{doc.clinic}</Table.Cell>
+                  <Table.Cell>
+                    {doc.timeSpent} / {doc.numberOfTasks}
+                  </Table.Cell>
                 </Table.Row>
               ))}
             </Table.Body>
