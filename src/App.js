@@ -10,7 +10,7 @@ import { ensureUserDirectoryExists, rootPathExists } from './store';
 import { Error } from './Error';
 import { FirstTimeSetup } from './FirstTimeSetup';
 import { openEncounters } from './data';
-import { OtherEncounterForm } from './OtherEncounterForm';
+import { fieldNameToName, OtherEncounterForm } from './OtherEncounterForm';
 import { PatientEncounterForm } from './PatientEncounterForm';
 import { StaffEncounterForm } from './StaffEncounterForm';
 
@@ -74,8 +74,8 @@ export class App extends React.Component<{}, AppState> {
 
     try {
       ensureUserDirectoryExists();
-    } catch (err) {
-      this.setState({ error: err });
+    } catch (error) {
+      return this.setState({ error: error.toString() });
     }
 
     this.encounters = openEncounters();
@@ -234,8 +234,8 @@ export class App extends React.Component<{}, AppState> {
                     placeholder="Search..."
                   />
                 </Table.HeaderCell>
-                <Table.HeaderCell width={2}>Location</Table.HeaderCell>
                 <Table.HeaderCell width={2}>Clinic</Table.HeaderCell>
+                <Table.HeaderCell width={2}>Activity</Table.HeaderCell>
                 <Table.HeaderCell width={2}>Time / Tasks</Table.HeaderCell>
               </Table.Row>
             </Table.Header>
@@ -246,10 +246,10 @@ export class App extends React.Component<{}, AppState> {
                   <Table.Cell>{moment(doc.encounterDate).format('M/D/YYYY')}</Table.Cell>
                   <Table.Cell>{ENCOUNTER_TYPE_NAMES[doc.encounterType] || 'Patient'}</Table.Cell>
                   <Table.Cell>{doc.patientName}</Table.Cell>
-                  <Table.Cell>{doc.location}</Table.Cell>
                   <Table.Cell>{doc.clinic}</Table.Cell>
+                  <Table.Cell>{fieldNameToName(doc.activity)}</Table.Cell>
                   <Table.Cell>
-                    {doc.timeSpent} / {doc.numberOfTasks}
+                    {doc.timeSpent} {doc.numberOfTasks && `/ ${doc.numberOfTasks}`}
                   </Table.Cell>
                 </Table.Row>
               ))}
