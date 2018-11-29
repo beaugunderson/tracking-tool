@@ -42,6 +42,7 @@
   "dependencies": {
     "camelcase": "^5.0.0",
     "debug": "^4.1.0",
+    "electron-context-menu": "^0.10.1",
     "electron-devtools-installer": "^2.2.4",
     "electron-is-dev": "^1.0.1",
     "electron-store": "^2.0.0",

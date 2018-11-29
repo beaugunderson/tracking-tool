@@ -2,6 +2,8 @@ const isDev = require('electron-is-dev');
 const path = require('path');
 const { app, BrowserWindow, ipcMain, Menu, shell } = require('electron');
 
+require('electron-context-menu')();
+
 let mainWindow;
 
 const createWindow = () => {
