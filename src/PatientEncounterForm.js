@@ -174,6 +174,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
   PatientEncounterFormState
 > {
   patientNameRef: React$ElementRef<typeof HTMLInputElement> | null;
+  dateOfBirthRef: React$ElementRef<typeof HTMLInputElement> | null;
 
   state = {
     activeInfoButton: null,
@@ -241,6 +242,50 @@ class UnwrappedPatientEncounterForm extends React.Component<
       if (input) {
         input.focus();
       }
+    }
+
+    if (this.dateOfBirthRef) {
+      const input = this.dateOfBirthRef.querySelector('input');
+      const body = document.querySelector('body');
+
+      if (!input || !body) {
+        return;
+      }
+
+      body.addEventListener('paste', (e: ClipboardEvent) => {
+        if (document.activeElement !== input) {
+          return;
+        }
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        const value = e.clipboardData && e.clipboardData.getData('text');
+
+        if (!value) {
+          return;
+        }
+
+        const date = moment(value.trim(), [
+          'MM/DD/YYYY',
+          'M/D/YYYY',
+          'MM/DD/YYYY',
+          'M/D/YY',
+
+          'MM-DD-YYYY',
+          'M-D-YYYY',
+          'MM-DD-YYYY',
+          'M-D-YY',
+
+          'YYYY-MM-DD'
+        ]);
+
+        if (!date.isValid()) {
+          return;
+        }
+
+        this.props.setFieldValue('dateOfBirth', date.format('YYYY-MM-DD'));
+      });
     }
   }
 
@@ -468,17 +513,19 @@ class UnwrappedPatientEncounterForm extends React.Component<
             value={values.mrn}
           />
 
-          <Form.Field
-            control={Input}
-            error={touched.dateOfBirth && errors.dateOfBirth}
-            id="input-date-of-birth"
-            label="Date of Birth"
-            name="dateOfBirth"
-            onBlur={this.handleBlur}
-            onChange={this.handleChange}
-            type="date"
-            value={values.dateOfBirth}
-          />
+          <Ref innerRef={ref => (this.dateOfBirthRef = ref)}>
+            <Form.Field
+              control={Input}
+              error={touched.dateOfBirth && errors.dateOfBirth}
+              id="input-date-of-birth"
+              label="Date of Birth"
+              name="dateOfBirth"
+              onBlur={this.handleBlur}
+              onChange={this.handleChange}
+              type="date"
+              value={values.dateOfBirth}
+            />
+          </Ref>
         </Form.Group>
 
         <Form.Field
