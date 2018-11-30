@@ -4142,6 +4142,11 @@ electron-context-menu@^0.10.1:
     electron-dl "^1.2.0"
     electron-is-dev "^1.0.1"
 
+electron-default-menu@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/electron-default-menu/-/electron-default-menu-1.0.1.tgz#3173c5018eb507404fec63bdf3b78c38eedba808"
+  integrity sha1-MXPFAY61B0BP7GO987eMOO7bqAg=
+
 electron-devtools-installer@^2.2.4:
   version "2.2.4"
   resolved "https://registry.yarnpkg.com/electron-devtools-installer/-/electron-devtools-installer-2.2.4.tgz#261a50337e37121d338b966f07922eb4939a8763"
