@@ -29,6 +29,14 @@ const OPTIONS = addFieldNames([
       'Rounding with provider(s), when not specific to any one patient; attending tumor board'
   },
 
+  {
+    name: 'Distress Audit',
+    description:
+      'Use for auditing distress screens for radiation, radiosurgery, or when covering for ' +
+      'another clinician if you are dispersing them without following up on any of them. Do not ' +
+      'track this for your own audit'
+  },
+
   { name: 'Presentation', description: 'Include time spent in preparation' },
 
   {
