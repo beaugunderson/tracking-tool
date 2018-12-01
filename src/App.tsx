@@ -7,10 +7,13 @@ import { ENCOUNTER_TYPES, ENCOUNTER_TYPE_NAMES } from './options';
 import { ensureUserDirectoryExists, rootPathExists } from './store';
 import { ErrorMessage } from './ErrorMessage';
 import { FirstTimeSetup } from './FirstTimeSetup';
+import { insertExamples } from './generate-data';
 import { openEncounters } from './data';
 import { fieldNameToName, OtherEncounterForm } from './OtherEncounterForm';
 import { PatientEncounterForm } from './PatientEncounterForm';
 import { StaffEncounterForm } from './StaffEncounterForm';
+
+const isDev = window.require('electron-is-dev');
 
 type AppState = {
   encounter: any;
@@ -204,6 +207,18 @@ export class App extends React.Component<{}, AppState> {
             <Icon name="clock" />
             Other
           </Button>
+
+          {isDev && (
+            <Button
+              icon
+              labelPosition="left"
+              onClick={() => insertExamples(this.encounters)}
+              size="big"
+            >
+              <Icon name="plus circle" />
+              Add fake encounters
+            </Button>
+          )}
         </Segment>
 
         <Segment className="big-section" inverted textAlign="center">

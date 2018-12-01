@@ -29,7 +29,7 @@ import { EncounterFormProps, FieldValue, FieldValues, Intervention } from './typ
 
 const debug = Debug('tracking-tool:patient-encounter-form');
 
-type PatientEncounter = {
+export type PatientEncounter = {
   _id?: string;
   clinic: string;
   dateOfBirth: string;
@@ -37,6 +37,7 @@ type PatientEncounter = {
   diagnosisStage: string;
   diagnosisType: string;
   encounterDate: string;
+  encounterType?: string;
   location: string;
   md: string[];
   mrn: string;
@@ -46,7 +47,7 @@ type PatientEncounter = {
   timeSpent: string;
 };
 
-const INITIAL_VALUES: PatientEncounter = {
+export const INITIAL_VALUES: PatientEncounter = {
   clinic: '',
   dateOfBirth: '',
   diagnosisFreeText: '',
