@@ -84,6 +84,14 @@ export class App extends React.Component<{}, AppState> {
   }
 
   componentDidUpdate(prevProps: any, prevState: AppState) {
+    // scroll to top when we come back
+    if (this.state.encounterForm !== prevState.encounterForm) {
+      window.scroll({
+        top: 0,
+        left: 0
+      });
+    }
+
     if (
       this.state.encounter !== prevState.encounter ||
       this.state.encounterForm !== prevState.encounterForm ||
