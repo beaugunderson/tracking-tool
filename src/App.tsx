@@ -262,7 +262,6 @@ export class App extends React.Component<{}, AppState> {
                   />
                 </Table.HeaderCell>
                 <Table.HeaderCell width={2}>Clinic</Table.HeaderCell>
-                <Table.HeaderCell width={2}>Activity</Table.HeaderCell>
                 <Table.HeaderCell width={2}>Time / Tasks</Table.HeaderCell>
               </Table.Row>
             </Table.Header>
@@ -272,9 +271,8 @@ export class App extends React.Component<{}, AppState> {
                 <Table.Row key={i} onClick={() => this.editEncounter(doc)}>
                   <Table.Cell>{moment(doc.encounterDate).format('M/D/YYYY')}</Table.Cell>
                   <Table.Cell>{ENCOUNTER_TYPE_NAMES[doc.encounterType] || 'Patient'}</Table.Cell>
-                  <Table.Cell>{doc.patientName}</Table.Cell>
+                  <Table.Cell>{doc.patientName || fieldNameToName(doc.activity)}</Table.Cell>
                   <Table.Cell>{doc.clinic}</Table.Cell>
-                  <Table.Cell>{fieldNameToName(doc.activity)}</Table.Cell>
                   <Table.Cell>
                     {doc.timeSpent} {doc.numberOfTasks && `/ ${doc.numberOfTasks}`}
                   </Table.Cell>
