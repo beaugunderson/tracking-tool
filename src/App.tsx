@@ -1,5 +1,3 @@
-// @flow
-
 import moment from 'moment';
 import React from 'react';
 import { Button, Divider, Dropdown, Header, Icon, Input, Segment, Table } from 'semantic-ui-react';
@@ -15,17 +13,17 @@ import { PatientEncounterForm } from './PatientEncounterForm';
 import { StaffEncounterForm } from './StaffEncounterForm';
 
 type AppState = {
-  encounter: *,
-  encounterForm: ?string,
-  encounters: *,
-  encounterSearchPatientName: string,
-  encounterSearchType: string,
-  error: ?string | ?Error,
-  firstTimeSetup: boolean
+  encounter: any;
+  encounterForm: string | null;
+  encounters: any[];
+  encounterSearchPatientName: string;
+  encounterSearchType: string;
+  error: string | Error | null;
+  firstTimeSetup: boolean;
 };
 
 export class App extends React.Component<{}, AppState> {
-  encounters: *;
+  encounters: Nedb | undefined;
 
   state = {
     encounter: null,
@@ -37,11 +35,15 @@ export class App extends React.Component<{}, AppState> {
     firstTimeSetup: !rootPathExists()
   };
 
-  editEncounter = (encounter: *) =>
+  editEncounter = (encounter: any) =>
     this.setState({ encounterForm: encounter.encounterType, encounter });
 
   searchPatients = () => {
-    const criteria = {};
+    if (!this.encounters) {
+      return;
+    }
+
+    const criteria: any = {};
 
     if (this.state.encounterSearchType !== 'All') {
       criteria.encounterType = this.state.encounterSearchType.toLowerCase();
@@ -78,7 +80,7 @@ export class App extends React.Component<{}, AppState> {
     this.searchPatients();
   }
 
-  componentDidUpdate(prevProps: *, prevState: AppState) {
+  componentDidUpdate(prevProps: any, prevState: AppState) {
     if (
       this.state.encounter !== prevState.encounter ||
       this.state.encounterForm !== prevState.encounterForm ||
@@ -102,6 +104,10 @@ export class App extends React.Component<{}, AppState> {
 
     if (firstTimeSetup) {
       return <FirstTimeSetup onComplete={() => this.setState({ firstTimeSetup: false })} />;
+    }
+
+    if (!this.encounters) {
+      return null;
     }
 
     if (encounterForm === 'patient') {
@@ -213,7 +219,9 @@ export class App extends React.Component<{}, AppState> {
                   <Dropdown
                     id="encounter-type-dropdown"
                     fluid
-                    onChange={(e, { value }) => this.setState({ encounterSearchType: value })}
+                    onChange={(e, { value }) =>
+                      this.setState({ encounterSearchType: value as string })
+                    }
                     options={ENCOUNTER_TYPES}
                     placeholder="Encounter Type"
                     selection
@@ -237,7 +245,7 @@ export class App extends React.Component<{}, AppState> {
             </Table.Header>
 
             <Table.Body>
-              {this.state.encounters.map((doc, i) => (
+              {this.state.encounters.map((doc: any, i: number) => (
                 <Table.Row key={i} onClick={() => this.editEncounter(doc)}>
                   <Table.Cell>{moment(doc.encounterDate).format('M/D/YYYY')}</Table.Cell>
                   <Table.Cell>{ENCOUNTER_TYPE_NAMES[doc.encounterType] || 'Patient'}</Table.Cell>

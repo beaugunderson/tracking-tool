@@ -4,6 +4,13 @@ import slugify from 'slugify';
 import { Header } from 'semantic-ui-react';
 import { sortBy } from 'lodash';
 
+import { Intervention } from './types';
+
+type InterventionGroup = {
+  label: string;
+  interventions: Intervention[];
+};
+
 const ENCOUNTER_TYPE = {
   label: 'Encounter Type',
   interventions: [
@@ -336,7 +343,7 @@ const HEALTH_LITERACY = {
   ]
 };
 
-export const interventionGroups = [
+export const interventionGroups: Array<Array<InterventionGroup>> = [
   [ENCOUNTER_TYPE, CRISIS, SUPPORT_GROUP, SOCIAL_PRACTICAL],
 
   [ADVANCED_CARE_PLANNING, FAMILY, PSYCHOLOGICAL],
@@ -344,7 +351,7 @@ export const interventionGroups = [
   [CARE_COORDINATION, FINANCIAL, HEALTH_LITERACY]
 ];
 
-export const _communityInterventionGroups = [
+export const _communityInterventionGroups: Array<Array<InterventionGroup>> = [
   [CRISIS, SUPPORT_GROUP],
 
   [SOCIAL_PRACTICAL, FAMILY],
@@ -359,9 +366,9 @@ export const communityInterventionGroups = _communityInterventionGroups.map(colu
   }))
 );
 
-const _interventions = [];
+const _interventions: Intervention[] = [];
 
-const _communityInterventions = [];
+const _communityInterventions: Intervention[] = [];
 
 export const interventionOptions = [];
 

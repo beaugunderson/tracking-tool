@@ -1,9 +1,13 @@
-// @flow
-
 import React from 'react';
 import { Header, Icon, List, Message, Segment } from 'semantic-ui-react';
 import { rootPath, store, userDirectoryPath } from './store';
 import { isError } from 'lodash';
+
+declare global {
+  interface Window {
+    require: any;
+  }
+}
 
 const electron = window.require('electron');
 const osName = window.require('os-name');
@@ -12,7 +16,7 @@ const username = window.require('username');
 const { app } = electron.remote;
 
 type ErrorProps = {
-  error: Error | string
+  error: Error | string;
 };
 
 export class ErrorMessage extends React.Component<ErrorProps> {

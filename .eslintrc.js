@@ -6,23 +6,11 @@ module.exports = {
     node: true
   },
 
-  parser: 'babel-eslint',
+  parser: 'typescript-eslint-parser',
 
-  plugins: ['filenames', 'flowtype', 'import', 'prettier', 'react', 'react-perf'],
+  plugins: ['filenames', 'import', 'prettier', 'react', 'react-perf', 'typescript'],
 
-  extends: [
-    'airbnb',
-    'plugin:flowtype/recommended',
-    'prettier',
-    'prettier/flowtype',
-    'prettier/react'
-  ],
-
-  settings: {
-    flowtype: {
-      onlyFilesWithFlowAnnotation: true
-    }
-  },
+  extends: ['airbnb', 'prettier', 'prettier/react'],
 
   rules: {
     'array-callback-return': 'off',
@@ -81,11 +69,6 @@ module.exports = {
       }
     ],
 
-    // flowtype
-    'flowtype/define-flow-type': 'warn',
-    'flowtype/use-flow-type': 'warn',
-    'flowtype/no-weak-types': 'warn',
-
     // JSX
     'jsx-a11y/anchor-is-valid': 'off',
     'jsx-a11y/click-events-have-key-events': 'off',
@@ -124,6 +107,8 @@ module.exports = {
     // TODO re-enable when https'://github.com/yannickcr/eslint-plugin-react/issues/1468 is fixed
     'react/default-props-match-prop-types': 'off',
 
-    'rulesdir/import-match-filename': 'off'
+    'rulesdir/import-match-filename': 'off',
+
+    'typescript/no-unused-vars': 'error'
   }
 };

@@ -1,5 +1,3 @@
-// @flow
-
 import React from 'react';
 import { Divider, Header, Form } from 'semantic-ui-react';
 import {
@@ -12,9 +10,21 @@ import {
   today
 } from './shared-fields';
 import { isEmpty } from 'lodash';
-import { withFormik } from 'formik';
+// eslint-disable-next-line no-unused-vars
+import { withFormik, FormikErrors, FormikProps } from 'formik';
+// eslint-disable-next-line no-unused-vars
+import { EncounterFormProps, FieldValue, FieldValues, Intervention } from './types';
 
-const INITIAL_VALUES = {
+type StaffEncounter = {
+  _id?: string;
+  clinic: string;
+  encounterDate: string;
+  location: string;
+  numberOfTasks: string;
+  timeSpent: string;
+};
+
+const INITIAL_VALUES: StaffEncounter = {
   clinic: '',
   encounterDate: today(),
   location: '',
@@ -27,21 +37,12 @@ const NUMERIC_FIELDS = ['numberOfTasks', 'timeSpent'];
 const REQUIRED_FIELDS = ['clinic', 'encounterDate', 'location'];
 
 type StaffEncounterFormProps = {
-  encounters: *,
-  errors: { [string]: boolean },
-  isSubmitting: boolean,
-  onCancel: () => void,
-  onComplete: () => void,
-  onError: Error => void,
-  setFieldTouched: (string, boolean) => void,
-  setFieldValue: (string, string | boolean | Array<*>) => void,
-  setValues: ({ [string]: string | boolean | Array<*> }) => void,
-  submitForm: () => void,
-  touched: { [string]: boolean },
-  values: { [string]: string | boolean | Array<*> }
-};
+  encounter: StaffEncounter | null;
+} & EncounterFormProps;
 
-class UnwrappedStaffEncounterForm extends React.Component<StaffEncounterFormProps> {
+class UnwrappedStaffEncounterForm extends React.Component<
+  StaffEncounterFormProps & FormikProps<StaffEncounter>
+> {
   handleBlur = (e, data) => this.props.setFieldTouched((data && data.name) || e.target.name, true);
 
   handleChange = (e, { name, value, checked }) =>
@@ -55,7 +56,7 @@ class UnwrappedStaffEncounterForm extends React.Component<StaffEncounterFormProp
         <Header>New Staff Encounter</Header>
 
         <EncounterDateField
-          error={touched.encounterDate && errors.encounterDate}
+          error={!!(touched.encounterDate && errors.encounterDate)}
           onBlur={this.handleBlur}
           onChange={this.handleChange}
           value={values.encounterDate}
@@ -63,14 +64,14 @@ class UnwrappedStaffEncounterForm extends React.Component<StaffEncounterFormProp
 
         <Form.Group widths="equal">
           <EncounterLocationField
-            error={touched.location && errors.location}
+            error={!!(touched.location && errors.location)}
             onBlur={this.handleBlur}
             onChange={this.handleChange}
             value={values.location}
           />
 
           <EncounterClinicField
-            error={touched.clinic && errors.clinic}
+            error={!!(touched.clinic && errors.clinic)}
             onBlur={this.handleBlur}
             onChange={this.handleChange}
             value={values.clinic}
@@ -79,14 +80,14 @@ class UnwrappedStaffEncounterForm extends React.Component<StaffEncounterFormProp
 
         <Form.Group widths="equal">
           <EncounterTimeSpentField
-            error={touched.timeSpent && errors.timeSpent}
+            error={!!(touched.timeSpent && errors.timeSpent)}
             onBlur={this.handleBlur}
             onChange={this.handleChange}
             value={values.timeSpent}
           />
 
           <EncounterNumberOfTasksField
-            error={touched.numberOfTasks && errors.numberOfTasks}
+            error={!!(touched.numberOfTasks && errors.numberOfTasks)}
             onBlur={this.handleBlur}
             onChange={this.handleChange}
             value={values.numberOfTasks}
@@ -101,7 +102,7 @@ class UnwrappedStaffEncounterForm extends React.Component<StaffEncounterFormProp
   }
 }
 
-export const StaffEncounterForm = withFormik({
+export const StaffEncounterForm = withFormik<StaffEncounterFormProps, StaffEncounter>({
   mapPropsToValues: props => {
     if (props.encounter) {
       return props.encounter;
@@ -132,13 +133,18 @@ export const StaffEncounterForm = withFormik({
     const { encounters, encounter, onComplete, onError } = props;
 
     if (encounter) {
-      return encounters.update({ _id: encounter._id }, values, (err, numAffected) => {
-        if (err || numAffected !== 1) {
-          onError(err || new Error('Failed to update encounter'));
-        } else {
-          onComplete();
+      return encounters.update(
+        { _id: encounter._id },
+        values,
+        {},
+        (err: Error, numAffected: number) => {
+          if (err || numAffected !== 1) {
+            onError(err || new Error('Failed to update encounter'));
+          } else {
+            onComplete();
+          }
         }
-      });
+      );
     }
 
     encounters.insert({ ...values, encounterType: 'staff' }, err => {

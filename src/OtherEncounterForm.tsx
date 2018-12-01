@@ -1,5 +1,3 @@
-// @flow
-
 import camelcase from 'camelcase';
 import React from 'react';
 import slugify from 'slugify';
@@ -12,7 +10,11 @@ import {
 } from './shared-fields';
 import { InfoButton } from './InfoButton';
 import { find, isEmpty } from 'lodash';
-import { withFormik } from 'formik';
+
+// eslint-disable-next-line no-unused-vars
+import { withFormik, FormikErrors, FormikProps } from 'formik';
+// eslint-disable-next-line no-unused-vars
+import { EncounterFormProps, FieldValue, FieldValues, Intervention } from './types';
 
 function addFieldNames(options) {
   return options.map(option => {
@@ -22,7 +24,13 @@ function addFieldNames(options) {
   });
 }
 
-const OPTIONS = addFieldNames([
+type Option = {
+  name: string;
+  description: string;
+  fieldName: string;
+};
+
+const OPTIONS: Option[] = addFieldNames([
   {
     name: 'Rounding/Tumor Board',
     description:
@@ -67,7 +75,15 @@ export function fieldNameToName(fieldName: string) {
   return (option && option.name) || '';
 }
 
-const INITIAL_VALUES = {
+type OtherEncounter = {
+  _id?: string;
+  activity: string;
+  encounterDate: string;
+  location: string;
+  timeSpent: string;
+};
+
+const INITIAL_VALUES: OtherEncounter = {
   encounterDate: today(),
   location: '',
   timeSpent: '',
@@ -79,32 +95,15 @@ const NUMERIC_FIELDS = ['timeSpent'];
 const REQUIRED_FIELDS = ['encounterDate'];
 
 type OtherEncounterFormProps = {
-  encounters: *,
-  errors: { [string]: boolean },
-  isSubmitting: boolean,
-  onCancel: () => void,
-  onComplete: () => void,
-  onError: Error => void,
-  setFieldTouched: (string, boolean) => void,
-  setFieldValue: (string, string | boolean | Array<*>) => void,
-  setValues: ({ [string]: string | boolean | Array<*> }) => void,
-  submitForm: () => void,
-  touched: { [string]: boolean },
-  values: {
-    activity: string,
-    encounterDate: string,
-    location: string,
-    numberOfTasks: string,
-    timeSpent: string
-  }
-};
+  encounter: OtherEncounter | null;
+} & EncounterFormProps;
 
 type OtherEncounterFormState = {
-  activeInfoButton: ?string
+  activeInfoButton: string | null;
 };
 
 class UnwrappedOtherEncounterForm extends React.Component<
-  OtherEncounterFormProps,
+  OtherEncounterFormProps & FormikProps<OtherEncounter>,
   OtherEncounterFormState
 > {
   state = {
@@ -170,14 +169,14 @@ class UnwrappedOtherEncounterForm extends React.Component<
 
         <Form.Group widths="equal">
           <EncounterDateField
-            error={touched.encounterDate && errors.encounterDate}
+            error={!!(touched.encounterDate && errors.encounterDate)}
             onBlur={this.handleBlur}
             onChange={this.handleChange}
             value={values.encounterDate}
           />
 
           <EncounterTimeSpentField
-            error={touched.timeSpent && errors.timeSpent}
+            error={!!(touched.timeSpent && errors.timeSpent)}
             onBlur={this.handleBlur}
             onChange={this.handleChange}
             value={values.timeSpent}
@@ -194,7 +193,7 @@ class UnwrappedOtherEncounterForm extends React.Component<
   }
 }
 
-export const OtherEncounterForm = withFormik({
+export const OtherEncounterForm = withFormik<OtherEncounterFormProps, OtherEncounter>({
   mapPropsToValues: props => {
     if (props.encounter) {
       return props.encounter;
@@ -225,13 +224,18 @@ export const OtherEncounterForm = withFormik({
     const { encounters, encounter, onComplete, onError } = props;
 
     if (encounter) {
-      return encounters.update({ _id: encounter._id }, values, (err, numAffected) => {
-        if (err || numAffected !== 1) {
-          onError(err || new Error('Failed to update encounter'));
-        } else {
-          onComplete();
+      return encounters.update(
+        { _id: encounter._id },
+        values,
+        {},
+        (err: Error, numAffected: number) => {
+          if (err || numAffected !== 1) {
+            onError(err || new Error('Failed to update encounter'));
+          } else {
+            onComplete();
+          }
         }
-      });
+      );
     }
 
     encounters.insert({ ...values, encounterType: 'other' }, err => {

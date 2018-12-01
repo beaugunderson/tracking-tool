@@ -1,5 +1,3 @@
-// @flow
-
 const Store = window.require('electron-store');
 const username = window.require('username');
 

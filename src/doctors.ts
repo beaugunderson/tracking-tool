@@ -1,6 +1,4 @@
-// @flow
-
-export const DOCTORS = [
+export const DOCTORS: string[] = [
   'Alassas, Mohamed',
   'Aye, Ralph',
   'Barnett, Todd',

@@ -1,5 +1,3 @@
-// @flow
-
 import React from 'react';
 import {
   communityInitialInterventionValues,
@@ -17,9 +15,20 @@ import {
 } from './shared-fields';
 import { InfoButton } from './InfoButton';
 import { isEmpty } from 'lodash';
-import { withFormik } from 'formik';
+// eslint-disable-next-line no-unused-vars
+import { withFormik, FormikErrors, FormikProps } from 'formik';
+// eslint-disable-next-line no-unused-vars
+import { EncounterFormProps, FieldValue, FieldValues, Intervention } from './types';
 
-const INITIAL_VALUES = {
+type CommunityEncounter = {
+  _id?: string;
+  encounterDate: string;
+  location: string;
+  numberOfTasks: string;
+  timeSpent: string;
+};
+
+const INITIAL_VALUES: CommunityEncounter = {
   encounterDate: today(),
   location: '',
   numberOfTasks: '',
@@ -32,26 +41,15 @@ const NUMERIC_FIELDS = ['numberOfTasks', 'timeSpent'];
 const REQUIRED_FIELDS = ['encounterDate', 'location'];
 
 type CommunityEncounterFormProps = {
-  encounters: *,
-  errors: { [string]: boolean },
-  isSubmitting: boolean,
-  onCancel: () => void,
-  onComplete: () => void,
-  onError: Error => void,
-  setFieldTouched: (string, boolean) => void,
-  setFieldValue: (string, string | boolean | Array<*>) => void,
-  setValues: ({ [string]: string | boolean | Array<*> }) => void,
-  submitForm: () => void,
-  touched: { [string]: boolean },
-  values: { [string]: string | boolean | Array<*> }
-};
+  encounter: CommunityEncounter | null;
+} & EncounterFormProps;
 
 type CommunityEncounterFormState = {
-  activeInfoButton: ?string
+  activeInfoButton: string | null;
 };
 
 class UnwrappedCommunityEncounterForm extends React.Component<
-  CommunityEncounterFormProps,
+  CommunityEncounterFormProps & FormikProps<CommunityEncounter>,
   CommunityEncounterFormState
 > {
   state = {
@@ -131,14 +129,14 @@ class UnwrappedCommunityEncounterForm extends React.Component<
         <Header>New Community Encounter</Header>
 
         <EncounterDateField
-          error={touched.encounterDate && errors.encounterDate}
+          error={!!(touched.encounterDate && errors.encounterDate)}
           onBlur={this.handleBlur}
           onChange={this.handleChange}
           value={values.encounterDate}
         />
 
         <EncounterLocationField
-          error={touched.location && errors.location}
+          error={!!(touched.location && errors.location)}
           onBlur={this.handleBlur}
           onChange={this.handleChange}
           value={values.location}
@@ -163,7 +161,7 @@ class UnwrappedCommunityEncounterForm extends React.Component<
 
         <Divider hidden />
 
-        <Grid columns={communityInterventionGroups.length} divided>
+        <Grid columns={3} divided>
           <Grid.Row>{columns}</Grid.Row>
         </Grid>
 
@@ -171,14 +169,14 @@ class UnwrappedCommunityEncounterForm extends React.Component<
 
         <Form.Group widths="equal">
           <EncounterTimeSpentField
-            error={touched.timeSpent && errors.timeSpent}
+            error={!!(touched.timeSpent && errors.timeSpent)}
             onBlur={this.handleBlur}
             onChange={this.handleChange}
             value={values.timeSpent}
           />
 
           <EncounterNumberOfTasksField
-            error={touched.numberOfTasks && errors.numberOfTasks}
+            error={!!(touched.numberOfTasks && errors.numberOfTasks)}
             onBlur={this.handleBlur}
             onChange={this.handleChange}
             value={values.numberOfTasks}
@@ -194,7 +192,7 @@ class UnwrappedCommunityEncounterForm extends React.Component<
 }
 
 export const CommunityEncounterForm = withFormik({
-  mapPropsToValues: props => {
+  mapPropsToValues: (props: CommunityEncounterFormProps) => {
     if (props.encounter) {
       return props.encounter;
     }
@@ -224,13 +222,18 @@ export const CommunityEncounterForm = withFormik({
     const { encounters, encounter, onComplete, onError } = props;
 
     if (encounter) {
-      return encounters.update({ _id: encounter._id }, values, (err, numAffected) => {
-        if (err || numAffected !== 1) {
-          onError(err || new Error('Failed to update encounter'));
-        } else {
-          onComplete();
+      return encounters.update(
+        { _id: encounter._id },
+        values,
+        {},
+        (err: Error, numAffected: number) => {
+          if (err || numAffected !== 1) {
+            onError(err || new Error('Failed to update encounter'));
+          } else {
+            onComplete();
+          }
         }
-      });
+      );
     }
 
     encounters.insert({ ...values, encounterType: 'community' }, err => {

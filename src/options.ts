@@ -26,7 +26,9 @@ export const DOCTORS = makeOptions(RAW_DOCTORS);
 
 export const ENCOUNTER_TYPES = makeOptions(['All', 'Patient', 'Community', 'Staff', 'Other']);
 
-export const ENCOUNTER_TYPE_NAMES = {
+type EncounterTypeNames = { [key: string]: any };
+
+export const ENCOUNTER_TYPE_NAMES: EncounterTypeNames = {
   patient: 'Patient',
   community: 'Community',
   staff: 'Staff',

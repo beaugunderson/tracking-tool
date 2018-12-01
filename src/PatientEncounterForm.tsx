@@ -1,11 +1,9 @@
-// @flow
-
 import './App.css';
 
 import moment from 'moment';
 import React from 'react';
 import { Checkbox, Divider, Dropdown, Grid, Header, Input, Form, Ref } from 'semantic-ui-react';
-import { debug as Debug } from 'debug';
+import Debug from 'debug';
 import { DIAGNOSES, DOCTORS, STAGES } from './options';
 import {
   EncounterClinicField,
@@ -23,11 +21,32 @@ import {
   interventionOptions
 } from './patient-interventions';
 import { chain, deburr, escapeRegExp, isEmpty } from 'lodash';
-import { withFormik } from 'formik';
+
+// eslint-disable-next-line no-unused-vars
+import { withFormik, FormikErrors, FormikProps } from 'formik';
+// eslint-disable-next-line no-unused-vars
+import { EncounterFormProps, FieldValue, FieldValues, Intervention } from './types';
 
 const debug = Debug('tracking-tool:patient-encounter-form');
 
-const INITIAL_VALUES = {
+type PatientEncounter = {
+  _id?: string;
+  clinic: string;
+  dateOfBirth: string;
+  diagnosisFreeText: string;
+  diagnosisStage: string;
+  diagnosisType: string;
+  encounterDate: string;
+  location: string;
+  md: string[];
+  mrn: string;
+  numberOfTasks: string;
+  patientName: string;
+  research: boolean;
+  timeSpent: string;
+};
+
+const INITIAL_VALUES: PatientEncounter = {
   clinic: '',
   dateOfBirth: '',
   diagnosisFreeText: '',
@@ -58,7 +77,7 @@ const REQUIRED_FIELDS = [
 
 const SCORED_FIELDS = ['phq', 'gad', 'moca'];
 
-const docToOption = doc => {
+const docToOption = (doc: PatientEncounter) => {
   const _today = moment()
     .hour(0)
     .minute(0)
@@ -143,38 +162,31 @@ const RESEARCH_LABEL = (
   </label>
 );
 
-function indexValues(values) {
-  return values.map((value, i) => ({ ...value, value: `${i}` }));
+function indexValues(values: any) {
+  return values.map((value: any, i: number) => ({ ...value, value: `${i}` }));
 }
 
 type PatientEncounterFormProps = {
-  encounter: *,
-  encounters: *,
-  errors: { [string]: boolean },
-  isSubmitting: boolean,
-  onCancel: () => void,
-  onComplete: () => void,
-  onError: Error => void,
-  setFieldTouched: (string, boolean) => void,
-  setFieldValue: (string, string | boolean | Array<*>) => void,
-  setValues: ({ [string]: string | boolean | Array<*> }) => void,
-  submitForm: () => void,
-  touched: { [string]: boolean },
-  values: { [string]: string | boolean | Array<*> }
-};
+  encounter: PatientEncounter | null;
+} & EncounterFormProps;
 
 type PatientEncounterFormState = {
-  activeInfoButton: ?string,
-  patientNameIndex: string,
-  patientOptions: { content: *, encounter: ?{}, text: string, value: string }[]
+  activeInfoButton: string | null;
+  patientNameIndex: string;
+  patientOptions: {
+    content: any;
+    encounter: {} | null;
+    text: string;
+    value: string;
+  }[];
 };
 
 class UnwrappedPatientEncounterForm extends React.Component<
-  PatientEncounterFormProps,
+  PatientEncounterFormProps & FormikProps<PatientEncounter>,
   PatientEncounterFormState
 > {
-  patientNameRef: React$ElementRef<typeof HTMLInputElement> | null;
-  dateOfBirthRef: React$ElementRef<typeof HTMLInputElement> | null;
+  patientNameRef: HTMLElement | undefined;
+  dateOfBirthRef: HTMLElement | undefined;
 
   state = {
     activeInfoButton: null,
@@ -197,24 +209,26 @@ class UnwrappedPatientEncounterForm extends React.Component<
       });
     }
 
-    this.props.encounters
-      .find({ encounterType: 'patient' })
-      .sort({ encounterDate: -1, patientName: 1 })
-      .limit(25)
-      .exec((err, docs) => {
-        const patientOptions = chain(docs)
-          .sortBy(['encounterDate', 'createdAt'])
-          .reverse()
-          .uniqBy('mrn')
-          .map(docToOption)
-          .slice(0, 5)
-          .value();
+    if (this.props.encounters) {
+      this.props.encounters
+        .find({ encounterType: 'patient' })
+        .sort({ encounterDate: -1, patientName: 1 })
+        .limit(25)
+        .exec((err, docs) => {
+          const patientOptions = chain(docs)
+            .sortBy(['encounterDate', 'createdAt'])
+            .reverse()
+            .uniqBy('mrn')
+            .map(docToOption)
+            .slice(0, 5)
+            .value();
 
-        this.setState({ patientOptions: indexValues(patientOptions) });
-      });
+          this.setState({ patientOptions: indexValues(patientOptions) });
+        });
+    }
   };
 
-  setSearchEncounterList = searchQuery => {
+  setSearchEncounterList = (searchQuery: string) => {
     this.props.encounters
       .find({ encounterType: 'patient', patientName: new RegExp(escapeRegExp(searchQuery), 'i') })
       .sort({ patientName: 1 })
@@ -293,12 +307,13 @@ class UnwrappedPatientEncounterForm extends React.Component<
     debug('componentDidUpdate %o', { props: this.props, state: this.state });
   }
 
-  handleBlur = (e, data) => this.props.setFieldTouched((data && data.name) || e.target.name, true);
+  handleBlur = (e: any, data: any) =>
+    this.props.setFieldTouched((data && data.name) || e.target.name, true);
 
-  handleChange = (e, { name, value, checked }) =>
+  handleChange = (e: any, { name, value, checked }: any) =>
     this.props.setFieldValue(name, value !== undefined ? value : checked);
 
-  handlePatientAddition = (e, { value }) => {
+  handlePatientAddition = (e: any, { value }: any) => {
     this.setState(
       state => ({
         patientOptions: indexValues([
@@ -317,7 +332,11 @@ class UnwrappedPatientEncounterForm extends React.Component<
     );
   };
 
-  updatePatientIndexAndValue = (patientNameIndex, encounter, patientName) => {
+  updatePatientIndexAndValue = (
+    patientNameIndex: string,
+    encounter: PatientEncounter,
+    patientName: string
+  ) => {
     const { setValues, values } = this.props;
 
     // this is faster than calling setFieldValue multiple times
@@ -338,8 +357,8 @@ class UnwrappedPatientEncounterForm extends React.Component<
     this.setState({ patientNameIndex });
   };
 
-  handlePatientChange = (e, { value, options }) => {
-    const selectedOption = options.find(option => option.value === value);
+  handlePatientChange = (e: any, { value, options }: any) => {
+    const selectedOption = options.find((option: any) => option.value === value);
 
     if (!selectedOption) {
       return this.updatePatientIndexAndValue('', INITIAL_VALUES, '');
@@ -351,14 +370,14 @@ class UnwrappedPatientEncounterForm extends React.Component<
     this.updatePatientIndexAndValue(selectedOption.value, encounter, patientName);
   };
 
-  handlePatientNameSearch = (options, searchQuery) => {
+  handlePatientNameSearch = (options: any, searchQuery: string) => {
     const strippedQuery = deburr(searchQuery);
     const re = new RegExp(escapeRegExp(strippedQuery), 'i');
 
-    return options.filter(option => re.test(deburr(option['data-patient-name'])));
+    return options.filter((option: any) => re.test(deburr(option['data-patient-name'])));
   };
 
-  handlePatientSearchChange = (e: *, { searchQuery }) => {
+  handlePatientSearchChange = (e: any, { searchQuery }: { searchQuery: string }) => {
     if (searchQuery) {
       this.setSearchEncounterList(searchQuery);
     } else {
@@ -366,7 +385,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
     }
   };
 
-  handleInterventionChange = (e, data) => {
+  handleInterventionChange = (e: any, data: { value: string } | undefined) => {
     if (!data) {
       return;
     }
@@ -374,13 +393,14 @@ class UnwrappedPatientEncounterForm extends React.Component<
     this.props.setFieldValue(data.value, true);
   };
 
-  handleInterventionOnMouseEnter = e => {
+  handleInterventionOnMouseEnter = (e: any) => {
     e.persist();
     this.setState({ activeInfoButton: e.target.parentElement.firstChild.name });
   };
 
-  handleInterventionOnMouseLeave = e => {
+  handleInterventionOnMouseLeave = (e: any) => {
     e.persist();
+
     this.setState(state => {
       if (state.activeInfoButton === e.target.parentElement.firstChild.name) {
         return { activeInfoButton: null };
@@ -388,7 +408,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
     });
   };
 
-  renderField = intervention => (
+  renderField = (intervention: Intervention) => (
     <Form.Field
       checked={this.props.values[intervention.fieldName]}
       control={Checkbox}
@@ -409,7 +429,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
     />
   );
 
-  renderScoredField = intervention => {
+  renderScoredField = (intervention: Intervention) => {
     const scoreFieldName = `${intervention.fieldName}Score`;
     const { errors, touched, values } = this.props;
 
@@ -470,7 +490,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
         <Header>New Patient Encounter</Header>
 
         <EncounterDateField
-          error={touched.encounterDate && errors.encounterDate}
+          error={!!(touched.encounterDate && errors.encounterDate)}
           onBlur={this.handleBlur}
           onChange={this.handleChange}
           value={values.encounterDate}
@@ -484,7 +504,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
               control={Dropdown}
               defaultOpen={!this.props.encounter}
               disabled={!!this.props.encounter}
-              error={touched.patientName && errors.patientName}
+              error={!!(touched.patientName && errors.patientName)}
               id="input-patient-name"
               label="Patient Name"
               name="patientName"
@@ -504,7 +524,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
 
           <Form.Field
             control={Input}
-            error={touched.mrn && errors.mrn}
+            error={!!(touched.mrn && errors.mrn)}
             id="input-mrn"
             label="MRN"
             name="mrn"
@@ -516,7 +536,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
           <Ref innerRef={ref => (this.dateOfBirthRef = ref)}>
             <Form.Field
               control={Input}
-              error={touched.dateOfBirth && errors.dateOfBirth}
+              error={!!(touched.dateOfBirth && errors.dateOfBirth)}
               id="input-date-of-birth"
               label="Date of Birth"
               name="dateOfBirth"
@@ -531,7 +551,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
         <Form.Field
           control={Dropdown}
           deburr
-          error={touched.md && errors.md}
+          error={!!(touched.md && errors.md)}
           id="input-md"
           label={MD_LABEL}
           multiple
@@ -547,14 +567,14 @@ class UnwrappedPatientEncounterForm extends React.Component<
 
         <Form.Group widths="equal">
           <EncounterLocationField
-            error={touched.location && errors.location}
+            error={!!(touched.location && errors.location)}
             onBlur={this.handleBlur}
             onChange={this.handleChange}
             value={values.location}
           />
 
           <EncounterClinicField
-            error={touched.clinic && errors.clinic}
+            error={!!(touched.clinic && errors.clinic)}
             onBlur={this.handleBlur}
             onChange={this.handleChange}
             value={values.clinic}
@@ -564,7 +584,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
         <Form.Group widths="equal">
           <Form.Field
             control={Dropdown}
-            error={touched.diagnosisType && errors.diagnosisType}
+            error={!!(touched.diagnosisType && errors.diagnosisType)}
             id="input-diagnosis-type"
             label="Diagnosis Type"
             name="diagnosisType"
@@ -581,7 +601,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
           <Form.Field
             control={Input}
             disabled={values.diagnosisType !== 'Malignant'}
-            error={touched.diagnosisFreeText && errors.diagnosisFreeText}
+            error={!!(touched.diagnosisFreeText && errors.diagnosisFreeText)}
             id="input-diagnosis-free-text"
             label="Diagnosis"
             name="diagnosisFreeText"
@@ -593,7 +613,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
           <Form.Field
             control={Dropdown}
             disabled={values.diagnosisType !== 'Malignant'}
-            error={touched.diagnosisStage && errors.diagnosisStage}
+            error={!!(touched.diagnosisStage && errors.diagnosisStage)}
             id="input-diagnosis-stage"
             label={STAGE_LABEL}
             name="diagnosisStage"
@@ -637,7 +657,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
 
         <Divider hidden />
 
-        <Grid columns={interventionGroups.length} divided>
+        <Grid columns={3} divided>
           <Grid.Row>{columns}</Grid.Row>
         </Grid>
 
@@ -645,14 +665,14 @@ class UnwrappedPatientEncounterForm extends React.Component<
 
         <Form.Group widths="equal">
           <EncounterTimeSpentField
-            error={touched.timeSpent && errors.timeSpent}
+            error={!!(touched.timeSpent && errors.timeSpent)}
             onBlur={this.handleBlur}
             onChange={this.handleChange}
             value={values.timeSpent}
           />
 
           <EncounterNumberOfTasksField
-            error={touched.numberOfTasks && errors.numberOfTasks}
+            error={!!(touched.numberOfTasks && errors.numberOfTasks)}
             onBlur={this.handleBlur}
             onChange={this.handleChange}
             value={values.numberOfTasks}
@@ -667,7 +687,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
   }
 }
 
-export const PatientEncounterForm = withFormik({
+export const PatientEncounterForm = withFormik<PatientEncounterFormProps, PatientEncounter>({
   mapPropsToValues: props => {
     if (props.encounter) {
       return props.encounter;
@@ -677,7 +697,8 @@ export const PatientEncounterForm = withFormik({
   },
 
   validate: values => {
-    const errors = {};
+    // TODO use FormikErrors here?
+    const errors: any = {};
 
     if (values.diagnosisType === 'Malignant') {
       if (!values.diagnosisFreeText) {
@@ -720,13 +741,18 @@ export const PatientEncounterForm = withFormik({
     const { encounters, encounter, onComplete, onError } = props;
 
     if (encounter) {
-      return encounters.update({ _id: encounter._id }, values, (err, numAffected) => {
-        if (err || numAffected !== 1) {
-          onError(err || new Error('Failed to update encounter'));
-        } else {
-          onComplete();
+      return encounters.update(
+        { _id: encounter._id },
+        values,
+        {},
+        (err: Error, numAffected: number) => {
+          if (err || numAffected !== 1) {
+            onError(err || new Error('Failed to update encounter'));
+          } else {
+            onComplete();
+          }
         }
-      });
+      );
     }
 
     encounters.insert({ ...values, encounterType: 'patient' }, err => {

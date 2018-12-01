@@ -1,5 +1,3 @@
-// @flow
-
 import './first-time-setup.css';
 import React from 'react';
 import { Button, Container, Header, Icon } from 'semantic-ui-react';
@@ -14,11 +12,11 @@ const path = electron.remote.require('path');
 const ROOT_DIRECTORY_FILE = 'tracking-tool-root.txt';
 
 type FirstTimeSetupProps = {
-  onComplete: () => void
+  onComplete: () => void;
 };
 
 type FirstTimeSetupState = {
-  error: ?string
+  error: string | undefined;
 };
 
 export class FirstTimeSetup extends React.Component<FirstTimeSetupProps, FirstTimeSetupState> {
@@ -83,7 +81,7 @@ export class FirstTimeSetup extends React.Component<FirstTimeSetupProps, FirstTi
         )}
 
         <Button icon onClick={this.handleChooseClick} secondary size="huge">
-          Choose a Directory <Icon name="open folder" />
+          Choose a Directory <Icon name="folder open" />
         </Button>
       </Container>
     );

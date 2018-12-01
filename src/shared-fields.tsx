@@ -1,5 +1,3 @@
-// @flow
-
 import moment from 'moment';
 import React from 'react';
 import { CLINICS, LOCATIONS } from './options';
@@ -7,10 +5,10 @@ import { Dropdown, Form, Input, Popup } from 'semantic-ui-react';
 import { InfoButton } from './InfoButton';
 
 type FieldProps = {
-  error: boolean,
-  value: string | boolean | Array<*>,
-  onBlur: *,
-  onChange: *
+  error: boolean;
+  value: any;
+  onBlur: any;
+  onChange: any;
 };
 
 export const today = () => moment().format('YYYY-MM-DD');
@@ -141,9 +139,9 @@ export class EncounterNumberOfTasksField extends React.Component<FieldProps> {
 }
 
 type SubmitButtonsProps = {
-  isSubmitting: boolean,
-  onCancel: *,
-  submitForm: *
+  isSubmitting: boolean;
+  onCancel: any;
+  submitForm: any;
 };
 
 export class SubmitButtons extends React.Component<SubmitButtonsProps> {
