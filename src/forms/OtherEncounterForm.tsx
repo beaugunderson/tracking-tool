@@ -7,14 +7,14 @@ import {
   EncounterTimeSpentField,
   SubmitButtons,
   today
-} from './shared-fields';
-import { InfoButton } from './InfoButton';
+} from '../shared-fields';
+import { InfoButton } from '../InfoButton';
 import { find, isEmpty } from 'lodash';
 
 // eslint-disable-next-line no-unused-vars
-import { withFormik, FormikErrors, FormikProps } from 'formik';
+import { withFormik, FormikProps } from 'formik';
 // eslint-disable-next-line no-unused-vars
-import { EncounterFormProps, FieldValue, FieldValues, Intervention } from './types';
+import { EncounterFormProps, Intervention } from '../types';
 
 function addFieldNames(options) {
   return options.map(option => {
@@ -79,12 +79,14 @@ type OtherEncounter = {
   _id?: string;
   activity: string;
   encounterDate: string;
+  encounterType: 'other';
   location: string;
   timeSpent: string;
 };
 
 const INITIAL_VALUES: OtherEncounter = {
   encounterDate: today(),
+  encounterType: 'other',
   location: '',
   timeSpent: '',
   activity: ''
@@ -147,7 +149,7 @@ class UnwrappedOtherEncounterForm extends React.Component<
         <label>
           {option.name}{' '}
           {this.state.activeInfoButton === option.fieldName && (
-            <InfoButton content={option.description} on="hover" />
+            <InfoButton content={option.description} />
           )}
         </label>
       }
@@ -238,7 +240,7 @@ export const OtherEncounterForm = withFormik<OtherEncounterFormProps, OtherEncou
       );
     }
 
-    encounters.insert({ ...values, encounterType: 'other' }, err => {
+    encounters.insert(values, err => {
       setSubmitting(false);
 
       if (err) {

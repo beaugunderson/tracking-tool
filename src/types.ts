@@ -1,9 +1,3 @@
-export type FieldValue = string | boolean | any[];
-
-export type FieldValues = {
-  [field: string]: FieldValue;
-};
-
 export type EncounterFormProps = {
   encounters: Nedb;
   onCancel: () => void;

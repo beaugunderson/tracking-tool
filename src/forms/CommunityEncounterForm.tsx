@@ -3,7 +3,7 @@ import {
   communityInitialInterventionValues,
   communityInterventionGroups,
   communityInterventionOptions
-} from './patient-interventions';
+} from '../patient-interventions';
 import { Checkbox, Divider, Dropdown, Form, Grid, Header } from 'semantic-ui-react';
 import {
   EncounterDateField,
@@ -12,17 +12,18 @@ import {
   EncounterTimeSpentField,
   SubmitButtons,
   today
-} from './shared-fields';
-import { InfoButton } from './InfoButton';
+} from '../shared-fields';
+import { InfoButton } from '../InfoButton';
 import { isEmpty } from 'lodash';
 // eslint-disable-next-line no-unused-vars
-import { withFormik, FormikErrors, FormikProps } from 'formik';
+import { withFormik, FormikProps } from 'formik';
 // eslint-disable-next-line no-unused-vars
-import { EncounterFormProps, FieldValue, FieldValues, Intervention } from './types';
+import { EncounterFormProps, Intervention } from '../types';
 
 type CommunityEncounter = {
   _id?: string;
   encounterDate: string;
+  encounterType: 'community';
   location: string;
   numberOfTasks: string;
   timeSpent: string;
@@ -30,6 +31,7 @@ type CommunityEncounter = {
 
 const INITIAL_VALUES: CommunityEncounter = {
   encounterDate: today(),
+  encounterType: 'community',
   location: '',
   numberOfTasks: '',
   timeSpent: '',
@@ -61,7 +63,7 @@ class UnwrappedCommunityEncounterForm extends React.Component<
   handleChange = (e, { name, value, checked }) =>
     this.props.setFieldValue(name, value !== undefined ? value : checked);
 
-  handleInterventionChange = (e, data) => {
+  handleInterventionChange = (e: React.FormEvent<HTMLInputElement>, data) => {
     if (!data) {
       return;
     }
@@ -69,22 +71,28 @@ class UnwrappedCommunityEncounterForm extends React.Component<
     this.props.setFieldValue(data.value, true);
   };
 
-  handleInterventionOnMouseEnter = e => {
+  handleInterventionOnMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
     e.persist();
-    this.setState({ activeInfoButton: e.target.parentElement.firstChild.name });
+    this.setState({
+      activeInfoButton: ((e.target as HTMLDivElement).parentElement.firstChild as HTMLInputElement)
+        .name
+    });
   };
 
-  handleInterventionOnMouseLeave = e => {
+  handleInterventionOnMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
     e.persist();
     this.setState(state => {
-      if (state.activeInfoButton === e.target.parentElement.firstChild.name) {
+      if (
+        state.activeInfoButton ===
+        ((e.target as HTMLDivElement).parentElement.firstChild as HTMLInputElement).name
+      ) {
         return { activeInfoButton: null };
       }
     });
   };
 
   // TODO put this somewhere else
-  renderField = intervention => (
+  renderField = (intervention: Intervention) => (
     <Form.Field
       checked={this.props.values[intervention.fieldName]}
       control={Checkbox}
@@ -93,7 +101,7 @@ class UnwrappedCommunityEncounterForm extends React.Component<
         <label>
           {intervention.name}{' '}
           {this.state.activeInfoButton === intervention.fieldName && (
-            <InfoButton content={intervention.description} on="hover" />
+            <InfoButton content={intervention.description} />
           )}
         </label>
       }
@@ -236,7 +244,7 @@ export const CommunityEncounterForm = withFormik({
       );
     }
 
-    encounters.insert({ ...values, encounterType: 'community' }, err => {
+    encounters.insert(values, err => {
       setSubmitting(false);
 
       if (err) {

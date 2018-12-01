@@ -4,7 +4,7 @@ import moment from 'moment';
 import React from 'react';
 import { Checkbox, Divider, Dropdown, Grid, Header, Input, Form, Ref } from 'semantic-ui-react';
 import Debug from 'debug';
-import { DIAGNOSES, DOCTORS, STAGES } from './options';
+import { DIAGNOSES, DOCTORS, STAGES } from '../options';
 import {
   EncounterClinicField,
   EncounterDateField,
@@ -13,19 +13,19 @@ import {
   EncounterTimeSpentField,
   SubmitButtons,
   today
-} from './shared-fields';
-import { InfoButton } from './InfoButton';
+} from '../shared-fields';
+import { InfoButton } from '../InfoButton';
 import {
   initialInterventionValues,
   interventionGroups,
   interventionOptions
-} from './patient-interventions';
+} from '../patient-interventions';
 import { chain, deburr, escapeRegExp, isEmpty } from 'lodash';
 
 // eslint-disable-next-line no-unused-vars
-import { withFormik, FormikErrors, FormikProps } from 'formik';
+import { withFormik, FormikProps } from 'formik';
 // eslint-disable-next-line no-unused-vars
-import { EncounterFormProps, FieldValue, FieldValues, Intervention } from './types';
+import { EncounterFormProps, Intervention } from '../types';
 
 const debug = Debug('tracking-tool:patient-encounter-form');
 
@@ -37,7 +37,7 @@ export type PatientEncounter = {
   diagnosisStage: string;
   diagnosisType: string;
   encounterDate: string;
-  encounterType?: string;
+  encounterType: 'patient';
   location: string;
   md: string[];
   mrn: string;
@@ -54,6 +54,7 @@ export const INITIAL_VALUES: PatientEncounter = {
   diagnosisStage: '',
   diagnosisType: '',
   encounterDate: today(),
+  encounterType: 'patient',
   location: '',
   md: [],
   mrn: '',
@@ -139,27 +140,21 @@ const STAGE_LABEL_CONTENT = (
 
 const STAGE_LABEL = (
   <label>
-    Initial Stage <InfoButton content={STAGE_LABEL_CONTENT} on="hover" />
+    Initial Stage <InfoButton content={STAGE_LABEL_CONTENT} />
   </label>
 );
 
 const MD_LABEL = (
   <label>
     MD{' '}
-    <InfoButton
-      content="Input multiple providers as appropriate, first MD listed should be primary MD associated with that day's encounter"
-      on="hover"
-    />
+    <InfoButton content="Input multiple providers as appropriate, first MD listed should be primary MD associated with that day's encounter" />
   </label>
 );
 
 const RESEARCH_LABEL = (
   <label>
     Is patient involved in research?{' '}
-    <InfoButton
-      content="Mark this if you were referred by or coordinated with the research team, or are aware that the patient is on a research protocol, being considered for one, or is coming off of one"
-      on="hover"
-    />
+    <InfoButton content="Mark this if you were referred by or coordinated with the research team, or are aware that the patient is on a research protocol, being considered for one, or is coming off of one" />
   </label>
 );
 
@@ -418,7 +413,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
         <label>
           {intervention.name}{' '}
           {this.state.activeInfoButton === intervention.fieldName && (
-            <InfoButton content={intervention.description} on="hover" />
+            <InfoButton content={intervention.description} />
           )}
         </label>
       }
@@ -756,7 +751,7 @@ export const PatientEncounterForm = withFormik<PatientEncounterFormProps, Patien
       );
     }
 
-    encounters.insert({ ...values, encounterType: 'patient' }, err => {
+    encounters.insert(values, err => {
       setSubmitting(false);
 
       if (err) {

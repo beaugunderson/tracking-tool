@@ -3,18 +3,16 @@ import { Icon, Popup } from 'semantic-ui-react';
 
 const HELP_ICON = <Icon color="grey" name="help circle" />;
 
-export class InfoButton extends React.Component<any> {
+type InfoButtonProps = {
+  content: string | JSX.Element;
+};
+
+export class InfoButton extends React.Component<InfoButtonProps> {
   render() {
-    const { content, on, ...rest } = this.props;
+    const { content, ...rest } = this.props;
 
     return (
-      <Popup
-        {...rest}
-        content={content}
-        horizontalOffset={12}
-        on={on || 'click'}
-        trigger={HELP_ICON}
-      />
+      <Popup {...rest} content={content} horizontalOffset={12} on="hover" trigger={HELP_ICON} />
     );
   }
 }

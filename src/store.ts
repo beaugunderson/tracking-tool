@@ -6,7 +6,7 @@ const fs = electron.remote.require('fs');
 const path = electron.remote.require('path');
 
 export const DEFAULT_PATH =
-  'S:\\publicworkgroups\\social workers\\staff\\tracking tool and instructions\\2019';
+  'S:\\PublicWorkGroups\\Social Workers\\Staff\\Tracking tool and Instructions\\2019';
 
 export const store = new Store();
 

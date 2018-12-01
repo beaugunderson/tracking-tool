@@ -2,16 +2,16 @@ import moment from 'moment';
 import React from 'react';
 import { Button, Divider, Dropdown, Header, Icon, Input, Segment, Table } from 'semantic-ui-react';
 import { chain, escapeRegExp } from 'lodash';
-import { CommunityEncounterForm } from './CommunityEncounterForm';
+import { CommunityEncounterForm } from './forms/CommunityEncounterForm';
 import { ENCOUNTER_TYPES, ENCOUNTER_TYPE_NAMES } from './options';
 import { ensureUserDirectoryExists, rootPathExists } from './store';
 import { ErrorMessage } from './ErrorMessage';
 import { FirstTimeSetup } from './FirstTimeSetup';
 import { insertExamples } from './generate-data';
 import { openEncounters } from './data';
-import { fieldNameToName, OtherEncounterForm } from './OtherEncounterForm';
-import { PatientEncounterForm } from './PatientEncounterForm';
-import { StaffEncounterForm } from './StaffEncounterForm';
+import { fieldNameToName, OtherEncounterForm } from './forms/OtherEncounterForm';
+import { PatientEncounterForm } from './forms/PatientEncounterForm';
+import { StaffEncounterForm } from './forms/StaffEncounterForm';
 
 const isDev = window.require('electron-is-dev');
 
@@ -26,7 +26,7 @@ type AppState = {
 };
 
 export class App extends React.Component<{}, AppState> {
-  encounters: Nedb | undefined;
+  encounters?: Nedb;
 
   state = {
     encounter: null,

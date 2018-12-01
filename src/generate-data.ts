@@ -1,6 +1,6 @@
 import faker from 'faker';
 import moment from 'moment';
-import { INITIAL_VALUES, PatientEncounter } from './PatientEncounterForm';
+import { INITIAL_VALUES, PatientEncounter } from './forms/PatientEncounterForm';
 import { sample, times } from 'lodash';
 
 export function insertExamples(encounters: Nedb) {

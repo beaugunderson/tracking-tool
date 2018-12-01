@@ -2,7 +2,7 @@ import { userFilePath } from './store';
 
 const DataStore = window.require('nedb');
 
-export const openEncounters = () =>
+export const openEncounters = (): Nedb =>
   new DataStore({
     autoload: true,
     compareStrings: (a: string, b: string) => {

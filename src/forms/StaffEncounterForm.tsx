@@ -8,17 +8,18 @@ import {
   EncounterTimeSpentField,
   SubmitButtons,
   today
-} from './shared-fields';
+} from '../shared-fields';
 import { isEmpty } from 'lodash';
 // eslint-disable-next-line no-unused-vars
-import { withFormik, FormikErrors, FormikProps } from 'formik';
+import { withFormik, FormikProps } from 'formik';
 // eslint-disable-next-line no-unused-vars
-import { EncounterFormProps, FieldValue, FieldValues, Intervention } from './types';
+import { EncounterFormProps, Intervention } from '../types';
 
 type StaffEncounter = {
   _id?: string;
   clinic: string;
   encounterDate: string;
+  encounterType: 'staff';
   location: string;
   numberOfTasks: string;
   timeSpent: string;
@@ -27,6 +28,7 @@ type StaffEncounter = {
 const INITIAL_VALUES: StaffEncounter = {
   clinic: '',
   encounterDate: today(),
+  encounterType: 'staff',
   location: '',
   numberOfTasks: '',
   timeSpent: ''
@@ -147,7 +149,7 @@ export const StaffEncounterForm = withFormik<StaffEncounterFormProps, StaffEncou
       );
     }
 
-    encounters.insert({ ...values, encounterType: 'staff' }, err => {
+    encounters.insert(values, err => {
       setSubmitting(false);
 
       if (err) {

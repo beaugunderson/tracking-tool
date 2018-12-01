@@ -85,10 +85,7 @@ export class EncounterTimeSpentField extends React.Component<FieldProps> {
   label = (
     <label>
       Time Spent{' '}
-      <InfoButton
-        content="The number of total minutes on all encounters for this patient on this day, rounded up to the nearest 5, e.g. 75 minutes, including full representation of time spent documenting"
-        on="hover"
-      />
+      <InfoButton content="The number of total minutes on all encounters for this patient on this day, rounded up to the nearest 5, e.g. 75 minutes, including full representation of time spent documenting" />
     </label>
   );
 
@@ -114,10 +111,7 @@ export class EncounterNumberOfTasksField extends React.Component<FieldProps> {
   label = (
     <label>
       Number of Tasks{' '}
-      <InfoButton
-        content="The number of tasks associated with the encounter, equal to the number of lines you would have completed in the old spreadsheet format. For example, discussion with MD, seeing patient, and coordinating with PFA would equal 3 tasks"
-        on="hover"
-      />
+      <InfoButton content="The number of tasks associated with the encounter, equal to the number of lines you would have completed in the old spreadsheet format. For example, discussion with MD, seeing patient, and coordinating with PFA would equal 3 tasks" />
     </label>
   );
 
