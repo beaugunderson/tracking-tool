@@ -12,12 +12,12 @@ import { InfoButton } from '../InfoButton';
 import { find, isEmpty } from 'lodash';
 
 // eslint-disable-next-line no-unused-vars
-import { withFormik, FormikProps } from 'formik';
+import { withFormik, FormikProps, FormikErrors } from 'formik';
 // eslint-disable-next-line no-unused-vars
 import { EncounterFormProps, Intervention } from '../types';
 
-function addFieldNames(options) {
-  return options.map(option => {
+function addFieldNames(options: any) {
+  return options.map((option: any) => {
     const fieldName = camelcase(slugify(option.name, { lower: true, remove: /[^a-zA-Z0-9 -]/ }));
 
     return { ...option, fieldName, key: fieldName };
@@ -76,6 +76,8 @@ export function fieldNameToName(fieldName: string) {
 }
 
 type OtherEncounter = {
+  [key: string]: any;
+
   _id?: string;
   activity: string;
   encounterDate: string;
@@ -134,13 +136,13 @@ class UnwrappedOtherEncounterForm extends React.Component<
     e.persist();
     this.setState(state => {
       if (state.activeInfoButton === e.target.parentElement.firstChild.name) {
-        return { activeInfoButton: null };
+        return { activeInfoButton: null } as OtherEncounterFormState;
       }
     });
   };
 
   // TODO put this somewhere else
-  renderField = option => (
+  renderField = (option: Option) => (
     <Form.Field
       checked={this.props.values.activity === option.fieldName}
       control={Radio}
@@ -205,17 +207,17 @@ export const OtherEncounterForm = withFormik<OtherEncounterFormProps, OtherEncou
   },
 
   validate: values => {
-    const errors = {};
+    const errors: FormikErrors<OtherEncounter> = {};
 
     NUMERIC_FIELDS.forEach(field => {
       if (!/^\d+$/.test(values[field])) {
-        errors[field] = true;
+        errors[field] = 'Field must be a valid number';
       }
     });
 
     REQUIRED_FIELDS.forEach(field => {
       if (isEmpty(values[field])) {
-        errors[field] = true;
+        errors[field] = 'Field is required';
       }
     });
 

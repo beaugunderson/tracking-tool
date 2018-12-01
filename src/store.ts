@@ -10,20 +10,20 @@ export const DEFAULT_PATH =
 
 export const store = new Store();
 
-export const rootPath = () => store.get('root-path');
+export const rootPath = (): string => store.get('root-path');
 export const setRootPath = (value: string) => store.set('root-path', value);
 
-export const rootPathExists = () => rootPath() && fs.existsSync(rootPath());
+export const rootPathExists = (): boolean => rootPath() && fs.existsSync(rootPath());
 
-export const userDirectoryPath = () => path.join(rootPath(), username.sync());
+export const userDirectoryPath = (): string => path.join(rootPath(), username.sync());
 
-export const userDirectoryExists = () => {
+export const userDirectoryExists = (): boolean => {
   return fs.existsSync(userDirectoryPath());
 };
 
-export const backupPath = () => userFilePath('backups');
+export const backupPath = (): string => userFilePath('backups');
 
-export const userFilePath = (...args: string[]) => path.join(userDirectoryPath(), ...args);
+export const userFilePath = (...args: string[]): string => path.join(userDirectoryPath(), ...args);
 
 export const ensureUserDirectoryExists = () => {
   if (!userDirectoryExists()) {

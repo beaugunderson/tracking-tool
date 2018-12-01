@@ -16,11 +16,13 @@ import {
 import { InfoButton } from '../InfoButton';
 import { isEmpty } from 'lodash';
 // eslint-disable-next-line no-unused-vars
-import { withFormik, FormikProps } from 'formik';
+import { withFormik, FormikProps, FormikErrors } from 'formik';
 // eslint-disable-next-line no-unused-vars
 import { EncounterFormProps, Intervention } from '../types';
 
 type CommunityEncounter = {
+  [key: string]: any;
+
   _id?: string;
   encounterDate: string;
   encounterType: 'community';
@@ -86,7 +88,7 @@ class UnwrappedCommunityEncounterForm extends React.Component<
         state.activeInfoButton ===
         ((e.target as HTMLDivElement).parentElement.firstChild as HTMLInputElement).name
       ) {
-        return { activeInfoButton: null };
+        return { activeInfoButton: null } as CommunityEncounterFormState;
       }
     });
   };
@@ -209,17 +211,17 @@ export const CommunityEncounterForm = withFormik({
   },
 
   validate: values => {
-    const errors = {};
+    const errors: FormikErrors<CommunityEncounter> = {};
 
     NUMERIC_FIELDS.forEach(field => {
       if (!/^\d+$/.test(values[field])) {
-        errors[field] = true;
+        errors[field] = 'Field must be a number';
       }
     });
 
     REQUIRED_FIELDS.forEach(field => {
       if (isEmpty(values[field])) {
-        errors[field] = true;
+        errors[field] = 'Field is required';
       }
     });
 

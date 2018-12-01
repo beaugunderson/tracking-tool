@@ -11,11 +11,13 @@ import {
 } from '../shared-fields';
 import { isEmpty } from 'lodash';
 // eslint-disable-next-line no-unused-vars
-import { withFormik, FormikProps } from 'formik';
+import { withFormik, FormikErrors, FormikProps } from 'formik';
 // eslint-disable-next-line no-unused-vars
 import { EncounterFormProps, Intervention } from '../types';
 
 type StaffEncounter = {
+  [key: string]: any;
+
   _id?: string;
   clinic: string;
   encounterDate: string;
@@ -114,17 +116,17 @@ export const StaffEncounterForm = withFormik<StaffEncounterFormProps, StaffEncou
   },
 
   validate: values => {
-    const errors = {};
+    const errors: FormikErrors<StaffEncounter> = {};
 
     NUMERIC_FIELDS.forEach(field => {
       if (!/^\d+$/.test(values[field])) {
-        errors[field] = true;
+        errors[field] = 'Field must be a number';
       }
     });
 
     REQUIRED_FIELDS.forEach(field => {
       if (isEmpty(values[field])) {
-        errors[field] = true;
+        errors[field] = 'Field is required';
       }
     });
 

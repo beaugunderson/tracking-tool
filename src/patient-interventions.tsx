@@ -6,14 +6,35 @@ import { sortBy } from 'lodash';
 
 import { Intervention } from './types';
 
+type InterventionOption = {
+  content: JSX.Element;
+  text: string;
+  value: string;
+};
+
+type UnprocessedIntervention = {
+  name: string;
+  description: string;
+  community?: true;
+  scored?: true;
+};
+
 type InterventionGroup = {
   label: string;
   interventions: Intervention[];
 };
 
+function withFieldNames(interventions: UnprocessedIntervention[]): Intervention[] {
+  return interventions.map(intervention => ({
+    ...intervention,
+
+    fieldName: camelcase(slugify(intervention.name, { lower: true, remove: /[^a-zA-Z0-9 -]/ }))
+  }));
+}
+
 const ENCOUNTER_TYPE = {
   label: 'Encounter Type',
-  interventions: [
+  interventions: withFieldNames([
     {
       name: 'Distress Screen',
       description:
@@ -29,12 +50,12 @@ const ENCOUNTER_TYPE = {
       description:
         'Coordination, assessment for consideration for transplant, including coordination with solid organ transplant team in support of their assessment'
     }
-  ]
+  ])
 };
 
 const CRISIS = {
   label: 'Crisis',
-  interventions: [
+  interventions: withFieldNames([
     {
       name: 'Severe Mental Illness',
       description:
@@ -77,23 +98,23 @@ const CRISIS = {
       description:
         'Create encounter, mark M&M upon patient’s death in cases where severe MH, SUD, homelessness are thought to have contributed to patient’s death regardless of if you actually had an encounter that would typically be tracked'
     }
-  ]
+  ])
 };
 
 const SUPPORT_GROUP = {
   label: 'Support Group Screening',
-  interventions: [
+  interventions: withFieldNames([
     {
       name: 'Assessment, Referral',
       description: 'Research, discussion of, referral to support groups',
       community: true
     }
-  ]
+  ])
 };
 
 const SOCIAL_PRACTICAL = {
   label: 'Social, Practical',
-  interventions: [
+  interventions: withFieldNames([
     {
       name: 'Food',
       description: 'Food banks, Meals on Wheels, Chicken Soup Brigade',
@@ -124,12 +145,12 @@ const SOCIAL_PRACTICAL = {
       description: 'Choose if referrals do not match other more specific categories',
       community: true
     }
-  ]
+  ])
 };
 
 const ADVANCED_CARE_PLANNING = {
   label: 'Advanced Care Planning',
-  interventions: [
+  interventions: withFieldNames([
     {
       name: 'Facilitation',
       description:
@@ -152,12 +173,12 @@ const ADVANCED_CARE_PLANNING = {
       name: 'Form Completion',
       description: 'Helping patient complete advance directives'
     }
-  ]
+  ])
 };
 
 const FAMILY = {
   label: 'Family, Caregiver',
-  interventions: [
+  interventions: withFieldNames([
     {
       name: 'Caregiver: Supportive Counseling, Education',
       description:
@@ -175,12 +196,12 @@ const FAMILY = {
         'When caregiver is in need of services (if patient, use other categories), including in-home help with short-term custodial care placement, short-term assisted living placement, day program',
       community: true
     }
-  ]
+  ])
 };
 
 const PSYCHOLOGICAL = {
   label: 'Psychological, Emotional',
-  interventions: [
+  interventions: withFieldNames([
     {
       name: 'New Diagnosis',
       description: 'Interventions surrounding a new diagnosis, acute'
@@ -225,12 +246,12 @@ const PSYCHOLOGICAL = {
         'Mark when you have completed a MoCA with the patient in the encounter you are tracking, input the score',
       scored: true
     }
-  ]
+  ])
 };
 
 const CARE_COORDINATION = {
   label: 'Care Coordination',
-  interventions: [
+  interventions: withFieldNames([
     {
       name: 'Customer Service',
       description:
@@ -281,12 +302,12 @@ const CARE_COORDINATION = {
         'SCI Nutrition Counseling, Northwest Natural Health, Monroe Massage at SCI, Cancer Rehabilitation, Art & Music Therapy',
       community: true
     }
-  ]
+  ])
 };
 
 const FINANCIAL = {
   label: 'Financial, Legal',
-  interventions: [
+  interventions: withFieldNames([
     {
       name: 'SCI Grant Funds',
       description: 'Discussion, facilitation of SCI grant funds',
@@ -320,12 +341,12 @@ const FINANCIAL = {
       description: 'Benefits consultation, assistance with SSI, SSDI, Food Stamps, LIHEAP, TANF',
       community: true
     }
-  ]
+  ])
 };
 
 const HEALTH_LITERACY = {
   label: 'Health Literacy',
-  interventions: [
+  interventions: withFieldNames([
     {
       name: 'Accessing Accurate Medical Information',
       description:
@@ -340,7 +361,7 @@ const HEALTH_LITERACY = {
       description:
         'Communication assistance between patient and MD, RN, MA, PSC, etc. to clarify treatment plan or other needs, including coaching, informing, strategizing communication with clinical team, helping patient to formulate questions'
     }
-  ]
+  ])
 };
 
 export const interventionGroups: Array<Array<InterventionGroup>> = [
@@ -370,18 +391,13 @@ const _interventions: Intervention[] = [];
 
 const _communityInterventions: Intervention[] = [];
 
-export const interventionOptions = [];
+export const interventionOptions: InterventionOption[] = [];
 
-export const communityInterventionOptions = [];
+export const communityInterventionOptions: InterventionOption[] = [];
 
 interventionGroups.forEach(column => {
   column.forEach(group => {
     group.interventions.forEach(intervention => {
-      // eslint-disable-next-line
-      intervention.fieldName = camelcase(
-        slugify(intervention.name, { lower: true, remove: /[^a-zA-Z0-9 -]/ })
-      );
-
       const option = {
         content: (
           <React.Fragment>
@@ -408,9 +424,13 @@ export const interventions = sortBy(_interventions, ['name']);
 
 export const communityInterventions = sortBy(_communityInterventions, ['name']);
 
-export const initialInterventionValues = {};
+type InitialInterventionValues = {
+  [field: string]: string | boolean;
+};
 
-export const communityInitialInterventionValues = {};
+export const initialInterventionValues: InitialInterventionValues = {};
+
+export const communityInitialInterventionValues: InitialInterventionValues = {};
 
 interventions.forEach(intervention => {
   if (intervention.scored) {

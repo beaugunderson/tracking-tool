@@ -23,13 +23,15 @@ import {
 import { chain, deburr, escapeRegExp, isEmpty } from 'lodash';
 
 // eslint-disable-next-line no-unused-vars
-import { withFormik, FormikProps } from 'formik';
+import { withFormik, FormikErrors, FormikProps } from 'formik';
 // eslint-disable-next-line no-unused-vars
 import { EncounterFormProps, Intervention } from '../types';
 
 const debug = Debug('tracking-tool:patient-encounter-form');
 
 export type PatientEncounter = {
+  [key: string]: any;
+
   _id?: string;
   clinic: string;
   dateOfBirth: string;
@@ -262,6 +264,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
         return;
       }
 
+      // pasting into a date field requires a global handler as a workaround
       body.addEventListener('paste', (e: ClipboardEvent) => {
         if (document.activeElement !== input) {
           return;
@@ -391,6 +394,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
 
   handleInterventionOnMouseEnter = (e: any) => {
     e.persist();
+
     this.setState({ activeInfoButton: e.target.parentElement.firstChild.name });
   };
 
@@ -399,7 +403,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
 
     this.setState(state => {
       if (state.activeInfoButton === e.target.parentElement.firstChild.name) {
-        return { activeInfoButton: null };
+        return { activeInfoButton: null } as PatientEncounterFormState;
       }
     });
   };
@@ -444,7 +448,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
         {this.props.values[intervention.fieldName] && (
           <Input
             className="score-field"
-            error={touched[scoreFieldName] && errors[scoreFieldName]}
+            error={!!(touched[scoreFieldName] && errors[scoreFieldName])}
             name={scoreFieldName}
             onBlur={this.handleBlur}
             onChange={this.handleChange}
@@ -693,16 +697,15 @@ export const PatientEncounterForm = withFormik<PatientEncounterFormProps, Patien
   },
 
   validate: values => {
-    // TODO use FormikErrors here?
-    const errors: any = {};
+    const errors: FormikErrors<PatientEncounter> = {};
 
     if (values.diagnosisType === 'Malignant') {
       if (!values.diagnosisFreeText) {
-        errors.diagnosisFreeText = true;
+        errors.diagnosisFreeText = 'Diagnosis is required';
       }
 
       if (!values.diagnosisStage) {
-        errors.diagnosisStage = true;
+        errors.diagnosisStage = 'Diagnosis stage is required';
       }
     }
 
@@ -710,23 +713,23 @@ export const PatientEncounterForm = withFormik<PatientEncounterFormProps, Patien
       const scoredFieldName = `${field}Score`;
 
       if (values[field] && !/^\d+$/.test(values[scoredFieldName])) {
-        errors[scoredFieldName] = true;
+        errors[scoredFieldName] = 'Score is required';
       }
     });
 
     if (!/^100\d{7}$/.test(values.mrn)) {
-      errors.mrn = true;
+      errors.mrn = 'MRN is required and must start with 100 followed by 7 digits';
     }
 
     NUMERIC_FIELDS.forEach(field => {
       if (!/^\d+$/.test(values[field])) {
-        errors[field] = true;
+        errors[field] = 'Must be a valid number';
       }
     });
 
     REQUIRED_FIELDS.forEach(field => {
       if (isEmpty(values[field])) {
-        errors[field] = true;
+        errors[field] = 'This field is required';
       }
     });
 

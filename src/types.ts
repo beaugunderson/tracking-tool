@@ -9,7 +9,7 @@ export type Intervention = {
   name: string;
   description: string;
 
-  fieldName?: string;
+  fieldName: string;
   community?: boolean;
   scored?: boolean;
 };

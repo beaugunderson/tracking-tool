@@ -1,6 +1,6 @@
 import { DOCTORS as RAW_DOCTORS } from './doctors';
 
-function makeOptions(options) {
+function makeOptions(options: string[]) {
   return options.map(option => ({ value: option, text: option }));
 }
 
