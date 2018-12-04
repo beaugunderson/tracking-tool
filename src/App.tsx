@@ -1,3 +1,5 @@
+import './App.css';
+
 import moment from 'moment';
 import React from 'react';
 import { Button, Divider, Dropdown, Header, Icon, Input, Segment, Table } from 'semantic-ui-react';

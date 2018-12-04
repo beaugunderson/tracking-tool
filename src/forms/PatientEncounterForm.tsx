@@ -1,5 +1,3 @@
-import './App.css';
-
 import moment from 'moment';
 import React from 'react';
 import { Checkbox, Divider, Dropdown, Grid, Header, Input, Form, Ref } from 'semantic-ui-react';
