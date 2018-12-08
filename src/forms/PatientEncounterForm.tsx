@@ -310,6 +310,9 @@ class UnwrappedPatientEncounterForm extends React.Component<
   handleChange = (e: any, { name, value, checked }: any) =>
     this.props.setFieldValue(name, value !== undefined ? value : checked);
 
+  handleChangeTrimmed = (e: any, { name, value }: any) =>
+    this.props.setFieldValue(name, (value || '').trim());
+
   handlePatientAddition = (e: any, { value }: any) => {
     this.setState(
       state => ({
@@ -527,7 +530,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
             label="MRN"
             name="mrn"
             onBlur={this.handleBlur}
-            onChange={this.handleChange}
+            onChange={this.handleChangeTrimmed}
             value={values.mrn}
           />
 
