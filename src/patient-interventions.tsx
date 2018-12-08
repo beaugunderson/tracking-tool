@@ -331,6 +331,11 @@ const FINANCIAL = {
         'Information re financial assistance, providing application, coordination, advocacy'
     },
     {
+      name: 'Other Medical Bills',
+      description:
+        'Helping patients with financial assistance and medical bills outside the Swedish system'
+    },
+    {
       name: 'Employment',
       description:
         'Employment concerns, FMLA, talking with HR, work accommodations, referrals to Cancer & Careers, Bureau of Labor, career or job assistance, scholarships',
