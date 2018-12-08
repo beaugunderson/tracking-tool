@@ -755,7 +755,7 @@ export const PatientEncounterForm = withFormik<PatientEncounterFormProps, Patien
       );
     }
 
-    encounters.insert(values, err => {
+    encounters.insert({ ...values, patientName: values.patientName.trim() }, err => {
       setSubmitting(false);
 
       if (err) {
