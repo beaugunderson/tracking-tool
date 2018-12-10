@@ -13,9 +13,15 @@ import { insertExamples } from './generate-data';
 import { openEncounters } from './data';
 import { fieldNameToName, OtherEncounterForm } from './forms/OtherEncounterForm';
 import { PatientEncounterForm } from './forms/PatientEncounterForm';
+import { Report } from './reporting/Report';
 import { StaffEncounterForm } from './forms/StaffEncounterForm';
 
 const isDev = window.require('electron-is-dev');
+const username = window.require('username');
+
+function canSeeReporting() {
+  return ['beau', 'lindce2', 'carynstewart'].indexOf(username.sync()) !== -1;
+}
 
 type AppState = {
   encounter: any;
@@ -25,10 +31,15 @@ type AppState = {
   encounterSearchType: string;
   error: string | Error | null;
   firstTimeSetup: boolean;
+  reporting: boolean;
 };
 
 export class App extends React.Component<{}, AppState> {
   encounters?: Nedb;
+
+  // lindce2
+  // carynstewart
+  // beau
 
   state = {
     encounter: null,
@@ -37,7 +48,8 @@ export class App extends React.Component<{}, AppState> {
     encounterSearchPatientName: '',
     encounterSearchType: 'All',
     error: null,
-    firstTimeSetup: !rootPathExists()
+    firstTimeSetup: !rootPathExists(),
+    reporting: false
   };
 
   editEncounter = (encounter: any) =>
@@ -65,7 +77,7 @@ export class App extends React.Component<{}, AppState> {
       const encounters = chain(docs)
         .sortBy('patientName')
         .reverse()
-        .sortBy('encounterDate')
+        .sortBy(['encounterDate', 'createdAt'])
         .reverse()
         .value();
 
@@ -109,7 +121,7 @@ export class App extends React.Component<{}, AppState> {
   handleError = (error: Error | string) => this.setState({ error });
 
   render() {
-    const { encounter, encounterForm, error, firstTimeSetup } = this.state;
+    const { encounter, encounterForm, error, firstTimeSetup, reporting } = this.state;
 
     if (error) {
       return <ErrorMessage error={error} />;
@@ -121,6 +133,10 @@ export class App extends React.Component<{}, AppState> {
 
     if (!this.encounters) {
       return null;
+    }
+
+    if (reporting) {
+      return <Report onComplete={() => this.setState({ reporting: false })} />;
     }
 
     if (encounterForm === 'patient') {
@@ -218,6 +234,12 @@ export class App extends React.Component<{}, AppState> {
             Other
           </Button>
 
+          {canSeeReporting() && (
+            <Button onClick={() => this.setState({ reporting: true })} size="big">
+              Reporting
+            </Button>
+          )}
+
           {isDev && (
             <Button
               icon
@@ -236,7 +258,7 @@ export class App extends React.Component<{}, AppState> {
 
           <Divider hidden />
 
-          <Table selectable>
+          <Table id="encounter-table" selectable>
             <Table.Header>
               <Table.Row>
                 <Table.HeaderCell width={2}>Encounter Date</Table.HeaderCell>

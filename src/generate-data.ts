@@ -1,11 +1,74 @@
 import faker from 'faker';
 import moment from 'moment';
 import { DOCTORS } from './doctors';
+import { CLINICS, LOCATIONS } from './options';
 import { INITIAL_VALUES, PatientEncounter } from './forms/PatientEncounterForm';
 import { interventions } from './patient-interventions';
 import { sample, sampleSize, times } from 'lodash';
 
+function doctors() {
+  return sampleSize(DOCTORS, Math.random() > 0.75 ? 2 : 1);
+}
+
+function location() {
+  return sample(LOCATIONS);
+}
+
+function clinic() {
+  return sample(CLINICS);
+}
+
+function diagnosis() {
+  const diagnosisType = sample(['Malignant', 'Benign/Other', 'Unknown']);
+
+  if (diagnosisType !== 'Malignant') {
+    return { diagnosisType };
+  }
+
+  return {
+    diagnosisType,
+    diagnosisFreeText: sample([
+      'Colon',
+      'Breast',
+      'Sarcoma',
+      'Lung',
+      'Tongue',
+      'Hepatocellular',
+      'CLL',
+      'ALL'
+    ]),
+    diagnosisStage: sample(['Unknown', 'Early', 'Advanced'])
+  };
+}
+
+function fakePatient() {
+  return {
+    patientName: faker.fake('{{name.lastName}}, {{name.firstName}} {{name.firstName}}'),
+
+    dateOfBirth: moment(faker.date.past(115)).format('YYYY-MM-DD'),
+
+    diagnosis: diagnosis(),
+
+    location: location(),
+
+    clinic: clinic(),
+
+    md: doctors(),
+
+    mrn: `100${Math.random()
+      .toString()
+      .slice(2, 9)}`,
+
+    research: sample([false, true])
+  };
+}
+
 export function insertExamples(encounters: Nedb) {
+  const records = Math.floor(Math.random() * 150);
+
+  // pre-generate fake patients so we can have multiple encounters per patient
+  const patients = times(records, fakePatient);
+
   function insertExample() {
     const sampledInterventions = sampleSize(interventions, 1 + Math.floor(Math.random() * 5));
     const interventionValues = {};
@@ -14,50 +77,42 @@ export function insertExamples(encounters: Nedb) {
       interventionValues[intervention.fieldName] = true;
     }
 
+    const patient = sample(patients);
+
+    // 10% of the time generate a new diagnosis
+    const patientDiagnosis = Math.random() > 0.1 ? patient.diagnosis : diagnosis();
+
     const doc: PatientEncounter = {
       ...INITIAL_VALUES,
+
       ...interventionValues,
-      patientName: faker.fake('{{name.lastName}}, {{name.firstName}} {{name.firstName}}'),
-      dateOfBirth: moment(faker.date.past()).format('YYYY-MM-DD'),
-      diagnosisType: sample(['Malignant', 'Benign/Other', 'Unknown']),
-      diagnosisFreeText: sample(['Colon cancer', 'Breast cancer', 'Finger cancer']),
-      diagnosisStage: sample(['Early', 'Advanced']),
-      encounterType: 'patient',
-      location: sample([
-        'Ballard',
-        'Cherry Hill',
-        'Edmonds',
-        'Issaquah',
-        'First Hill',
-        'True Cancer Center'
-      ]),
-      clinic: sample([
-        'Breast Surgery',
-        'Colorectal Surgery',
-        'Gyn Onc',
-        'Head/Neck Surgery',
-        'Hematology',
-        'Inpatient',
-        'Ivy',
-        'Medical Oncology',
-        'Non-SCI MD',
-        'Palliative Care',
-        'Radiation Oncology',
-        'Radiosurgery',
-        'Thoracic Surgery'
-      ]),
+
+      ...patient,
+
+      ...patientDiagnosis,
+
       encounterDate: moment(faker.date.recent(30)).format('YYYY-MM-DD'),
-      md: sampleSize(DOCTORS, Math.random() > 0.75 ? 2 : 1),
-      mrn: `100${Math.random()
-        .toString()
-        .slice(2, 9)}`,
-      numberOfTasks: `${1 + Math.floor(Math.random() * 5)}`,
-      research: sample([false, true]),
-      timeSpent: `${Math.ceil((Math.random() * 60) / 5) * 5}`
+      encounterType: 'patient',
+
+      // 20% of the time generate new location for a given patient
+      location: Math.random() > 0.2 ? patient.location : location(),
+
+      // 40% of the time generate new clinic for a given patient
+      clinic: Math.random() > 0.4 ? patient.clinic : clinic(),
+
+      // 20% of the time generate new MDs for a given patient
+      md: Math.random() > 0.2 ? patient.md : doctors(),
+
+      // 10% of the time flip the research flag
+      research: Math.random() > 0.1 ? patient.research : !patient.research,
+
+      numberOfTasks: `${1 + Math.floor(sampledInterventions.length * Math.random())}`,
+
+      timeSpent: `${Math.ceil((Math.random() * sampledInterventions.length * 10) / 5) * 5}`
     };
 
     encounters.insert(doc);
   }
 
-  times(150, insertExample);
+  times(records, insertExample);
 }

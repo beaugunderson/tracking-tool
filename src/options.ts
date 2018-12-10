@@ -4,7 +4,7 @@ function makeOptions(options: string[]) {
   return options.map(option => ({ value: option, text: option }));
 }
 
-export const CLINICS = makeOptions([
+export const CLINICS = [
   'Breast Surgery',
   'Colorectal Surgery',
   'Gyn Onc',
@@ -18,7 +18,9 @@ export const CLINICS = makeOptions([
   'Radiation Oncology',
   'Radiosurgery',
   'Thoracic Surgery'
-]);
+];
+
+export const CLINIC_OPTIONS = makeOptions(CLINICS);
 
 export const DIAGNOSES = makeOptions(['Malignant', 'Benign/Other', 'Unknown']);
 
@@ -35,13 +37,15 @@ export const ENCOUNTER_TYPE_NAMES: EncounterTypeNames = {
   other: 'Other'
 };
 
-export const LOCATIONS = makeOptions([
+export const LOCATIONS = [
   'Ballard',
   'Cherry Hill',
   'Edmonds',
   'Issaquah',
   'First Hill',
   'True Cancer Center'
-]);
+];
+
+export const LOCATION_OPTIONS = makeOptions(LOCATIONS);
 
 export const STAGES = makeOptions(['Unknown', 'Early', 'Advanced']);

@@ -44,8 +44,24 @@ body {
 .big-section {
   padding-top: 3em !important;
   padding-bottom: 3em !important;
+  margin-bottom: 2em !important;
 }
 
 .big-section h1 {
   font-size: 3em !important;
+}
+
+.clearfix {
+  *zoom: 1;
+}
+
+.clearfix:before,
+.clearfix:after {
+  display: table;
+  line-height: 0;
+  content: "";
+}
+
+.clearfix:after {
+  clear: both;
 }
