@@ -37,10 +37,6 @@ type AppState = {
 export class App extends React.Component<{}, AppState> {
   encounters?: Nedb;
 
-  // lindce2
-  // carynstewart
-  // beau
-
   state = {
     encounter: null,
     encounterForm: null,
