@@ -146,8 +146,8 @@ const STAGE_LABEL = (
 
 const MD_LABEL = (
   <label>
-    MD{' '}
-    <InfoButton content="Input multiple providers as appropriate, first MD listed should be primary MD associated with that day's encounter" />
+    Provider{' '}
+    <InfoButton content="Input multiple providers as appropriate, first provider listed should be primary provider associated with that day's encounter" />
   </label>
 );
 

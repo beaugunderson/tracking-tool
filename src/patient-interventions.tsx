@@ -122,7 +122,8 @@ const SOCIAL_PRACTICAL = {
     },
     {
       name: 'Transportation',
-      description: 'ACS Road to Recovery, Hopelink, Paratransit, Access, Angel Flight',
+      description:
+        'ACS Road to Recovery, Hopelink, Paratransit, Access, Angel Flight, Disability Placards and Ferry Passes. Excludes SCI Parking Assistance, which should be tracked under SCI Grant Funds',
       community: true
     },
     {
@@ -310,7 +311,8 @@ const FINANCIAL = {
   interventions: withFieldNames([
     {
       name: 'SCI Grant Funds',
-      description: 'Discussion, facilitation of SCI grant funds',
+      description:
+        'Discussion, facilitation of SCI grant funds, including SCI Parking Assistance and SCI Rx Assistance',
       community: true
     },
     {
