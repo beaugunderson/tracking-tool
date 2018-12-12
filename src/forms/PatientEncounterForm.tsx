@@ -47,7 +47,7 @@ export type PatientEncounter = {
   timeSpent: string;
 };
 
-export const INITIAL_VALUES: PatientEncounter = {
+export const INITIAL_VALUES = (): PatientEncounter => ({
   clinic: '',
   dateOfBirth: '',
   diagnosisFreeText: '',
@@ -63,7 +63,7 @@ export const INITIAL_VALUES: PatientEncounter = {
   research: false,
   timeSpent: '',
   ...initialInterventionValues
-};
+});
 
 const NUMERIC_FIELDS = ['numberOfTasks', 'timeSpent'];
 
@@ -327,7 +327,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
         ])
       }),
       () => {
-        this.updatePatientIndexAndValue('0', INITIAL_VALUES, value);
+        this.updatePatientIndexAndValue('0', INITIAL_VALUES(), value);
       }
     );
   };
@@ -361,10 +361,10 @@ class UnwrappedPatientEncounterForm extends React.Component<
     const selectedOption = options.find((option: any) => option.value === value);
 
     if (!selectedOption) {
-      return this.updatePatientIndexAndValue('', INITIAL_VALUES, '');
+      return this.updatePatientIndexAndValue('', INITIAL_VALUES(), '');
     }
 
-    const encounter = (selectedOption && selectedOption['data-encounter']) || INITIAL_VALUES;
+    const encounter = (selectedOption && selectedOption['data-encounter']) || INITIAL_VALUES();
     const patientName = selectedOption && selectedOption['data-patient-name'];
 
     this.updatePatientIndexAndValue(selectedOption.value, encounter, patientName);
@@ -694,7 +694,7 @@ export const PatientEncounterForm = withFormik<PatientEncounterFormProps, Patien
       return props.encounter;
     }
 
-    return INITIAL_VALUES;
+    return INITIAL_VALUES();
   },
 
   validate: values => {

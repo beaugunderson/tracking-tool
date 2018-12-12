@@ -83,7 +83,7 @@ export function insertExamples(encounters: Nedb) {
     const patientDiagnosis = Math.random() > 0.1 ? patient.diagnosis : diagnosis();
 
     const doc: PatientEncounter = {
-      ...INITIAL_VALUES,
+      ...INITIAL_VALUES(),
 
       ...interventionValues,
 

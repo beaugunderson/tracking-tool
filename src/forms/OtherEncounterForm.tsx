@@ -86,13 +86,13 @@ type OtherEncounter = {
   timeSpent: string;
 };
 
-const INITIAL_VALUES: OtherEncounter = {
+const INITIAL_VALUES = (): OtherEncounter => ({
   encounterDate: today(),
   encounterType: 'other',
   location: '',
   timeSpent: '',
   activity: ''
-};
+});
 
 const NUMERIC_FIELDS = ['timeSpent'];
 
@@ -203,7 +203,7 @@ export const OtherEncounterForm = withFormik<OtherEncounterFormProps, OtherEncou
       return props.encounter;
     }
 
-    return INITIAL_VALUES;
+    return INITIAL_VALUES();
   },
 
   validate: values => {

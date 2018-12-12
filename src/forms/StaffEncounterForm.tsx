@@ -27,14 +27,14 @@ type StaffEncounter = {
   timeSpent: string;
 };
 
-const INITIAL_VALUES: StaffEncounter = {
+const INITIAL_VALUES = (): StaffEncounter => ({
   clinic: '',
   encounterDate: today(),
   encounterType: 'staff',
   location: '',
   numberOfTasks: '',
   timeSpent: ''
-};
+});
 
 const NUMERIC_FIELDS = ['numberOfTasks', 'timeSpent'];
 
@@ -112,7 +112,7 @@ export const StaffEncounterForm = withFormik<StaffEncounterFormProps, StaffEncou
       return props.encounter;
     }
 
-    return INITIAL_VALUES;
+    return INITIAL_VALUES();
   },
 
   validate: values => {

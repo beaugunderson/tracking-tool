@@ -31,14 +31,14 @@ type CommunityEncounter = {
   timeSpent: string;
 };
 
-const INITIAL_VALUES: CommunityEncounter = {
+const INITIAL_VALUES = (): CommunityEncounter => ({
   encounterDate: today(),
   encounterType: 'community',
   location: '',
   numberOfTasks: '',
   timeSpent: '',
   ...communityInitialInterventionValues
-};
+});
 
 const NUMERIC_FIELDS = ['numberOfTasks', 'timeSpent'];
 
@@ -201,13 +201,13 @@ class UnwrappedCommunityEncounterForm extends React.Component<
   }
 }
 
-export const CommunityEncounterForm = withFormik({
-  mapPropsToValues: (props: CommunityEncounterFormProps) => {
+export const CommunityEncounterForm = withFormik<CommunityEncounterFormProps, CommunityEncounter>({
+  mapPropsToValues: props => {
     if (props.encounter) {
       return props.encounter;
     }
 
-    return INITIAL_VALUES;
+    return INITIAL_VALUES();
   },
 
   validate: values => {
