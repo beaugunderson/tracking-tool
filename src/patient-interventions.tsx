@@ -292,15 +292,15 @@ const CARE_COORDINATION = {
         'Patient behavior challenges, including consult with staff, patient, family member, drafting behavioral agreement'
     },
     {
-      name: 'External Supportive Care',
-      description:
-        'Complementary, alternative medicine outside of SCI, including Swedish resources not associated with the Cancer Institute (e.g. acupuncture through the pain clinic), plus community resources',
-      community: true
-    },
-    {
       name: 'SCI Supportive Care',
       description:
         'SCI Nutrition Counseling, Northwest Natural Health, Monroe Massage at SCI, Cancer Rehabilitation, Art & Music Therapy',
+      community: true
+    },
+    {
+      name: 'External Supportive Care',
+      description:
+        'Complementary, alternative medicine outside of SCI, including Swedish resources not associated with the Cancer Institute (e.g. acupuncture through the pain clinic), plus community resources',
       community: true
     }
   ])
