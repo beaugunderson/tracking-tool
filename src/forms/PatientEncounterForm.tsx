@@ -1,3 +1,4 @@
+import * as Mousetrap from 'mousetrap';
 import moment from 'moment';
 import React from 'react';
 import { Checkbox, Divider, Dropdown, Grid, Header, Input, Form, Ref } from 'semantic-ui-react';
@@ -243,8 +244,15 @@ class UnwrappedPatientEncounterForm extends React.Component<
       });
   };
 
+  clearForm = () => {
+    this.props.setValues(INITIAL_VALUES());
+    this.setState({ patientNameIndex: '' });
+  };
+
   componentDidMount() {
     this.setInitialEncounterList();
+
+    Mousetrap.bind('ctrl+backspace', this.clearForm);
 
     if (!this.props.encounter && this.patientNameRef) {
       const input = this.patientNameRef.querySelector('input');
@@ -298,6 +306,10 @@ class UnwrappedPatientEncounterForm extends React.Component<
         this.props.setFieldValue('dateOfBirth', date.format('YYYY-MM-DD'));
       });
     }
+  }
+
+  componentWillUnmount() {
+    Mousetrap.unbind('ctrl+backspace');
   }
 
   componentDidUpdate() {

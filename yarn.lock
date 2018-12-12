@@ -1244,6 +1244,11 @@
   resolved "https://registry.yarnpkg.com/@types/minimatch/-/minimatch-3.0.3.tgz#3dca0e3f33b200fc7d1139c0cd96c1268cadfd9d"
   integrity sha512-tHq6qdbT9U1IRSGf14CL0pUlULksvY9OZ+5eEgl1N7t+OA3tGvNpxJCzuKQlsNgCVwbAs670L1vcVQi8j9HjnA==
 
+"@types/mousetrap@^1.6.0":
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/@types/mousetrap/-/mousetrap-1.6.0.tgz#c3951ab98b88ff6093cd0b1e4f8591af439141b8"
+  integrity sha512-Jn2cF8X6RAMiSmJaATGjf2r3GzIfpZQpvnQhKprQ5sAbMaNXc7hc9sA2XHdMl3bEMEQhTV79JVW7n4Pgg7sjtg==
+
 "@types/nedb@^1.8.6":
   version "1.8.6"
   resolved "https://registry.yarnpkg.com/@types/nedb/-/nedb-1.8.6.tgz#cbb63bce2f975507452b5d6ec6b57d8f6e52052d"
@@ -8503,6 +8508,11 @@ moment@^2.22.2:
   version "2.22.2"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.22.2.tgz#3c257f9839fc0e93ff53149632239eb90783ff66"
   integrity sha1-PCV/mDn8DpP/UxSWMiOeuQeD/2Y=
+
+mousetrap@^1.6.2:
+  version "1.6.2"
+  resolved "https://registry.yarnpkg.com/mousetrap/-/mousetrap-1.6.2.tgz#caadd9cf886db0986fb2fee59a82f6bd37527587"
+  integrity sha512-jDjhi7wlHwdO6q6DS7YRmSHcuI+RVxadBkLt3KHrhd3C2b+w5pKefg3oj5beTcHZyVFA9Aksf+yEE1y5jxUjVA==
 
 move-concurrently@^1.0.1:
   version "1.0.1"
