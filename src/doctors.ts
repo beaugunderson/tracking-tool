@@ -34,6 +34,7 @@ export const DOCTORS: string[] = [
   'Hawkins, Melinda',
   'Hegerova, Livia',
   'Hendershott, Karen',
+  'Herbert Aliea',
   'Holdread, Heather',
   'Johnston, Eileen',
   'Kaplan, Henry (Hank)',
