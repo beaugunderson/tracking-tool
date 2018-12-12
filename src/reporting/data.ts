@@ -19,6 +19,8 @@ export interface TransformedPatientEncounter extends PatientEncounter {
   doctorPrimary: string;
   doctorSecondary?: string;
 
+  interventions: string[];
+
   numberOfInterventions: number;
 }
 
@@ -121,6 +123,14 @@ export async function transform(): Promise<TransformedPatientEncounter[]> {
 
       doctorPrimary: encounter.md[0],
       doctorSecondary: encounter.md[1],
+
+      interventions: interventions.reduce(
+        (accumulator, intervention) =>
+          encounter[intervention.fieldName]
+            ? accumulator.concat([intervention.name])
+            : accumulator,
+        []
+      ),
 
       numberOfInterventions: interventions.reduce(
         (accumulator, intervention) => accumulator + (encounter[intervention.fieldName] ? 1 : 0),

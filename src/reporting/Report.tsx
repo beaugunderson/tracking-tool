@@ -1,13 +1,13 @@
 import '../../node_modules/dc/dc.css';
 import './Report.css';
 
-import crossfilter from 'crossfilter';
+import crossfilter from 'crossfilter2';
 import * as d3 from 'd3';
 import dc from 'dc';
 import moment from 'moment';
 import React from 'react';
 import reductio from 'reductio';
-import { keys, sum, sumBy, values } from 'lodash';
+import { keys, sum, values } from 'lodash';
 import { transform, TransformedPatientEncounter } from './data';
 import { PatientEncounter } from '../forms/PatientEncounterForm';
 import { Button, Statistic } from 'semantic-ui-react';
@@ -67,6 +67,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
     const diagnosisChart = dc.rowChart('#diagnosis-chart');
     const doctorChart = dc.rowChart('#doctor-chart');
     const encountersByDateChart = dc.barChart('#encounter-date-chart');
+    const interventionChart = dc.rowChart('#intervention-chart');
     const locationChart = dc.rowChart('#location-chart');
     const numberOfTasksChart = dc.barChart('#number-of-tasks-chart');
     const numberOfInterventionsChart = dc.barChart('#number-of-interventions-chart');
@@ -101,13 +102,17 @@ export class Report extends React.Component<ReportProps, ReportState> {
       return elements;
     }
 
-    function init() {
+    function init(): TransformedPatientEncounter[] {
       return [];
     }
     // #endregion
 
     // #region totals
-    function renderNumber(selector, group, accessor = (d: any) => d) {
+    function renderNumber(
+      selector: string,
+      group: crossfilter.GroupAll<TransformedPatientEncounter, {}>,
+      accessor: (d: any) => number = d => d
+    ) {
       const number = dc.numberDisplay(selector);
       number
         .formatNumber(d3.format('.1~f'))
@@ -159,13 +164,15 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .exception((d: TransformedPatientEncounter) => d.mrn)
       .exceptionCount(true);
 
-    renderNumber('#unique-patients', uniqueMrn(ndx.groupAll()), d => d.exceptionCount);
+    renderNumber(
+      '#unique-patients',
+      uniqueMrn(ndx.groupAll()),
+      (d: { exceptionCount: number }) => d.exceptionCount
+    );
     // #endregion
 
     // #region encounters by day
-    const encounterDateDimension = ndx.dimension((d: TransformedPatientEncounter) =>
-      moment(d.encounterDate).format('YYYY-MM')
-    );
+    const encounterDateDimension = ndx.dimension(d => moment(d.encounterDate).format('YYYY-MM'));
     const encounterDateGroup = encounterDateDimension.group();
 
     encountersByDateChart
@@ -195,9 +202,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
     const numberOfTasksDimension = ndx.dimension((d: TransformedPatientEncounter) =>
       parseInt(d.numberOfTasks, 10)
     );
-    const numberOfTasksGroup = numberOfTasksDimension.group().reduce(add, remove, init);
-
-    const total = () => sumBy(numberOfTasksGroup.all(), (group: any) => group.value.length);
+    const numberOfTasksGroup = numberOfTasksDimension.group();
 
     numberOfTasksChart
       .width(windowWidth / 3)
@@ -205,15 +210,14 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .brushOn(false)
       .x(d3.scaleBand())
       .xUnits(dc.units.ordinal)
+      .elasticX(true)
       .elasticY(true)
       .yAxisLabel('Number of Tasks')
       .dimension(numberOfTasksDimension)
       .group(numberOfTasksGroup)
-      .margins(OUR_MARGINS)
-      .valueAccessor(kv => Math.round((kv.value.length / total()) * 100));
+      .margins(OUR_MARGINS);
 
     numberOfTasksChart.xAxis().ticks(7);
-    numberOfTasksChart.yAxis().tickFormat(v => `${v}%`);
 
     numberOfTasksChart.render();
     // #endregion
@@ -310,7 +314,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
     stageChart.render();
     // #endregion
 
-    // #region by stage
+    // #region by research
     const researchDimension = ndx.dimension((d: PatientEncounter) =>
       d.research ? 'Research' : 'Non-research'
     );
@@ -333,7 +337,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
     const userGroup = userDimension.group();
 
     userChart
-      .width(windowWidth / 2)
+      .width(windowWidth / 3)
       .height(200)
       .elasticX(true)
       .ordinalColors(colors)
@@ -360,12 +364,27 @@ export class Report extends React.Component<ReportProps, ReportState> {
     doctorChart.render();
     // #endregion
 
+    // #region by intervention
+    const interventionDimension = ndx.dimension(d => d.interventions as any, true);
+    const interventionGroup = interventionDimension.group();
+
+    interventionChart
+      .width(windowWidth / 2)
+      .height(1800)
+      .elasticX(true)
+      .ordinalColors(colors)
+      .dimension(interventionDimension)
+      .group(interventionGroup);
+
+    interventionChart.render();
+    // #endregion
+
     // #region by location
     const locationDimension = ndx.dimension((d: PatientEncounter) => d.location);
     const locationGroup = locationDimension.group();
 
     locationChart
-      .width(windowWidth / 2)
+      .width(windowWidth / 3)
       .height(300)
       .elasticX(true)
       .ordinalColors(colors)
@@ -380,7 +399,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
     const clinicGroup = clinicDimension.group();
 
     clinicChart
-      .width(windowWidth / 2)
+      .width(windowWidth / 3)
       .height(600)
       .elasticX(true)
       .dimension(clinicDimension)
@@ -480,23 +499,32 @@ export class Report extends React.Component<ReportProps, ReportState> {
           <div className="clearfix" />
         </div>
 
+        <div>
+          <div id="clinic-chart">
+            <strong>Clinic</strong>
+            <div className="clearfix" />
+          </div>
+
+          <div id="location-chart">
+            <strong>Location</strong>
+            <div className="clearfix" />
+          </div>
+
+          <div id="user-chart">
+            <strong>Social Worker</strong>
+            <div className="clearfix" />
+          </div>
+
+          <div className="clearfix" />
+        </div>
+
         <div id="doctor-chart">
-          <strong>Primary MD</strong>
+          <strong>Primary Provider</strong>
           <div className="clearfix" />
         </div>
 
-        <div id="user-chart">
-          <strong>Social Worker</strong>
-          <div className="clearfix" />
-        </div>
-
-        <div id="location-chart">
-          <strong>Location</strong>
-          <div className="clearfix" />
-        </div>
-
-        <div id="clinic-chart">
-          <strong>Clinic</strong>
+        <div id="intervention-chart">
+          <strong>Intervention</strong>
           <div className="clearfix" />
         </div>
       </div>

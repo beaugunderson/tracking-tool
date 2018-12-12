@@ -2,7 +2,9 @@
   "compilerOptions": {
     "target": "es6",
     "allowJs": true,
-    "skipLibCheck": false,
+    // set back to false once this is addressed:
+    // https://github.com/crossfilter/crossfilter/issues/121
+    "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": false,
