@@ -20,7 +20,9 @@ const isDev = window.require('electron-is-dev');
 const username = window.require('username');
 
 function canSeeReporting() {
-  return ['beau', 'lindce2', 'carynstewart', 'valejd1'].indexOf(username.sync()) !== -1;
+  return (
+    ['beau', 'lindce2', 'carynstewart', 'valejd1'].indexOf(username.sync().toLowerCase()) !== -1
+  );
 }
 
 type AppState = {
