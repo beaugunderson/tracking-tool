@@ -1,5 +1,7 @@
 {
-  "buildCommand": "yarn dist",
+  "scripts": {
+    "beforeStage": "yarn dist"
+  },
   "github": {
     "release": true,
     "assets": [
