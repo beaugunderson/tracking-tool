@@ -1,6 +1,11 @@
+export type option = {
+  value: string;
+  text: string;
+};
+
 import { DOCTORS as RAW_DOCTORS } from './doctors';
 
-function makeOptions(options: string[]) {
+function makeOptions(options: string[]): option[] {
   return options.map(option => ({ value: option, text: option }));
 }
 
@@ -47,5 +52,9 @@ export const LOCATIONS = [
 ];
 
 export const LOCATION_OPTIONS = makeOptions(LOCATIONS);
+
+export const COMMUNITY_LOCATION_OPTIONS = makeOptions(
+  LOCATIONS.filter(location => location !== 'True Cancer Center')
+);
 
 export const STAGES = makeOptions(['Unknown', 'Early', 'Advanced']);

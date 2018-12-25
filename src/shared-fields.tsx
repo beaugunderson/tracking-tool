@@ -1,6 +1,6 @@
 import moment from 'moment';
 import React from 'react';
-import { CLINIC_OPTIONS, LOCATION_OPTIONS } from './options';
+import { CLINIC_OPTIONS, LOCATION_OPTIONS, option } from './options';
 import { Dropdown, Form, Input, Popup } from 'semantic-ui-react';
 import { InfoButton } from './InfoButton';
 
@@ -33,9 +33,17 @@ export class EncounterDateField extends React.Component<FieldProps> {
   }
 }
 
-export class EncounterLocationField extends React.Component<FieldProps> {
+type EncounterLocationFieldProps = FieldProps & {
+  locations?: option[];
+};
+
+export class EncounterLocationField extends React.Component<EncounterLocationFieldProps> {
+  defaultProps = {
+    locations: LOCATION_OPTIONS
+  };
+
   render() {
-    const { error, onBlur, onChange, value } = this.props;
+    const { error, locations, onBlur, onChange, value } = this.props;
 
     return (
       <Form.Field
@@ -47,7 +55,7 @@ export class EncounterLocationField extends React.Component<FieldProps> {
         onBlur={onBlur}
         onChange={onChange}
         onClose={onBlur}
-        options={LOCATION_OPTIONS}
+        options={locations}
         search
         selection
         selectOnBlur={false}

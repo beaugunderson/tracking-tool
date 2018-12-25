@@ -5,6 +5,7 @@ import {
   communityInterventionOptions
 } from '../patient-interventions';
 import { Checkbox, Divider, Dropdown, Form, Grid, Header } from 'semantic-ui-react';
+import { COMMUNITY_LOCATION_OPTIONS } from '../options';
 import {
   EncounterDateField,
   EncounterLocationField,
@@ -147,6 +148,7 @@ class UnwrappedCommunityEncounterForm extends React.Component<
 
         <EncounterLocationField
           error={!!(touched.location && errors.location)}
+          locations={COMMUNITY_LOCATION_OPTIONS}
           onBlur={this.handleBlur}
           onChange={this.handleChange}
           value={values.location}
