@@ -196,6 +196,12 @@ const FAMILY = {
       description:
         'When caregiver is in need of services (if patient, use other categories), including in-home help with short-term custodial care placement, short-term assisted living placement, day program',
       community: true
+    },
+    {
+      name: 'Support for Children',
+      description:
+        'Coaching, support for patient around communication with and resources for children under 18 years old. Choose this instead of "Support Groups - Assessment, Referral" when talking with patients about CLIMB. CLIMB Facilitators should track under "Other" encounter category when screening, preparing, and facilitating',
+      community: true
     }
   ])
 };
