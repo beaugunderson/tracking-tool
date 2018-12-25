@@ -1,4 +1,5 @@
 export const DOCTORS: string[] = [
+  'Unassigned',
   'Alassas, Mohamed',
   'Aye, Ralph',
   'Barnett, Todd',
