@@ -192,14 +192,16 @@ class UnwrappedPatientEncounterForm extends React.Component<
   };
 
   setInitialEncounterList = () => {
+    const { encounter, encounters } = this.props;
+
     // if we're editing an encounter then set the state to contain only the encounter's patient
-    if (this.props.encounter) {
+    if (encounter) {
       return this.setState({
         patientOptions: [
           {
-            content: this.props.encounter.patientName,
+            content: encounter.patientName,
             encounter: null,
-            text: this.props.encounter.patientName,
+            text: encounter.patientName,
             value: '0'
           }
         ],
@@ -207,7 +209,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
       });
     }
 
-    if (this.props.encounters) {
+    if (encounters) {
       this.setSearchEncounterList('');
     }
   };
@@ -463,7 +465,16 @@ class UnwrappedPatientEncounterForm extends React.Component<
 
   render() {
     const { patientOptions } = this.state;
-    const { errors, dirty, isSubmitting, onCancel, submitForm, touched, values } = this.props;
+    const {
+      dirty,
+      encounter,
+      errors,
+      isSubmitting,
+      onCancel,
+      submitForm,
+      touched,
+      values
+    } = this.props;
 
     const columns = interventionGroups.map((column, i) => {
       return (
@@ -497,30 +508,43 @@ class UnwrappedPatientEncounterForm extends React.Component<
         />
 
         <Form.Group widths="equal">
-          <Ref innerRef={ref => (this.patientNameRef = ref)}>
+          {encounter ? (
             <Form.Field
-              additionLabel="Add new patient "
-              allowAdditions
-              control={Dropdown}
-              defaultOpen={!this.props.encounter}
-              disabled={!!this.props.encounter}
-              error={!!(touched.patientName && errors.patientName)}
+              control={Input}
               id="input-patient-name"
               label="Patient Name"
               name="patientName"
-              onAddItem={this.handlePatientAddition}
               onBlur={this.handleBlur}
-              onChange={this.handlePatientChange}
+              onChange={this.handleChange}
               onClose={this.handleBlur}
-              options={patientOptions}
-              onSearchChange={this.handlePatientSearchChange}
               placeholder="Last, First Middle"
-              search={this.handlePatientNameSearch}
-              selectOnBlur={false}
-              selection
-              value={this.state.patientNameIndex}
+              value={values.patientName}
             />
-          </Ref>
+          ) : (
+            <Ref innerRef={ref => (this.patientNameRef = ref)}>
+              <Form.Field
+                additionLabel="Add new patient "
+                allowAdditions
+                control={Dropdown}
+                defaultOpen
+                error={!!(touched.patientName && errors.patientName)}
+                id="input-patient-name"
+                label="Patient Name"
+                name="patientName"
+                onAddItem={this.handlePatientAddition}
+                onBlur={this.handleBlur}
+                onChange={this.handlePatientChange}
+                onClose={this.handleBlur}
+                options={patientOptions}
+                onSearchChange={this.handlePatientSearchChange}
+                placeholder="Last, First Middle"
+                search={this.handlePatientNameSearch}
+                selectOnBlur={false}
+                selection
+                value={this.state.patientNameIndex}
+              />
+            </Ref>
+          )}
 
           <Form.Field
             control={Input}
