@@ -13,9 +13,10 @@ type InterventionOption = {
 };
 
 type UnprocessedIntervention = {
-  name: string;
-  description: string;
   community?: true;
+  description: string;
+  fieldName?: string;
+  name: string;
   scored?: true;
 };
 
@@ -28,7 +29,9 @@ function withFieldNames(interventions: UnprocessedIntervention[]): Intervention[
   return interventions.map(intervention => ({
     ...intervention,
 
-    fieldName: camelcase(slugify(intervention.name, { lower: true, remove: /[^a-zA-Z0-9 -]/ }))
+    fieldName:
+      intervention.fieldName ||
+      camelcase(slugify(intervention.name, { lower: true, remove: /[^a-zA-Z0-9 -]/ }))
   }));
 }
 
@@ -260,7 +263,9 @@ const CARE_COORDINATION = {
   label: 'Care Coordination',
   interventions: withFieldNames([
     {
-      name: 'Customer Service',
+      name: 'Patient Relations',
+      // NOTE: "Customer Service" was renamed to "Patient Relations" but we kept the field name for backwards compatibility
+      fieldName: 'customerService',
       description:
         'Introducing support services, quick check-ins, service recovery, patient relations',
       community: true
