@@ -2,9 +2,7 @@
   "compilerOptions": {
     "target": "es6",
     "allowJs": true,
-    // set back to false once this is addressed:
-    // https://github.com/crossfilter/crossfilter/issues/121
-    "skipLibCheck": true,
+    "skipLibCheck": false,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": false,
@@ -14,7 +12,12 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "preserve"
+    "jsx": "preserve",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ]
   },
   "include": [
     "src"
