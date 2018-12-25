@@ -164,7 +164,7 @@ class UnwrappedOtherEncounterForm extends React.Component<
   );
 
   render() {
-    const { errors, isSubmitting, onCancel, submitForm, touched, values } = this.props;
+    const { dirty, errors, isSubmitting, onCancel, submitForm, touched, values } = this.props;
     const options = OPTIONS.map(option => this.renderField(option));
 
     return (
@@ -191,7 +191,12 @@ class UnwrappedOtherEncounterForm extends React.Component<
 
         <Divider hidden />
 
-        <SubmitButtons isSubmitting={isSubmitting} onCancel={onCancel} submitForm={submitForm} />
+        <SubmitButtons
+          isClean={!dirty}
+          isSubmitting={isSubmitting}
+          onCancel={onCancel}
+          submitForm={submitForm}
+        />
       </Form>
     );
   }

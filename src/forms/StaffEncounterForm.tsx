@@ -53,7 +53,7 @@ class UnwrappedStaffEncounterForm extends React.Component<
     this.props.setFieldValue(name, value !== undefined ? value : checked);
 
   render() {
-    const { errors, isSubmitting, onCancel, submitForm, touched, values } = this.props;
+    const { dirty, errors, isSubmitting, onCancel, submitForm, touched, values } = this.props;
 
     return (
       <Form size="large">
@@ -100,7 +100,12 @@ class UnwrappedStaffEncounterForm extends React.Component<
 
         <Divider hidden />
 
-        <SubmitButtons isSubmitting={isSubmitting} onCancel={onCancel} submitForm={submitForm} />
+        <SubmitButtons
+          isClean={!dirty}
+          isSubmitting={isSubmitting}
+          onCancel={onCancel}
+          submitForm={submitForm}
+        />
       </Form>
     );
   }

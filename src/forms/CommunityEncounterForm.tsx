@@ -116,7 +116,7 @@ class UnwrappedCommunityEncounterForm extends React.Component<
   );
 
   render() {
-    const { errors, isSubmitting, onCancel, submitForm, touched, values } = this.props;
+    const { dirty, errors, isSubmitting, onCancel, submitForm, touched, values } = this.props;
 
     const columns = communityInterventionGroups.map((column, i) => {
       return (
@@ -195,7 +195,12 @@ class UnwrappedCommunityEncounterForm extends React.Component<
 
         <Divider hidden />
 
-        <SubmitButtons isSubmitting={isSubmitting} onCancel={onCancel} submitForm={submitForm} />
+        <SubmitButtons
+          isClean={!dirty}
+          isSubmitting={isSubmitting}
+          onCancel={onCancel}
+          submitForm={submitForm}
+        />
       </Form>
     );
   }

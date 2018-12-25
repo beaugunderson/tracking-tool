@@ -476,7 +476,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
 
   render() {
     const { patientOptions } = this.state;
-    const { errors, isSubmitting, onCancel, submitForm, touched, values } = this.props;
+    const { errors, dirty, isSubmitting, onCancel, submitForm, touched, values } = this.props;
 
     const columns = interventionGroups.map((column, i) => {
       return (
@@ -694,7 +694,12 @@ class UnwrappedPatientEncounterForm extends React.Component<
 
         <Divider hidden />
 
-        <SubmitButtons isSubmitting={isSubmitting} onCancel={onCancel} submitForm={submitForm} />
+        <SubmitButtons
+          isClean={!dirty}
+          isSubmitting={isSubmitting}
+          onCancel={onCancel}
+          submitForm={submitForm}
+        />
       </Form>
     );
   }

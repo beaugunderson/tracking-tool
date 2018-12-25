@@ -133,6 +133,7 @@ export class EncounterNumberOfTasksField extends React.Component<FieldProps> {
 }
 
 type SubmitButtonsProps = {
+  isClean?: boolean;
   isSubmitting: boolean;
   onCancel: any;
   submitForm: any;
@@ -140,7 +141,7 @@ type SubmitButtonsProps = {
 
 export class SubmitButtons extends React.Component<SubmitButtonsProps> {
   render() {
-    const { isSubmitting, onCancel, submitForm } = this.props;
+    const { isClean, isSubmitting, onCancel, submitForm } = this.props;
 
     return (
       <Form.Group>
@@ -148,11 +149,21 @@ export class SubmitButtons extends React.Component<SubmitButtonsProps> {
           Save Encounter
         </Form.Button>
 
-        <Popup
-          trigger={<Form.Button content="Cancel" disabled={isSubmitting} negative size="big" />}
-          content={<Form.Button content="Confirm?" onClick={onCancel} />}
-          on="click"
-        />
+        {isClean ? (
+          <Form.Button
+            content="Cancel"
+            disabled={isSubmitting}
+            negative
+            onClick={onCancel}
+            size="big"
+          />
+        ) : (
+          <Popup
+            trigger={<Form.Button content="Cancel" disabled={isSubmitting} negative size="big" />}
+            content={<Form.Button content="Confirm?" onClick={onCancel} />}
+            on="click"
+          />
+        )}
       </Form.Group>
     );
   }
