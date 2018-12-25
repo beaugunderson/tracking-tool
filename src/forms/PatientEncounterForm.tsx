@@ -192,6 +192,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
   };
 
   setInitialEncounterList = () => {
+    // if we're editing an encounter then set the state to contain only the encounter's patient
     if (this.props.encounter) {
       return this.setState({
         patientOptions: [
@@ -207,21 +208,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
     }
 
     if (this.props.encounters) {
-      this.props.encounters
-        .find({ encounterType: 'patient' })
-        .sort({ encounterDate: -1, patientName: 1 })
-        .limit(25)
-        .exec((err, docs) => {
-          const patientOptions = chain(docs)
-            .sortBy(['encounterDate', 'createdAt'])
-            .reverse()
-            .uniqBy('mrn')
-            .map(docToOption)
-            .slice(0, 5)
-            .value();
-
-          this.setState({ patientOptions: indexValues(patientOptions) });
-        });
+      this.setSearchEncounterList('');
     }
   };
 
