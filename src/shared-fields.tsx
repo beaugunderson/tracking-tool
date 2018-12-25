@@ -38,7 +38,7 @@ type EncounterLocationFieldProps = FieldProps & {
 };
 
 export class EncounterLocationField extends React.Component<EncounterLocationFieldProps> {
-  defaultProps = {
+  static defaultProps = {
     locations: LOCATION_OPTIONS
   };
 
