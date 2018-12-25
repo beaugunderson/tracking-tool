@@ -109,6 +109,6 @@
     "wait-on": "^3.2.0"
   },
   "browserslist": [
-    "Electron 3.0"
+    "Electron 4.0"
   ]
 }
