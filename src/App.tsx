@@ -21,7 +21,7 @@ const username = window.require('username');
 
 function canSeeReporting() {
   return (
-    ['beau', 'lindce2', 'carynstewart', 'valejd1'].indexOf(username.sync().toLowerCase()) !== -1
+    ['beau', 'carynstewart', 'lindce2', 'valejd1'].indexOf(username.sync().toLowerCase()) !== -1
   );
 }
 
@@ -29,6 +29,7 @@ type AppState = {
   encounter: any;
   encounterForm: string | null;
   encounters: any[];
+  encounterSearchDate: string;
   encounterSearchPatientName: string;
   encounterSearchType: string;
   error: string | Error | null;
@@ -43,6 +44,7 @@ export class App extends React.Component<{}, AppState> {
     encounter: null,
     encounterForm: null,
     encounters: [],
+    encounterSearchDate: '',
     encounterSearchPatientName: '',
     encounterSearchType: 'All',
     error: null,
@@ -58,17 +60,25 @@ export class App extends React.Component<{}, AppState> {
       return;
     }
 
+    const { encounterSearchDate, encounterSearchPatientName, encounterSearchType } = this.state;
+
     const criteria: any = {};
 
-    if (this.state.encounterSearchType !== 'All') {
+    if (encounterSearchType !== 'All') {
       criteria.encounterType = this.state.encounterSearchType.toLowerCase();
     }
 
     if (
-      (this.state.encounterSearchType === 'All' || this.state.encounterSearchType === 'Patient') &&
-      this.state.encounterSearchPatientName
+      (encounterSearchType === 'All' || encounterSearchType === 'Patient') &&
+      encounterSearchPatientName
     ) {
       criteria.patientName = new RegExp(escapeRegExp(this.state.encounterSearchPatientName), 'i');
+    }
+
+    const encounterSearchMoment = moment(encounterSearchDate);
+
+    if (encounterSearchMoment.isValid()) {
+      criteria.encounterDate = encounterSearchMoment.format('YYYY-MM-DD');
     }
 
     this.encounters.find(criteria).exec((err, docs) => {
@@ -107,6 +117,7 @@ export class App extends React.Component<{}, AppState> {
     if (
       this.state.encounter !== prevState.encounter ||
       this.state.encounterForm !== prevState.encounterForm ||
+      this.state.encounterSearchDate !== prevState.encounterSearchDate ||
       this.state.encounterSearchPatientName !== prevState.encounterSearchPatientName ||
       this.state.encounterSearchType !== prevState.encounterSearchType
     ) {
@@ -259,7 +270,16 @@ export class App extends React.Component<{}, AppState> {
           <Table id="encounter-table" selectable>
             <Table.Header>
               <Table.Row>
-                <Table.HeaderCell width={2}>Encounter Date</Table.HeaderCell>
+                <Table.HeaderCell width={2}>
+                  <Input
+                    id="input-encounter-date"
+                    onChange={(e, { value }) =>
+                      this.setState({ encounterSearchDate: value as string })
+                    }
+                    type="date"
+                    value={this.state.encounterSearchDate}
+                  />
+                </Table.HeaderCell>
                 <Table.HeaderCell width={2}>
                   <Dropdown
                     id="encounter-type-dropdown"
