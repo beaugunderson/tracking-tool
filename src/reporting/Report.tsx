@@ -334,6 +334,8 @@ export class Report extends React.Component<ReportProps, ReportState> {
 
     // #region by user
     const userDimension = ndx.dimension((d: PatientEncounter) => d.username);
+
+    // TODO sum by tasks or time?
     const userGroup = userDimension.group();
 
     userChart
