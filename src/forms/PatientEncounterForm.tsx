@@ -531,7 +531,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
                 id="input-patient-name"
                 label="Patient Name"
                 name="patientName"
-                noResultsMessage={null}
+                noResultsMessage="Last, First Middle"
                 onAddItem={this.handlePatientAddition}
                 onBlur={this.handleBlur}
                 onChange={this.handlePatientChange}
