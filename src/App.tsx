@@ -101,6 +101,7 @@ export class App extends React.Component<{}, AppState> {
         .reverse()
         .sortBy(['encounterDate', 'createdAt'])
         .reverse()
+        .slice(0, 50)
         .value();
 
       this.setState({ encounters });
