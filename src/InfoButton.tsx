@@ -5,6 +5,7 @@ const HELP_ICON = <Icon color="grey" name="help circle" />;
 
 type InfoButtonProps = {
   content: string | JSX.Element;
+  wide?: boolean | 'very';
 };
 
 export class InfoButton extends React.Component<InfoButtonProps> {
