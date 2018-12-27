@@ -35,8 +35,21 @@ body {
   padding: 1px !important;
 }
 
+#encounter-table tr .button {
+  display: none;
+}
+
+#encounter-table tr:hover .button {
+  display: inline;
+}
+
+#encounter-table .delete-cell {
+  padding: 0;
+}
+
 #encounter-type-dropdown,
-#encounter-patient-input {
+#encounter-patient-input,
+#encounter-date-input {
   margin-left: -12px;
   margin-right: 12px;
 }

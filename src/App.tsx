@@ -2,7 +2,17 @@ import './App.css';
 
 import moment from 'moment';
 import React from 'react';
-import { Button, Divider, Dropdown, Header, Icon, Input, Segment, Table } from 'semantic-ui-react';
+import {
+  Button,
+  Confirm,
+  Divider,
+  Dropdown,
+  Header,
+  Icon,
+  Input,
+  Segment,
+  Table
+} from 'semantic-ui-react';
 import { chain, escapeRegExp } from 'lodash';
 import { CommunityEncounterForm } from './forms/CommunityEncounterForm';
 import { ENCOUNTER_TYPES, ENCOUNTER_TYPE_NAMES } from './options';
@@ -25,7 +35,10 @@ function canSeeReporting() {
   );
 }
 
+const DELETE_BUTTON = <Button negative>Delete</Button>;
+
 type AppState = {
+  confirmDeletion: string | null;
   encounter: any;
   encounterForm: string | null;
   encounters: any[];
@@ -41,6 +54,7 @@ export class App extends React.Component<{}, AppState> {
   encounters?: Nedb;
 
   state = {
+    confirmDeletion: null,
     encounter: null,
     encounterForm: null,
     encounters: [],
@@ -127,10 +141,25 @@ export class App extends React.Component<{}, AppState> {
 
   handleCancel = () => this.setState({ encounter: null, encounterForm: null });
   handleComplete = () => this.setState({ encounter: null, encounterForm: null });
+
+  handleDeleteClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, doc: any) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    this.setState({ confirmDeletion: doc._id });
+  };
+
   handleError = (error: Error | string) => this.setState({ error });
 
   render() {
-    const { encounter, encounterForm, error, firstTimeSetup, reporting } = this.state;
+    const {
+      confirmDeletion,
+      encounter,
+      encounterForm,
+      error,
+      firstTimeSetup,
+      reporting
+    } = this.state;
 
     if (error) {
       return <ErrorMessage error={error} />;
@@ -267,12 +296,13 @@ export class App extends React.Component<{}, AppState> {
 
           <Divider hidden />
 
-          <Table id="encounter-table" selectable>
+          <Table id="encounter-table" selectable unstackable>
             <Table.Header>
               <Table.Row>
-                <Table.HeaderCell width={2}>
+                <Table.HeaderCell width={1} />
+                <Table.HeaderCell width={1}>
                   <Input
-                    id="input-encounter-date"
+                    id="encounter-date-input"
                     onChange={(e, { value }) =>
                       this.setState({ encounterSearchDate: value as string })
                     }
@@ -311,6 +341,17 @@ export class App extends React.Component<{}, AppState> {
             <Table.Body>
               {this.state.encounters.map((doc: any, i: number) => (
                 <Table.Row key={i} onClick={() => this.editEncounter(doc)}>
+                  <Table.Cell className="delete-cell" textAlign="center">
+                    <Button
+                      size="mini"
+                      color="red"
+                      onClick={(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) =>
+                        this.handleDeleteClick(e, doc)
+                      }
+                    >
+                      Delete
+                    </Button>
+                  </Table.Cell>
                   <Table.Cell>{moment(doc.encounterDate).format('M/D/YYYY')}</Table.Cell>
                   <Table.Cell>{ENCOUNTER_TYPE_NAMES[doc.encounterType] || 'Patient'}</Table.Cell>
                   <Table.Cell>{doc.patientName}</Table.Cell>
@@ -323,6 +364,26 @@ export class App extends React.Component<{}, AppState> {
             </Table.Body>
           </Table>
         </Segment>
+
+        <Confirm
+          confirmButton={DELETE_BUTTON}
+          content="Are you sure you want to delete this encounter?"
+          onCancel={() => this.setState({ confirmDeletion: null })}
+          onConfirm={() => {
+            if (this.encounters) {
+              this.encounters.remove({ _id: this.state.confirmDeletion }, {}, (err: Error) => {
+                if (err) {
+                  return this.setState({ error: err });
+                }
+
+                this.searchPatients();
+                this.setState({ confirmDeletion: null });
+              });
+            }
+          }}
+          open={confirmDeletion !== null}
+          size="large"
+        />
       </React.Fragment>
     );
   }
