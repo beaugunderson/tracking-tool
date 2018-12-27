@@ -149,7 +149,7 @@ const MD_LABEL = (
   <label>
     Provider{' '}
     <InfoButton
-      content="Input multiple providers as appropriate. The first provider listed should be the primary provider associated with that day's encounter, which will most often be the medical oncologist. If responding to a radiation distress screen or seeing a patient in Palliative Care, list the radiation oncologist or palliative care provider as primary, and list the medical oncologist (if there is one) as secondary. Be sure to update the provider as needed for subsequent visits. &ldquo;Unassigned&rdquo; is an option that should be selected only on rare occasion&mdash;consider whether a radiation oncologist or &ldquo;Community&rdquo; encounter are more appropriate"
+      content="Input multiple providers as appropriate. The first provider listed should be the primary provider associated with that day's encounter, which will most often be the medical oncologist. If responding to a radiation distress screen or seeing a patient in Palliative Care, list the radiation oncologist or palliative care provider as primary, and list the medical oncologist (if there is one) as secondary. Be sure to update the provider as needed for subsequent visits. &ldquo;Unassigned&rdquo; is an option that should be selected only on rare occasions&mdash;consider whether a radiation oncologist or &ldquo;Community&rdquo; encounter are more appropriate"
       wide="very"
     />
   </label>
