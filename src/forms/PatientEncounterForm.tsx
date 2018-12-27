@@ -239,8 +239,6 @@ class UnwrappedPatientEncounterForm extends React.Component<
   };
 
   componentDidMount() {
-    this.setInitialEncounterList();
-
     Mousetrap.bind('ctrl+backspace', this.clearForm);
 
     if (!this.props.encounter && this.patientNameRef) {
@@ -526,11 +524,11 @@ class UnwrappedPatientEncounterForm extends React.Component<
                 additionLabel="Add new patient "
                 allowAdditions
                 control={Dropdown}
-                defaultOpen
                 error={!!(touched.patientName && errors.patientName)}
                 id="input-patient-name"
                 label="Patient Name"
                 name="patientName"
+                noResultsMessage={null}
                 onAddItem={this.handlePatientAddition}
                 onBlur={this.handleBlur}
                 onChange={this.handlePatientChange}
