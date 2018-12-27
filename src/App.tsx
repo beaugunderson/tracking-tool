@@ -26,14 +26,14 @@ import { PatientEncounterForm } from './forms/PatientEncounterForm';
 import { Report } from './reporting/Report';
 import { StaffEncounterForm } from './forms/StaffEncounterForm';
 
-const isDev = window.require('electron-is-dev');
 const username = window.require('username');
 
-function canSeeReporting() {
-  return (
-    ['beau', 'carynstewart', 'lindce2', 'valejd1'].indexOf(username.sync().toLowerCase()) !== -1
-  );
+function currentUserIn(users: string[]) {
+  return users.indexOf(username.sync().toLowerCase()) !== -1;
 }
+
+const canSeeFakeEncounters = () => currentUserIn(['beau', 'carynstewart']);
+const canSeeReporting = () => currentUserIn(['beau', 'carynstewart', 'lindce2', 'valejd1']);
 
 const DELETE_BUTTON = <Button negative>Delete</Button>;
 
@@ -279,7 +279,7 @@ export class App extends React.Component<{}, AppState> {
             </Button>
           )}
 
-          {isDev && (
+          {canSeeFakeEncounters() && (
             <Button
               icon
               labelPosition="left"
