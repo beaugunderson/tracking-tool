@@ -45,7 +45,15 @@ const OPTIONS: Option[] = addFieldNames([
       'track this for your own audit'
   },
 
-  { name: 'Presentation', description: 'Include time spent in preparation' },
+  {
+    name: 'Presentation',
+    description:
+      'When giving a presentation related to your role as an oncology social worker at SCI ' +
+      '(versus your work on a board), track time spent in preparation for, giving, and in ' +
+      'wrap-up of your presentation. This could include presentations for Swedish symposiums, ' +
+      'donor groups like Harvey Marine or MI Rotary, at AOSW or SSWLHC conferences, or on a ' +
+      'panel for organizations like PanCan and LLS'
+  },
 
   {
     name: 'Committee Work',
@@ -151,7 +159,7 @@ class UnwrappedOtherEncounterForm extends React.Component<
         <label>
           {option.name}{' '}
           {this.state.activeInfoButton === option.fieldName && (
-            <InfoButton content={option.description} />
+            <InfoButton content={option.description} wide />
           )}
         </label>
       }
