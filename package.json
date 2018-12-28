@@ -25,7 +25,12 @@
     },
     "productName": "Tracking Tool",
     "win": {
-      "target": "portable"
+      "target": [
+        {
+          "arch": ["ia32", "x64"],
+          "target": "portable"
+        }
+      ]
     }
   },
   "scripts": {
