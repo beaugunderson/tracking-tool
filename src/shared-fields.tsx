@@ -89,23 +89,31 @@ export class EncounterClinicField extends React.Component<FieldProps> {
   }
 }
 
-export class EncounterTimeSpentField extends React.Component<FieldProps> {
-  label = (
-    <label>
-      Time Spent{' '}
-      <InfoButton content="The number of total minutes on all encounters for this patient on this day, rounded up to the nearest 5 (e.g. 75 minutes), including full representation of time spent documenting" />
-    </label>
-  );
+type EncounterTimeSpentFieldProps = FieldProps & {
+  patient?: boolean;
+};
 
+export class EncounterTimeSpentField extends React.Component<EncounterTimeSpentFieldProps> {
   render() {
-    const { error, onBlur, onChange, value } = this.props;
+    const { error, onBlur, onChange, patient, value } = this.props;
+
+    const patientLabel =
+      'The number of total minutes on all encounters for this patient on this day, rounded up to the nearest 5 (e.g. 75 minutes), including full representation of time spent documenting';
+    const otherLabel =
+      'The number of total minutes on all encounters for this entry on this day, rounded up to the nearest 5 (e.g. 75 minutes)';
+
+    const label = (
+      <label>
+        Time Spent <InfoButton content={patient ? patientLabel : otherLabel} />
+      </label>
+    );
 
     // could require a multiple of 5, could round up automatically
     return (
       <Form.Field
         control={Input}
         error={error}
-        label={this.label}
+        label={label}
         name="timeSpent"
         onBlur={onBlur}
         onChange={onChange}
@@ -115,22 +123,32 @@ export class EncounterTimeSpentField extends React.Component<FieldProps> {
   }
 }
 
-export class EncounterNumberOfTasksField extends React.Component<FieldProps> {
-  label = (
-    <label>
-      Number of Tasks{' '}
-      <InfoButton content="The number of tasks associated with the encounter, equal to the number of lines you would have completed in the old spreadsheet format. Include 1 task for documentation. For example, discussion with MD, seeing patient, coordinating with PFA, and starting documentation would equal 4 tasks. If completing documentation on another day without a patient encounter, enter 1 task" />
-    </label>
-  );
+type EncounterNumberOfTasksFieldProps = FieldProps & {
+  patient?: boolean;
+};
 
+export class EncounterNumberOfTasksField extends React.Component<
+  EncounterNumberOfTasksFieldProps
+> {
   render() {
-    const { error, onBlur, onChange, value } = this.props;
+    const { error, onBlur, onChange, patient, value } = this.props;
+
+    const patientLabel =
+      'The number of tasks associated with the encounter, equal to the number of lines you would have completed in the old spreadsheet format. Include 1 task for documentation. For example, discussion with MD, seeing patient, coordinating with PFA, and starting documentation would equal 4 tasks. If completing documentation on another day without a patient encounter, enter 1 task';
+    const otherLabel =
+      'The number of tasks associated with the encounter, equal to the number of lines you would have completed in the old spreadsheet format';
+
+    const label = (
+      <label>
+        Number of Tasks <InfoButton content={patient ? patientLabel : otherLabel} wide />
+      </label>
+    );
 
     return (
       <Form.Field
         control={Input}
         error={error}
-        label={this.label}
+        label={label}
         name="numberOfTasks"
         onBlur={onBlur}
         onChange={onChange}

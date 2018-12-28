@@ -693,6 +693,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
             error={!!(touched.timeSpent && errors.timeSpent)}
             onBlur={this.handleBlur}
             onChange={this.handleChange}
+            patient
             value={values.timeSpent}
           />
 
@@ -700,6 +701,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
             error={!!(touched.numberOfTasks && errors.numberOfTasks)}
             onBlur={this.handleBlur}
             onChange={this.handleChange}
+            patient
             value={values.numberOfTasks}
           />
         </Form.Group>
