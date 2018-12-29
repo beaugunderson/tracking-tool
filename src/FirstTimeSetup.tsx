@@ -3,13 +3,21 @@ import React from 'react';
 import { Button, Container, Header, Icon } from 'semantic-ui-react';
 import { ErrorMessage } from './ErrorMessage';
 import { isEmpty } from 'lodash';
-import { DEFAULT_PATH, ensureUserDirectoryExists, setRootPath, userDirectoryPath } from './store';
+import { DEFAULT_PATHS, ensureUserDirectoryExists, setRootPath, userDirectoryPath } from './store';
 
 const electron = window.require('electron');
 const fs = electron.remote.require('fs');
 const path = electron.remote.require('path');
 
 const ROOT_DIRECTORY_FILE = 'tracking-tool-root.txt';
+
+function firstPathThatExists() {
+  for (const path of DEFAULT_PATHS) {
+    if (fs.existsSync(path)) {
+      return path;
+    }
+  }
+}
 
 type FirstTimeSetupProps = {
   onComplete: () => void;
@@ -46,7 +54,7 @@ export class FirstTimeSetup extends React.Component<FirstTimeSetupProps, FirstTi
   };
 
   handleDefaultClick = () => {
-    setRootPath(DEFAULT_PATH);
+    setRootPath(firstPathThatExists());
 
     try {
       ensureUserDirectoryExists();
@@ -58,7 +66,7 @@ export class FirstTimeSetup extends React.Component<FirstTimeSetupProps, FirstTi
   };
 
   render() {
-    const defaultExists = fs.existsSync(DEFAULT_PATH);
+    const pathExists = firstPathThatExists();
 
     if (this.state.error) {
       return <ErrorMessage error={this.state.error} />;
@@ -74,7 +82,7 @@ export class FirstTimeSetup extends React.Component<FirstTimeSetupProps, FirstTi
           id="first-time-setup-description"
         />
 
-        {defaultExists && (
+        {pathExists && (
           <Button icon onClick={this.handleDefaultClick} primary size="huge">
             Use Default Directory
           </Button>
