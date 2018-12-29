@@ -10,6 +10,7 @@ import {
   today
 } from '../shared-fields';
 import { isEmpty } from 'lodash';
+import { STAFF_CLINIC_OPTIONS } from '../options';
 // eslint-disable-next-line no-unused-vars
 import { withFormik, FormikErrors, FormikProps } from 'formik';
 // eslint-disable-next-line no-unused-vars
@@ -75,6 +76,7 @@ class UnwrappedStaffEncounterForm extends React.Component<
           />
 
           <EncounterClinicField
+            clinics={STAFF_CLINIC_OPTIONS}
             error={!!(touched.clinic && errors.clinic)}
             onBlur={this.handleBlur}
             onChange={this.handleChange}

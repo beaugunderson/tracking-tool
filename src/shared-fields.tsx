@@ -65,9 +65,17 @@ export class EncounterLocationField extends React.Component<EncounterLocationFie
   }
 }
 
-export class EncounterClinicField extends React.Component<FieldProps> {
+type EncounterClinicFieldProps = FieldProps & {
+  clinics?: option[];
+};
+
+export class EncounterClinicField extends React.Component<EncounterClinicFieldProps> {
+  static defaultProps = {
+    clinics: CLINIC_OPTIONS
+  };
+
   render() {
-    const { error, onBlur, onChange, value } = this.props;
+    const { clinics, error, onBlur, onChange, value } = this.props;
 
     return (
       <Form.Field
@@ -79,7 +87,7 @@ export class EncounterClinicField extends React.Component<FieldProps> {
         onBlur={onBlur}
         onChange={onChange}
         onClose={onBlur}
-        options={CLINIC_OPTIONS}
+        options={clinics}
         search
         selection
         selectOnBlur={false}

@@ -27,6 +27,8 @@ export const CLINICS = [
 
 export const CLINIC_OPTIONS = makeOptions(CLINICS);
 
+export const STAFF_CLINIC_OPTIONS = makeOptions(CLINICS.concat(['Treatment Center']).sort());
+
 export const DIAGNOSES = makeOptions(['Malignant', 'Benign/Other', 'Unknown']);
 
 export const DOCTORS = makeOptions(RAW_DOCTORS);
