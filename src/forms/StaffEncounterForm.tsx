@@ -141,7 +141,7 @@ export const StaffEncounterForm = withFormik<StaffEncounterFormProps, StaffEncou
   },
 
   handleSubmit: (values, { props, setSubmitting }) => {
-    const { encounters, encounter, onComplete, onError } = props;
+    const { encounters, encounter, onComplete } = props;
 
     if (encounter) {
       return encounters.update(
@@ -150,7 +150,7 @@ export const StaffEncounterForm = withFormik<StaffEncounterFormProps, StaffEncou
         {},
         (err: Error, numAffected: number) => {
           if (err || numAffected !== 1) {
-            onError(err || new Error('Failed to update encounter'));
+            onComplete(err || new Error('Failed to update encounter'));
           } else {
             onComplete();
           }
@@ -160,12 +160,7 @@ export const StaffEncounterForm = withFormik<StaffEncounterFormProps, StaffEncou
 
     encounters.insert(values, err => {
       setSubmitting(false);
-
-      if (err) {
-        onError(err);
-      } else {
-        onComplete();
-      }
+      onComplete(err);
     });
   }
 })(UnwrappedStaffEncounterForm);

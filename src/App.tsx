@@ -142,7 +142,10 @@ export class App extends React.Component<{}, AppState> {
   }
 
   handleCancel = () => this.setState({ encounter: null, encounterForm: null });
-  handleComplete = () => this.setState({ encounter: null, encounterForm: null });
+
+  handleComplete = (error?: Error | string) => {
+    this.setState({ encounter: null, encounterForm: null, error });
+  };
 
   handleDeleteClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, doc: any) => {
     e.preventDefault();
@@ -150,8 +153,6 @@ export class App extends React.Component<{}, AppState> {
 
     this.setState({ confirmDeletion: doc._id });
   };
-
-  handleError = (error: Error | string) => this.setState({ error });
 
   render() {
     const {
@@ -186,7 +187,6 @@ export class App extends React.Component<{}, AppState> {
           encounters={this.encounters}
           onCancel={this.handleCancel}
           onComplete={this.handleComplete}
-          onError={this.handleError}
         />
       );
     }
@@ -198,7 +198,6 @@ export class App extends React.Component<{}, AppState> {
           encounters={this.encounters}
           onCancel={this.handleCancel}
           onComplete={this.handleComplete}
-          onError={this.handleError}
         />
       );
     }
@@ -210,7 +209,6 @@ export class App extends React.Component<{}, AppState> {
           encounters={this.encounters}
           onCancel={this.handleCancel}
           onComplete={this.handleComplete}
-          onError={this.handleError}
         />
       );
     }
@@ -222,7 +220,6 @@ export class App extends React.Component<{}, AppState> {
           encounters={this.encounters}
           onCancel={this.handleCancel}
           onComplete={this.handleComplete}
-          onError={this.handleError}
         />
       );
     }

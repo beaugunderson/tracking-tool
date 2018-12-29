@@ -236,7 +236,7 @@ export const CommunityEncounterForm = withFormik<CommunityEncounterFormProps, Co
   },
 
   handleSubmit: (values, { props, setSubmitting }) => {
-    const { encounters, encounter, onComplete, onError } = props;
+    const { encounters, encounter, onComplete } = props;
 
     if (encounter) {
       return encounters.update(
@@ -245,7 +245,7 @@ export const CommunityEncounterForm = withFormik<CommunityEncounterFormProps, Co
         {},
         (err: Error, numAffected: number) => {
           if (err || numAffected !== 1) {
-            onError(err || new Error('Failed to update encounter'));
+            onComplete(err || new Error('Failed to update encounter'));
           } else {
             onComplete();
           }
@@ -255,12 +255,7 @@ export const CommunityEncounterForm = withFormik<CommunityEncounterFormProps, Co
 
     encounters.insert(values, err => {
       setSubmitting(false);
-
-      if (err) {
-        onError(err);
-      } else {
-        onComplete();
-      }
+      onComplete(err);
     });
   }
 })(UnwrappedCommunityEncounterForm);

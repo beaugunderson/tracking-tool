@@ -781,7 +781,7 @@ export const PatientEncounterForm = withFormik<PatientEncounterFormProps, Patien
   },
 
   handleSubmit: (values, { props, setSubmitting }) => {
-    const { encounters, encounter, onComplete, onError } = props;
+    const { encounters, encounter, onComplete } = props;
 
     if (encounter) {
       return encounters.update(
@@ -790,7 +790,7 @@ export const PatientEncounterForm = withFormik<PatientEncounterFormProps, Patien
         {},
         (err: Error, numAffected: number) => {
           if (err || numAffected !== 1) {
-            onError(err || new Error('Failed to update encounter'));
+            onComplete(err || new Error('Failed to update encounter'));
           } else {
             onComplete();
           }
@@ -798,14 +798,18 @@ export const PatientEncounterForm = withFormik<PatientEncounterFormProps, Patien
       );
     }
 
-    encounters.insert({ ...values, patientName: values.patientName.trim() }, err => {
-      setSubmitting(false);
+    encounters.insert(
+      {
+        ...values,
 
-      if (err) {
-        onError(err);
-      } else {
-        onComplete();
+        dateOfBirth: parseDate(values.dateOfBirth).format('YYYY-MM-DD'),
+        patientName: values.patientName.trim()
+      },
+
+      err => {
+        setSubmitting(false);
+        onComplete(err);
       }
-    });
+    );
   }
 })(UnwrappedPatientEncounterForm);

@@ -1,8 +1,7 @@
 export type EncounterFormProps = {
   encounters: Nedb;
   onCancel: () => void;
-  onComplete: () => void;
-  onError: (error: Error) => void;
+  onComplete: (error?: Error) => void;
 };
 
 export type Intervention = {
