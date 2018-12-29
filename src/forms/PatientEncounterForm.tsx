@@ -720,6 +720,9 @@ class UnwrappedPatientEncounterForm extends React.Component<
   }
 }
 
+const RE_NUMERIC = /^\d+$/;
+const isNumeric = (string: string) => RE_NUMERIC.test(string);
+
 export const PatientEncounterForm = withFormik<PatientEncounterFormProps, PatientEncounter>({
   mapPropsToValues: props => {
     if (props.encounter) {
@@ -745,7 +748,11 @@ export const PatientEncounterForm = withFormik<PatientEncounterFormProps, Patien
     SCORED_FIELDS.forEach(field => {
       const scoredFieldName = `${field}Score`;
 
-      if (values[field] && !/^\d+$/.test(values[scoredFieldName])) {
+      if (
+        values[field] &&
+        !isNumeric(values[scoredFieldName]) &&
+        values[scoredFieldName].toLowerCase() !== 'n/a'
+      ) {
         errors[scoredFieldName] = 'Score is required';
       }
     });
@@ -755,7 +762,7 @@ export const PatientEncounterForm = withFormik<PatientEncounterFormProps, Patien
     }
 
     NUMERIC_FIELDS.forEach(field => {
-      if (!/^\d+$/.test(values[field])) {
+      if (!isNumeric(values[field])) {
         errors[field] = 'Must be a valid number';
       }
     });
@@ -765,6 +772,10 @@ export const PatientEncounterForm = withFormik<PatientEncounterFormProps, Patien
         errors[field] = 'This field is required';
       }
     });
+
+    if (!/(0|5)$/.test(values.timeSpent)) {
+      errors.timeSpent = 'Must be rounded to the nearest multiple of 5';
+    }
 
     return errors;
   },
