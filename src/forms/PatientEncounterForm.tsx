@@ -667,6 +667,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
 
         <Form.Field
           control={Dropdown}
+          deburr
           fluid
           onChange={this.handleInterventionChange}
           openOnFocus={false}

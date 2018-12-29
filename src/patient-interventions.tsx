@@ -423,7 +423,7 @@ interventionGroups.forEach(column => {
             {intervention.description}
           </React.Fragment>
         ),
-        text: intervention.name,
+        text: `${intervention.name} ${intervention.description}`,
         value: intervention.fieldName
       };
 
