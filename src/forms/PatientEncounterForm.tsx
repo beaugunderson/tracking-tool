@@ -80,6 +80,22 @@ const REQUIRED_FIELDS = [
 
 const SCORED_FIELDS = ['phq', 'gad', 'moca'];
 
+function parseDate(date: string) {
+  return moment(date.trim(), [
+    'MM/DD/YYYY',
+    'M/D/YYYY',
+    'MM/DD/YYYY',
+    'M/D/YY',
+
+    'MM-DD-YYYY',
+    'M-D-YYYY',
+    'MM-DD-YYYY',
+    'M-D-YY',
+
+    'YYYY-MM-DD'
+  ]);
+}
+
 const docToOption = (doc: PatientEncounter) => {
   const _today = moment()
     .hour(0)
@@ -275,25 +291,13 @@ class UnwrappedPatientEncounterForm extends React.Component<
           return;
         }
 
-        const date = moment(value.trim(), [
-          'MM/DD/YYYY',
-          'M/D/YYYY',
-          'MM/DD/YYYY',
-          'M/D/YY',
-
-          'MM-DD-YYYY',
-          'M-D-YYYY',
-          'MM-DD-YYYY',
-          'M-D-YY',
-
-          'YYYY-MM-DD'
-        ]);
+        const date = parseDate(value);
 
         if (!date.isValid()) {
           return;
         }
 
-        this.props.setFieldValue('dateOfBirth', date.format('YYYY-MM-DD'));
+        this.props.setFieldValue('dateOfBirth', date.format('MM/DD/YYYY'));
       });
     }
   }
@@ -567,7 +571,6 @@ class UnwrappedPatientEncounterForm extends React.Component<
               name="dateOfBirth"
               onBlur={this.handleBlur}
               onChange={this.handleChange}
-              type="date"
               value={values.dateOfBirth}
             />
           </Ref>
@@ -726,7 +729,11 @@ const isNumeric = (string: string) => RE_NUMERIC.test(string);
 export const PatientEncounterForm = withFormik<PatientEncounterFormProps, PatientEncounter>({
   mapPropsToValues: props => {
     if (props.encounter) {
-      return props.encounter;
+      return {
+        ...props.encounter,
+
+        dateOfBirth: parseDate(props.encounter.dateOfBirth).format('MM/DD/YYYY')
+      };
     }
 
     return INITIAL_VALUES();
@@ -772,6 +779,10 @@ export const PatientEncounterForm = withFormik<PatientEncounterFormProps, Patien
         errors[field] = 'This field is required';
       }
     });
+
+    if (!parseDate(values.dateOfBirth).isValid()) {
+      errors.dateOfBirth = 'Must be a valid date';
+    }
 
     if (!/(0|5)$/.test(values.timeSpent)) {
       errors.timeSpent = 'Must be rounded to the nearest multiple of 5';
