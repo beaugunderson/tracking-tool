@@ -7,13 +7,34 @@ import dc from 'dc';
 import moment from 'moment';
 import React from 'react';
 import reductio from 'reductio';
-import { keys, sum, values } from 'lodash';
-import { transform, TransformedPatientEncounter } from './data';
+import { isBoolean, isNaN, isString, keys, sum, values } from 'lodash';
+import {
+  EXCLUDE_NUMBER_VALUE,
+  EXCLUDE_STRING_VALUE,
+  transform,
+  TransformedPatientEncounter
+} from './data';
 import { PatientEncounter } from '../forms/PatientEncounterForm';
 import { Button, Statistic } from 'semantic-ui-react';
 
 const DEFAULT_MARGINS = { top: 10, right: 50, bottom: 30, left: 30 };
 const OUR_MARGINS = { ...DEFAULT_MARGINS, left: 55 };
+
+const EMPTY_ARRAY = [];
+
+function removeExcludedData(group) {
+  return {
+    all() {
+      return group
+        .all()
+        .filter(d => d.key !== EXCLUDE_STRING_VALUE && d.key !== EXCLUDE_NUMBER_VALUE);
+    }
+  };
+}
+
+const uniqueMrn = reductio()
+  .exception((d: TransformedPatientEncounter) => d.mrn)
+  .exceptionCount(true);
 
 interface ReportProps {
   onComplete: () => void;
@@ -66,6 +87,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
     const clinicChart = dc.rowChart('#clinic-chart');
     const diagnosisChart = dc.rowChart('#diagnosis-chart');
     const doctorChart = dc.rowChart('#doctor-chart');
+    const encounterTypeChart = dc.rowChart('#encounter-type-chart');
     const encountersByDateChart = dc.barChart('#encounter-date-chart');
     const interventionChart = dc.rowChart('#intervention-chart');
     const locationChart = dc.rowChart('#location-chart');
@@ -73,6 +95,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
     const numberOfInterventionsChart = dc.barChart('#number-of-interventions-chart');
     const researchChart = dc.rowChart('#research-chart');
     const stageChart = dc.rowChart('#stage-chart');
+    const testChart = dc.rowChart('#test-chart');
     const timeChart = dc.barChart('#time-chart');
     const userChart = dc.rowChart('#user-chart');
 
@@ -111,7 +134,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
     function renderNumber(
       selector: string,
       group: crossfilter.GroupAll<TransformedPatientEncounter, {}>,
-      accessor: (d: any) => number = d => d
+      accessor: (d: any) => number | string = d => d
     ) {
       const number = dc.numberDisplay(selector);
       number
@@ -122,7 +145,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       number.render();
     }
 
-    renderNumber('#total-tasks', ndx.groupAll().reduceSum(d => parseInt(d.numberOfTasks, 10)));
+    renderNumber('#total-tasks', ndx.groupAll().reduceSum(d => d.parsedNumberOfTasks));
 
     renderNumber(
       '#average-tasks',
@@ -131,14 +154,20 @@ export class Report extends React.Component<ReportProps, ReportState> {
         const byMrn = {};
 
         entries.forEach(entry => {
+          if (entry.mrn === EXCLUDE_STRING_VALUE) {
+            return;
+          }
+
           if (!byMrn[entry.mrn]) {
             byMrn[entry.mrn] = 0;
           }
 
-          byMrn[entry.mrn] += parseInt(entry.numberOfTasks, 10);
+          byMrn[entry.mrn] += entry.parsedNumberOfTasks;
         });
 
-        return sum(values(byMrn)) / keys(byMrn).length;
+        const value = sum(values(byMrn)) / keys(byMrn).length;
+
+        return isNaN(value) ? 0 : value;
       }
     );
 
@@ -149,6 +178,10 @@ export class Report extends React.Component<ReportProps, ReportState> {
         const byMrn = {};
 
         entries.forEach(entry => {
+          if (entry.mrn === EXCLUDE_STRING_VALUE) {
+            return;
+          }
+
           if (!byMrn[entry.mrn]) {
             byMrn[entry.mrn] = 0;
           }
@@ -156,24 +189,36 @@ export class Report extends React.Component<ReportProps, ReportState> {
           byMrn[entry.mrn] += parseInt(entry.timeSpent, 10);
         });
 
-        return sum(values(byMrn)) / keys(byMrn).length;
+        const value = sum(values(byMrn)) / keys(byMrn).length;
+
+        return isNaN(value) ? 0 : value;
       }
     );
 
-    const uniqueMrn = reductio()
-      .exception((d: TransformedPatientEncounter) => d.mrn)
-      .exceptionCount(true);
-
     renderNumber(
       '#unique-patients',
-      uniqueMrn(ndx.groupAll()),
-      (d: { exceptionCount: number }) => d.exceptionCount
+      ndx.groupAll().reduce(add, remove, init),
+      (entries: TransformedPatientEncounter[]) => {
+        const mrns = new Set();
+
+        entries.forEach(entry => {
+          if (entry.mrn === EXCLUDE_STRING_VALUE) {
+            return;
+          }
+
+          mrns.add(entry.mrn);
+        });
+
+        return mrns.size;
+      }
     );
     // #endregion
 
     // #region encounters by day
     const encounterDateDimension = ndx.dimension(d => moment(d.encounterDate).format('YYYY-MM'));
-    const encounterDateGroup = encounterDateDimension.group();
+    const encounterDateGroup = encounterDateDimension
+      .group()
+      .reduceSum(d => d.parsedNumberOfTasks);
 
     encountersByDateChart
       .width(windowWidth)
@@ -183,7 +228,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .xUnits(dc.units.ordinal)
       .elasticX(true)
       .elasticY(true)
-      .yAxisLabel('Encounters')
+      .yAxisLabel('Tasks')
       .dimension(encounterDateDimension)
       .group(encounterDateGroup)
       .margins(OUR_MARGINS);
@@ -199,9 +244,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
     // #endregion
 
     // #region number of tasks
-    const numberOfTasksDimension = ndx.dimension((d: TransformedPatientEncounter) =>
-      parseInt(d.numberOfTasks, 10)
-    );
+    const numberOfTasksDimension = ndx.dimension(d => d.parsedNumberOfTasks);
     const numberOfTasksGroup = numberOfTasksDimension.group();
 
     numberOfTasksChart
@@ -212,9 +255,9 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .xUnits(dc.units.ordinal)
       .elasticX(true)
       .elasticY(true)
-      .yAxisLabel('Number of Tasks')
+      .yAxisLabel('Entries')
       .dimension(numberOfTasksDimension)
-      .group(numberOfTasksGroup)
+      .group(removeExcludedData(numberOfTasksGroup))
       .margins(OUR_MARGINS);
 
     numberOfTasksChart.xAxis().ticks(7);
@@ -223,9 +266,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
     // #endregion
 
     // #region number of interventions
-    const numberOfInterventionsDimension = ndx.dimension(
-      (d: PatientEncounter) => d.numberOfInterventions
-    );
+    const numberOfInterventionsDimension = ndx.dimension(d => d.numberOfInterventions);
     const numberOfInterventionsGroup = numberOfInterventionsDimension.group();
 
     numberOfInterventionsChart
@@ -235,10 +276,10 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .elasticY(true)
       .x(d3.scaleBand())
       .xUnits(dc.units.ordinal)
-      .yAxisLabel('Number of Interventions')
+      .yAxisLabel('Entries')
       .dimension(numberOfInterventionsDimension)
       .margins(OUR_MARGINS)
-      .group(numberOfInterventionsGroup)
+      .group(removeExcludedData(numberOfInterventionsGroup))
       .xAxis()
       .ticks(7);
 
@@ -246,7 +287,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
     // #endregion
 
     // #region time spent
-    const timeDimension = ndx.dimension((d: PatientEncounter) => parseInt(d.timeSpent, 10));
+    const timeDimension = ndx.dimension(d => parseInt(d.timeSpent, 10));
     const timeGroup = timeDimension.group();
 
     timeChart
@@ -256,7 +297,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .elasticY(true)
       .x(d3.scaleBand())
       .xUnits(dc.units.ordinal)
-      .yAxisLabel('Time Spent')
+      .yAxisLabel('Entries')
       .dimension(timeDimension)
       .margins(OUR_MARGINS)
       .group(timeGroup)
@@ -267,31 +308,54 @@ export class Report extends React.Component<ReportProps, ReportState> {
     // #endregion
 
     // #region by age
-    const ageDimension = ndx.dimension((d: PatientEncounter) => d.ageBucket);
-    const ageGroup = ageDimension.group();
+    const ageDimension = ndx.dimension(d =>
+      isString(d.ageBucket) ? d.ageBucket : EXCLUDE_STRING_VALUE
+    );
+    const ageGroup = uniqueMrn(ageDimension.group());
 
     ageBucketChart
       .width(windowWidth / 4)
       .height(200)
       .elasticX(true)
       .dimension(ageDimension)
-      .group(ageGroup)
+      .group(removeExcludedData(ageGroup))
+      .valueAccessor(d => d.value.exceptionCount)
       .xAxis()
       .ticks(4);
 
     ageBucketChart.render();
     // #endregion
 
+    // #region by encounter type
+    const encounterTypeDimension = ndx.dimension(d => d.formattedEncounterType);
+
+    const encounterTypeGroup = encounterTypeDimension
+      .group()
+      .reduceSum(d => d.parsedNumberOfTasks);
+
+    encounterTypeChart
+      .width(windowWidth / 4)
+      .height(200)
+      .elasticX(true)
+      .dimension(encounterTypeDimension)
+      .group(encounterTypeGroup)
+      .xAxis()
+      .ticks(4);
+
+    encounterTypeChart.render();
+    // #endregion
+
     // #region by diagnosis
-    const diagnosisDimension = ndx.dimension((d: PatientEncounter) => d.diagnosisType);
-    const diagnosisGroup = diagnosisDimension.group();
+    const diagnosisDimension = ndx.dimension(d => d.diagnosisType || EXCLUDE_STRING_VALUE);
+    const diagnosisGroup = uniqueMrn(diagnosisDimension.group());
 
     diagnosisChart
       .width(windowWidth / 4)
       .height(200)
       .elasticX(true)
       .dimension(diagnosisDimension)
-      .group(diagnosisGroup)
+      .group(removeExcludedData(diagnosisGroup))
+      .valueAccessor(d => d.value.exceptionCount)
       .xAxis()
       .ticks(4);
 
@@ -299,15 +363,22 @@ export class Report extends React.Component<ReportProps, ReportState> {
     // #endregion
 
     // #region by stage
-    const stageDimension = ndx.dimension((d: PatientEncounter) => d.diagnosisStage || 'N/A');
-    const stageGroup = stageDimension.group();
+    const stageDimension = ndx.dimension(d => {
+      if (d.encounterType === 'patient') {
+        return d.diagnosisStage || 'N/A';
+      }
+
+      return EXCLUDE_STRING_VALUE;
+    });
+    const stageGroup = uniqueMrn(stageDimension.group());
 
     stageChart
       .width(windowWidth / 4)
       .height(200)
       .elasticX(true)
       .dimension(stageDimension)
-      .group(stageGroup)
+      .group(removeExcludedData(stageGroup))
+      .valueAccessor(d => d.value.exceptionCount)
       .xAxis()
       .ticks(4);
 
@@ -315,17 +386,22 @@ export class Report extends React.Component<ReportProps, ReportState> {
     // #endregion
 
     // #region by research
-    const researchDimension = ndx.dimension((d: PatientEncounter) =>
-      d.research ? 'Research' : 'Non-research'
-    );
-    const researchGroup = researchDimension.group();
+    const researchDimension = ndx.dimension(d => {
+      if (isBoolean(d.research)) {
+        return d.research ? 'Research' : 'Non-research';
+      }
+
+      return EXCLUDE_STRING_VALUE;
+    });
+    const researchGroup = uniqueMrn(researchDimension.group());
 
     researchChart
       .width(windowWidth / 4)
       .height(200)
       .elasticX(true)
       .dimension(researchDimension)
-      .group(researchGroup)
+      .group(removeExcludedData(researchGroup))
+      .valueAccessor(d => d.value.exceptionCount)
       .xAxis()
       .ticks(4);
 
@@ -334,13 +410,11 @@ export class Report extends React.Component<ReportProps, ReportState> {
 
     // #region by user
     const userDimension = ndx.dimension((d: PatientEncounter) => d.username);
-
-    // TODO sum by tasks or time?
-    const userGroup = userDimension.group();
+    const userGroup = userDimension.group().reduceSum(d => d.parsedNumberOfTasks);
 
     userChart
       .width(windowWidth / 3)
-      .height(200)
+      .height(600)
       .elasticX(true)
       .ordinalColors(colors)
       .dimension(userDimension)
@@ -361,7 +435,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .elasticX(true)
       .ordinalColors(colors)
       .dimension(doctorDimension)
-      .group(doctorGroup);
+      .group(removeExcludedData(doctorGroup));
 
     doctorChart.render();
     // #endregion
@@ -381,9 +455,24 @@ export class Report extends React.Component<ReportProps, ReportState> {
     interventionChart.render();
     // #endregion
 
+    // #region by test
+    const testDimension = ndx.dimension(d => d.tests as any, true);
+    const testGroup = testDimension.group();
+
+    testChart
+      .width(windowWidth / 4)
+      .height(200)
+      .elasticX(true)
+      .ordinalColors(colors)
+      .dimension(testDimension)
+      .group(testGroup);
+
+    testChart.render();
+    // #endregion
+
     // #region by location
-    const locationDimension = ndx.dimension((d: PatientEncounter) => d.location);
-    const locationGroup = locationDimension.group();
+    const locationDimension = ndx.dimension(d => d.location);
+    const locationGroup = locationDimension.group().reduceSum(d => d.parsedNumberOfTasks);
 
     locationChart
       .width(windowWidth / 3)
@@ -397,8 +486,8 @@ export class Report extends React.Component<ReportProps, ReportState> {
     // #endregion
 
     // #region by clinic
-    const clinicDimension = ndx.dimension((d: PatientEncounter) => d.clinic);
-    const clinicGroup = clinicDimension.group();
+    const clinicDimension = ndx.dimension(d => d.clinic || EXCLUDE_STRING_VALUE);
+    const clinicGroup = clinicDimension.group().reduceSum(d => d.parsedNumberOfTasks);
 
     clinicChart
       .width(windowWidth / 3)
@@ -406,7 +495,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .elasticX(true)
       .dimension(clinicDimension)
       .ordinalColors(colors)
-      .group(clinicGroup);
+      .group(removeExcludedData(clinicGroup));
 
     clinicChart.render();
     // #endregion
@@ -449,7 +538,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
               <span id="unique-patients" />
             </Statistic.Value>
 
-            <Statistic.Label>Unique patients by MRN</Statistic.Label>
+            <Statistic.Label>Unique Patients (MRNs)</Statistic.Label>
           </Statistic>
         </Statistic.Group>
 
@@ -462,58 +551,70 @@ export class Report extends React.Component<ReportProps, ReportState> {
         <br />
 
         <div id="encounter-date-chart">
-          <strong>Encounters by Date</strong>
+          <strong>Tasks by Date</strong>
           <div className="clearfix" />
         </div>
 
         <div id="number-of-tasks-chart">
-          <strong>Number of Tasks</strong>
+          <strong>Number of Tasks per Entry</strong>
           <div className="clearfix" />
         </div>
 
         <div id="number-of-interventions-chart">
-          <strong>Number of Interventions</strong>
+          <strong>Number of Interventions per Entry</strong>
           <div className="clearfix" />
         </div>
 
         <div id="time-chart">
-          <strong>Time Spent</strong>
+          <strong>Time Spent per Entry</strong>
           <div className="clearfix" />
         </div>
 
         <div id="age-chart">
-          <strong>Age</strong>
+          <strong>Age (unique MRNs)</strong>
           <div className="clearfix" />
         </div>
 
         <div id="diagnosis-chart">
-          <strong>Diagnosis Type</strong>
+          <strong>Diagnosis Type (unique MRNs)</strong>
           <div className="clearfix" />
         </div>
 
         <div id="stage-chart">
-          <strong>Stage</strong>
+          <strong>Stage (unique MRNs)</strong>
           <div className="clearfix" />
         </div>
 
         <div id="research-chart">
-          <strong>Research</strong>
+          <strong>Research (unique MRNs)</strong>
           <div className="clearfix" />
         </div>
 
+        <div id="encounter-type-chart">
+          <strong>Tasks per Type</strong>
+          <div className="clearfix" />
+        </div>
+
+        <div id="test-chart">
+          <strong>Tests Given</strong>
+          <div className="clearfix" />
+        </div>
+
+        <div className="clearfix" />
+
         <div>
           <div id="clinic-chart">
-            <strong>Clinic</strong>
+            <strong>Tasks per Clinic</strong>
             <div className="clearfix" />
           </div>
 
           <div id="location-chart">
-            <strong>Location</strong>
+            <strong>Tasks per Location</strong>
             <div className="clearfix" />
           </div>
 
           <div id="user-chart">
-            <strong>Social Worker</strong>
+            <strong>Tasks per Social Worker</strong>
             <div className="clearfix" />
           </div>
 

@@ -10,18 +10,27 @@ const glob = window.require('glob');
 const os = window.require('os');
 const rimraf = window.require('rimraf');
 
+export type AgeBucket = '<= 39 years' | '40 to 64 years' | '>= 65 years';
+
+export const EXCLUDE_NUMBER_VALUE = -666;
+export const EXCLUDE_STRING_VALUE = '__EXCLUDE__';
+
+// TODO update this to not extend PatientEncounter and encompass all optional fields correctly
 export interface TransformedPatientEncounter extends PatientEncounter {
-  age: number;
-  ageBucket: '<= 39 years' | '40 to 64 years' | '>= 65 years';
+  age?: number;
+  ageBucket?: AgeBucket;
 
   encounterDate: string;
+  formattedEncounterType: string;
 
   doctorPrimary: string;
-  doctorSecondary?: string;
 
   interventions: string[];
 
   numberOfInterventions: number;
+  parsedNumberOfTasks: number;
+
+  tests: string[];
 }
 
 interface CopiedFile {
@@ -34,7 +43,11 @@ interface CopyFilesResult {
   temporaryDirectory: string;
 }
 
-function ageBucket(age: number): '<= 39 years' | '40 to 64 years' | '>= 65 years' {
+function ageBucket(age?: number): AgeBucket {
+  if (!age) {
+    return;
+  }
+
   if (age <= 39) {
     return '<= 39 years';
   }
@@ -79,7 +92,7 @@ async function copyEncounterFiles(): Promise<CopyFilesResult> {
   };
 }
 
-async function getPatientEncounters(filename: string): Promise<PatientEncounter[]> {
+async function getAllEncounters(filename: string): Promise<PatientEncounter[]> {
   const dataStore: Nedb = new DataStore({
     autoload: true,
     filename,
@@ -87,7 +100,7 @@ async function getPatientEncounters(filename: string): Promise<PatientEncounter[
   });
 
   return new Promise((resolve, reject) => {
-    dataStore.find({ encounterType: 'patient' }, (err: Error, results: PatientEncounter[]) => {
+    dataStore.find({}, (err: Error, results: PatientEncounter[]) => {
       if (err) {
         reject(err);
       } else {
@@ -103,7 +116,7 @@ export async function transform(): Promise<TransformedPatientEncounter[]> {
 
   for (const userEncounter of userEncounters.files) {
     // eslint-disable-next-line no-await-in-loop
-    const encounters = await getPatientEncounters(userEncounter.filename);
+    const encounters = await getAllEncounters(userEncounter.filename);
 
     for (const encounter of encounters) {
       allEncounters.push({ ...encounter, username: userEncounter.username });
@@ -112,32 +125,59 @@ export async function transform(): Promise<TransformedPatientEncounter[]> {
 
   rimraf.sync(userEncounters.temporaryDirectory, { glob: false });
 
-  const transformed = allEncounters.map((encounter: PatientEncounter) => {
-    const age = moment().diff(moment(encounter.dateOfBirth), 'years');
+  const transformed = allEncounters
+    .filter(encounter => ['community', 'patient', 'staff'].includes(encounter.encounterType))
+    .map((encounter: PatientEncounter) => {
+      const age = moment().diff(moment(encounter.dateOfBirth), 'years');
 
-    return {
-      ...encounter,
+      const tests = [];
 
-      age,
-      ageBucket: ageBucket(age),
+      if (encounter.phq) {
+        tests.push('GAD');
+      }
 
-      doctorPrimary: encounter.md[0],
-      doctorSecondary: encounter.md[1],
+      if (encounter.moca) {
+        tests.push('MoCA');
+      }
 
-      interventions: interventions.reduce(
-        (accumulator, intervention) =>
-          encounter[intervention.fieldName]
-            ? accumulator.concat([intervention.name])
-            : accumulator,
-        []
-      ),
+      if (encounter.phq) {
+        tests.push('PHQ');
+      }
 
-      numberOfInterventions: interventions.reduce(
-        (accumulator, intervention) => accumulator + (encounter[intervention.fieldName] ? 1 : 0),
-        0
-      )
-    };
-  });
+      return {
+        ...encounter,
+
+        age,
+        ageBucket: ageBucket(age),
+
+        formattedEncounterType:
+          encounter.encounterType[0].toUpperCase() + encounter.encounterType.slice(1),
+
+        tests,
+
+        doctorPrimary: (encounter.md && encounter.md[0]) || EXCLUDE_STRING_VALUE,
+
+        interventions: interventions.reduce(
+          (accumulator, intervention) =>
+            encounter[intervention.fieldName]
+              ? accumulator.concat([intervention.name])
+              : accumulator,
+          []
+        ),
+
+        mrn: encounter.mrn || EXCLUDE_STRING_VALUE,
+
+        parsedNumberOfTasks: parseInt(encounter.numberOfTasks, 10),
+
+        numberOfInterventions: ['patient', 'community'].includes(encounter.encounterType)
+          ? interventions.reduce(
+              (accumulator, intervention) =>
+                accumulator + (encounter[intervention.fieldName] ? 1 : 0),
+              0
+            )
+          : EXCLUDE_NUMBER_VALUE
+      };
+    });
 
   return transformed;
 }
