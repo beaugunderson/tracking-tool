@@ -11,7 +11,8 @@ import {
   Icon,
   Input,
   Segment,
-  Table
+  Table,
+  Statistic
 } from 'semantic-ui-react';
 import { chain, escapeRegExp } from 'lodash';
 import { CommunityEncounterForm } from './forms/CommunityEncounterForm';
@@ -22,9 +23,10 @@ import { FirstTimeSetup } from './FirstTimeSetup';
 import { insertExamples } from './generate-data';
 import { openEncounters } from './data';
 import { fieldNameToName, OtherEncounterForm } from './forms/OtherEncounterForm';
-import { PatientEncounterForm } from './forms/PatientEncounterForm';
+import { PatientEncounterForm, PatientEncounter } from './forms/PatientEncounterForm';
 import { Report } from './reporting/Report';
 import { StaffEncounterForm } from './forms/StaffEncounterForm';
+import { transformEncounters } from './reporting/data';
 
 const username = window.require('username');
 
@@ -48,6 +50,9 @@ type AppState = {
   encounterSearchType: string;
   error: string | Error | null;
   firstTimeSetup: boolean;
+  gads: number;
+  mocas: number;
+  phqs: number;
   reporting: boolean;
 };
 
@@ -64,6 +69,9 @@ export class App extends React.Component<{}, AppState> {
     encounterSearchType: 'All',
     error: null,
     firstTimeSetup: !rootPathExists(),
+    gads: 0,
+    mocas: 0,
+    phqs: 0,
     reporting: false
   };
 
@@ -109,6 +117,22 @@ export class App extends React.Component<{}, AppState> {
     });
   };
 
+  updateAssessments() {
+    this.encounters.find({}, (err: Error, results: PatientEncounter[]) => {
+      if (err) {
+        return;
+      }
+
+      const transformedEncounters = transformEncounters(results);
+
+      const gads = transformedEncounters.filter(encounter => !!encounter.gad).length;
+      const mocas = transformedEncounters.filter(encounter => !!encounter.moca).length;
+      const phqs = transformedEncounters.filter(encounter => !!encounter.phq).length;
+
+      this.setState({ gads, mocas, phqs });
+    });
+  }
+
   componentDidMount() {
     if (this.state.firstTimeSetup) {
       return;
@@ -119,6 +143,7 @@ export class App extends React.Component<{}, AppState> {
     this.encounters = openEncounters();
 
     this.searchPatients();
+    this.updateAssessments();
   }
 
   componentDidUpdate(prevProps: any, prevState: AppState) {
@@ -138,6 +163,7 @@ export class App extends React.Component<{}, AppState> {
       this.state.encounterSearchType !== prevState.encounterSearchType
     ) {
       this.searchPatients();
+      this.updateAssessments();
     }
   }
 
@@ -161,6 +187,9 @@ export class App extends React.Component<{}, AppState> {
       encounterForm,
       error,
       firstTimeSetup,
+      gads,
+      mocas,
+      phqs,
       reporting
     } = this.state;
 
@@ -290,7 +319,24 @@ export class App extends React.Component<{}, AppState> {
           )}
         </Segment>
 
-        <Segment className="big-section" inverted textAlign="center">
+        <Statistic.Group widths="3">
+          <Statistic>
+            <Statistic.Value>{gads}</Statistic.Value>
+            <Statistic.Label>GAD assessments</Statistic.Label>
+          </Statistic>
+
+          <Statistic>
+            <Statistic.Value>{mocas}</Statistic.Value>
+            <Statistic.Label>MoCA assessments</Statistic.Label>
+          </Statistic>
+
+          <Statistic>
+            <Statistic.Value>{phqs}</Statistic.Value>
+            <Statistic.Label>PHQ assessments</Statistic.Label>
+          </Statistic>
+        </Statistic.Group>
+
+        <Segment className="big-section last-section" inverted textAlign="center">
           <Header as="h1">Edit an Encounter</Header>
 
           <Divider hidden />

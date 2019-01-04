@@ -57,6 +57,9 @@ body {
 .big-section {
   padding-top: 3em !important;
   padding-bottom: 3em !important;
+}
+
+.last-section {
   margin-bottom: 2em !important;
 }
 

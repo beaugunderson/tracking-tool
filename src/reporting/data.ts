@@ -110,9 +110,64 @@ async function getAllEncounters(filename: string): Promise<PatientEncounter[]> {
   });
 }
 
+function transformEncounter(encounter: PatientEncounter): TransformedPatientEncounter {
+  const age = moment().diff(moment(encounter.dateOfBirth), 'years');
+
+  const tests = [];
+
+  if (encounter.phq) {
+    tests.push('GAD');
+  }
+
+  if (encounter.moca) {
+    tests.push('MoCA');
+  }
+
+  if (encounter.phq) {
+    tests.push('PHQ');
+  }
+
+  return {
+    ...encounter,
+
+    age,
+    ageBucket: ageBucket(age),
+
+    formattedEncounterType:
+      encounter.encounterType[0].toUpperCase() + encounter.encounterType.slice(1),
+
+    tests,
+
+    doctorPrimary: (encounter.md && encounter.md[0]) || EXCLUDE_STRING_VALUE,
+
+    interventions: interventions.reduce(
+      (accumulator, intervention) =>
+        encounter[intervention.fieldName] ? accumulator.concat([intervention.name]) : accumulator,
+      []
+    ),
+
+    mrn: encounter.mrn || EXCLUDE_STRING_VALUE,
+
+    parsedNumberOfTasks: parseInt(encounter.numberOfTasks, 10),
+
+    numberOfInterventions: ['patient', 'community'].includes(encounter.encounterType)
+      ? interventions.reduce(
+          (accumulator, intervention) => accumulator + (encounter[intervention.fieldName] ? 1 : 0),
+          0
+        )
+      : EXCLUDE_NUMBER_VALUE
+  };
+}
+
+export function transformEncounters(encounters: PatientEncounter[]) {
+  return encounters
+    .filter(encounter => ['community', 'patient', 'staff'].includes(encounter.encounterType))
+    .map(transformEncounter);
+}
+
 export async function transform(): Promise<TransformedPatientEncounter[]> {
   const userEncounters = await copyEncounterFiles();
-  const allEncounters = [];
+  const allEncounters: PatientEncounter[] = [];
 
   for (const userEncounter of userEncounters.files) {
     // eslint-disable-next-line no-await-in-loop
@@ -125,59 +180,5 @@ export async function transform(): Promise<TransformedPatientEncounter[]> {
 
   rimraf.sync(userEncounters.temporaryDirectory, { glob: false });
 
-  const transformed = allEncounters
-    .filter(encounter => ['community', 'patient', 'staff'].includes(encounter.encounterType))
-    .map((encounter: PatientEncounter) => {
-      const age = moment().diff(moment(encounter.dateOfBirth), 'years');
-
-      const tests = [];
-
-      if (encounter.phq) {
-        tests.push('GAD');
-      }
-
-      if (encounter.moca) {
-        tests.push('MoCA');
-      }
-
-      if (encounter.phq) {
-        tests.push('PHQ');
-      }
-
-      return {
-        ...encounter,
-
-        age,
-        ageBucket: ageBucket(age),
-
-        formattedEncounterType:
-          encounter.encounterType[0].toUpperCase() + encounter.encounterType.slice(1),
-
-        tests,
-
-        doctorPrimary: (encounter.md && encounter.md[0]) || EXCLUDE_STRING_VALUE,
-
-        interventions: interventions.reduce(
-          (accumulator, intervention) =>
-            encounter[intervention.fieldName]
-              ? accumulator.concat([intervention.name])
-              : accumulator,
-          []
-        ),
-
-        mrn: encounter.mrn || EXCLUDE_STRING_VALUE,
-
-        parsedNumberOfTasks: parseInt(encounter.numberOfTasks, 10),
-
-        numberOfInterventions: ['patient', 'community'].includes(encounter.encounterType)
-          ? interventions.reduce(
-              (accumulator, intervention) =>
-                accumulator + (encounter[intervention.fieldName] ? 1 : 0),
-              0
-            )
-          : EXCLUDE_NUMBER_VALUE
-      };
-    });
-
-  return transformed;
+  return transformEncounters(allEncounters);
 }
