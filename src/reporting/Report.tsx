@@ -7,6 +7,7 @@ import dc from 'dc';
 import moment from 'moment';
 import React from 'react';
 import reductio from 'reductio';
+import { Button, Statistic } from 'semantic-ui-react';
 import { isBoolean, isNaN, isString, keys, sum, values } from 'lodash';
 import {
   EXCLUDE_NUMBER_VALUE,
@@ -14,13 +15,9 @@ import {
   transform,
   TransformedPatientEncounter
 } from './data';
-import { PatientEncounter } from '../forms/PatientEncounterForm';
-import { Button, Statistic } from 'semantic-ui-react';
 
 const DEFAULT_MARGINS = { top: 10, right: 50, bottom: 30, left: 30 };
 const OUR_MARGINS = { ...DEFAULT_MARGINS, left: 55 };
-
-const EMPTY_ARRAY = [];
 
 function removeExcludedData(group) {
   return {
@@ -320,29 +317,11 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .dimension(ageDimension)
       .group(removeExcludedData(ageGroup))
       .valueAccessor(d => d.value.exceptionCount)
+      .ordering(d => -d.value.exceptionCount)
       .xAxis()
       .ticks(4);
 
     ageBucketChart.render();
-    // #endregion
-
-    // #region by encounter type
-    const encounterTypeDimension = ndx.dimension(d => d.formattedEncounterType);
-
-    const encounterTypeGroup = encounterTypeDimension
-      .group()
-      .reduceSum(d => d.parsedNumberOfTasks);
-
-    encounterTypeChart
-      .width(windowWidth / 4)
-      .height(200)
-      .elasticX(true)
-      .dimension(encounterTypeDimension)
-      .group(encounterTypeGroup)
-      .xAxis()
-      .ticks(4);
-
-    encounterTypeChart.render();
     // #endregion
 
     // #region by diagnosis
@@ -356,6 +335,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .dimension(diagnosisDimension)
       .group(removeExcludedData(diagnosisGroup))
       .valueAccessor(d => d.value.exceptionCount)
+      .ordering(d => -d.value.exceptionCount)
       .xAxis()
       .ticks(4);
 
@@ -379,6 +359,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .dimension(stageDimension)
       .group(removeExcludedData(stageGroup))
       .valueAccessor(d => d.value.exceptionCount)
+      .ordering(d => -d.value.exceptionCount)
       .xAxis()
       .ticks(4);
 
@@ -402,14 +383,48 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .dimension(researchDimension)
       .group(removeExcludedData(researchGroup))
       .valueAccessor(d => d.value.exceptionCount)
+      .ordering(d => -d.value.exceptionCount)
       .xAxis()
       .ticks(4);
 
     researchChart.render();
     // #endregion
 
+    // #region by encounter type
+    const encounterTypeDimension = ndx.dimension(d => d.formattedEncounterType);
+    const encounterTypeGroup = encounterTypeDimension
+      .group()
+      .reduceSum(d => d.parsedNumberOfTasks);
+
+    encounterTypeChart
+      .width(windowWidth / 4)
+      .height(200)
+      .elasticX(true)
+      .dimension(encounterTypeDimension)
+      .group(encounterTypeGroup)
+      .xAxis()
+      .ticks(4);
+
+    encounterTypeChart.render();
+    // #endregion
+
+    // #region by assessment tool
+    const testDimension = ndx.dimension(d => d.tests as any, true);
+    const testGroup = testDimension.group();
+
+    testChart
+      .width(windowWidth / 4)
+      .height(200)
+      .elasticX(true)
+      .ordinalColors(colors)
+      .dimension(testDimension)
+      .group(testGroup);
+
+    testChart.render();
+    // #endregion
+
     // #region by user
-    const userDimension = ndx.dimension((d: PatientEncounter) => d.username);
+    const userDimension = ndx.dimension(d => d.username);
     const userGroup = userDimension.group().reduceSum(d => d.parsedNumberOfTasks);
 
     userChart
@@ -426,7 +441,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
     // #endregion
 
     // #region by doctor
-    const doctorDimension = ndx.dimension((d: PatientEncounter) => d.doctorPrimary);
+    const doctorDimension = ndx.dimension(d => d.doctorPrimary);
     const doctorGroup = doctorDimension.group();
 
     doctorChart
@@ -453,21 +468,6 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .group(interventionGroup);
 
     interventionChart.render();
-    // #endregion
-
-    // #region by test
-    const testDimension = ndx.dimension(d => d.tests as any, true);
-    const testGroup = testDimension.group();
-
-    testChart
-      .width(windowWidth / 4)
-      .height(200)
-      .elasticX(true)
-      .ordinalColors(colors)
-      .dimension(testDimension)
-      .group(testGroup);
-
-    testChart.render();
     // #endregion
 
     // #region by location
