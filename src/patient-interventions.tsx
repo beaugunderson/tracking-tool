@@ -273,7 +273,7 @@ const CARE_COORDINATION = {
     {
       name: 'Care Coordination',
       description:
-        'Communication with healthcare team to include MD, RN, MA, PSC, outside care team members, case managers, other social workers. Excludes Palliative Care, Hospice, Psychiatry, Psychotherapy, Home Health, which should be tracked using the more specific categories',
+        'Can include chart review on a single case, coordination or communication with patient, internal or external care team members (SW/CM, MD, PA/NP, RN, MA, PSC), etc. Excludes Home Care, Facility; Palliative Care, Hospice; Psychiatry, Psychotherapy (including case presentations) - these should be tracked using the more specific categories. Chart review for multiple cases should be tracked under the Other-encounter type using Rounding/Tumor Board',
       community: true
     },
     {
@@ -295,7 +295,8 @@ const CARE_COORDINATION = {
     },
     {
       name: 'Psychiatry, Psychotherapy',
-      description: 'Research, referrals, coordination with psychiatry/psychotherapy resources'
+      description:
+        'Research, referrals, coordination with psychiatry/psychotherapy resources, including preparation for case presentations given in Psych Rounds or Team Meeting (excludes quick resource/patient questions)'
     },
     {
       name: 'Behavioral, Safety Plan',

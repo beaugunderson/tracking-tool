@@ -106,7 +106,7 @@ export class EncounterTimeSpentField extends React.Component<EncounterTimeSpentF
     const { error, onBlur, onChange, patient, value } = this.props;
 
     const patientLabel =
-      'The number of total minutes on all encounters for this patient on this day, rounded up to the nearest 5 (e.g. 75 minutes), including full representation of time spent documenting';
+      'The number of total minutes on all encounters for this patient on this day, rounded up to the nearest 5 (e.g. 75 minutes), including full representation of time spent documenting, can also include travel time (5-10 minutes) and time spent waiting to see the patient';
     const otherLabel =
       'The number of total minutes on all encounters for this entry on this day, rounded up to the nearest 5 (e.g. 75 minutes)';
 

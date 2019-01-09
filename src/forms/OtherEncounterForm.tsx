@@ -34,7 +34,7 @@ const OPTIONS: Option[] = addFieldNames([
   {
     name: 'Rounding/Tumor Board',
     description:
-      'Rounding with provider(s), when not specific to any one patient; attending tumor board'
+      'Rounding with provider(s) when not specific to any one patient; attending tumor board; chart review on multiple patients as part of rounding. If you round with your clinics and later with your pod, or attend tumor board and later round with your clinics, these should be two separate entries'
   },
 
   {
@@ -48,7 +48,7 @@ const OPTIONS: Option[] = addFieldNames([
   {
     name: 'Presentation',
     description:
-      'When giving a presentation related to your role as an oncology social worker at SCI ' +
+      'When giving a presentation or training related to your role as an oncology social worker at SCI ' +
       '(versus your work on a board), track time spent in preparation for, giving, and in ' +
       'wrap-up of your presentation. This could include presentations for Swedish symposiums, ' +
       'donor groups like Harvey Marine or MI Rotary, at AOSW or SSWLHC conferences, or on a ' +
