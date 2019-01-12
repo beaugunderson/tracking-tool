@@ -39,6 +39,7 @@ export type PatientEncounter = {
   diagnosisType: string;
   encounterDate: string;
   encounterType: 'patient';
+  limitedEnglishProficiency: boolean;
   location: string;
   md: string[];
   mrn: string;
@@ -56,6 +57,7 @@ export const INITIAL_VALUES = (): PatientEncounter => ({
   diagnosisType: '',
   encounterDate: today(),
   encounterType: 'patient',
+  limitedEnglishProficiency: false,
   location: '',
   md: [],
   mrn: '',
@@ -168,6 +170,13 @@ const MD_LABEL = (
       content="Input multiple providers as appropriate. The first provider listed should be the primary provider associated with that day's encounter, which will most often be the medical oncologist. If responding to a radiation distress screen or seeing a patient in Palliative Care, list the radiation oncologist or palliative care provider as primary, and list the medical oncologist (if there is one) as secondary. Be sure to update the provider as needed for subsequent visits. &ldquo;Unassigned&rdquo; is an option that should be selected only on rare occasions&mdash;consider whether a radiation oncologist or &ldquo;Community&rdquo; encounter are more appropriate"
       wide="very"
     />
+  </label>
+);
+
+const LIMITED_ENGLISH_PROFICIENCY_LABEL = (
+  <label>
+    Limited-English proficiency (LEP){' '}
+    <InfoButton content="Mark this for patients with limited-English proficiency that require use of an interpreter" />
   </label>
 );
 
@@ -352,6 +361,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
       mrn: encounter.mrn,
       dateOfBirth: encounter.dateOfBirth,
       clinic: encounter.clinic,
+      limitedEnglishProficiency: encounter.limitedEnglishProficiency,
       location: encounter.location,
       md: encounter.md,
       diagnosisType: encounter.diagnosisType,
@@ -656,15 +666,27 @@ class UnwrappedPatientEncounterForm extends React.Component<
           />
         </Form.Group>
 
-        <Form.Field
-          control={Checkbox}
-          id="input-research"
-          label={RESEARCH_LABEL}
-          name="research"
-          onBlur={this.handleBlur}
-          onChange={this.handleChange}
-          checked={values.research}
-        />
+        <Form.Group>
+          <Form.Field
+            control={Checkbox}
+            id="input-research"
+            label={RESEARCH_LABEL}
+            name="research"
+            onBlur={this.handleBlur}
+            onChange={this.handleChange}
+            checked={values.research}
+          />
+
+          <Form.Field
+            control={Checkbox}
+            id="input-limited-english-proficiency"
+            label={LIMITED_ENGLISH_PROFICIENCY_LABEL}
+            name="limitedEnglishProficiency"
+            onBlur={this.handleBlur}
+            onChange={this.handleChange}
+            checked={values.limitedEnglishProficiency}
+          />
+        </Form.Group>
 
         <Divider hidden />
 

@@ -59,6 +59,7 @@ function fakePatient() {
       .toString()
       .slice(2, 9)}`,
 
+    limitedEnglishProficiency: sample([false, true]),
     research: sample([false, true])
   };
 }
