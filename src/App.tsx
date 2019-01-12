@@ -123,11 +123,21 @@ export class App extends React.Component<{}, AppState> {
         return;
       }
 
-      const transformedEncounters = transformEncounters(results);
+      const monthStart = moment().startOf('month');
+      const monthEnd = moment().endOf('month');
 
-      const gads = transformedEncounters.filter(encounter => !!encounter.gad).length;
-      const mocas = transformedEncounters.filter(encounter => !!encounter.moca).length;
-      const phqs = transformedEncounters.filter(encounter => !!encounter.phq).length;
+      const monthEncounters = transformEncounters(results).filter(encounter => {
+        return moment(encounter.encounterDate, 'YYYY-MM-DD').isBetween(
+          monthStart,
+          monthEnd,
+          null,
+          '[]'
+        );
+      });
+
+      const gads = monthEncounters.filter(encounter => !!encounter.gad).length;
+      const mocas = monthEncounters.filter(encounter => !!encounter.moca).length;
+      const phqs = monthEncounters.filter(encounter => !!encounter.phq).length;
 
       this.setState({ gads, mocas, phqs });
     });
