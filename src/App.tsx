@@ -370,12 +370,20 @@ export class App extends React.Component<{}, AppState> {
                 </Table.HeaderCell>
                 <Table.HeaderCell width={3}>
                   <Input
+                    icon={
+                      <Icon
+                        link
+                        name="delete"
+                        onClick={() => this.setState({ encounterSearchPatientName: '' })}
+                      />
+                    }
                     id="encounter-patient-input"
                     fluid
                     onChange={(e, { value }) =>
                       this.setState({ encounterSearchPatientName: value })
                     }
                     placeholder="Search..."
+                    value={this.state.encounterSearchPatientName}
                   />
                 </Table.HeaderCell>
                 <Table.HeaderCell width={2}>Clinic or Activity</Table.HeaderCell>

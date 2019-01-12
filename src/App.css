@@ -54,6 +54,10 @@ body {
   margin-right: 12px;
 }
 
+#encounter-patient-input + .icon {
+  margin-right: 12px;
+}
+
 .big-section {
   padding-top: 3em !important;
   padding-bottom: 3em !important;
