@@ -15,6 +15,7 @@ import {
   transform,
   TransformedPatientEncounter
 } from './data';
+import { USERNAMES } from '../usernames';
 
 const DEFAULT_MARGINS = { top: 10, right: 50, bottom: 30, left: 30 };
 const OUR_MARGINS = { ...DEFAULT_MARGINS, left: 55 };
@@ -424,7 +425,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
     // #endregion
 
     // #region by user
-    const userDimension = ndx.dimension(d => d.username);
+    const userDimension = ndx.dimension(d => USERNAMES[d.username] || d.username);
     const userGroup = userDimension.group().reduceSum(d => d.parsedNumberOfTasks);
 
     userChart
