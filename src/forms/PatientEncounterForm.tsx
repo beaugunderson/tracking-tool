@@ -361,13 +361,13 @@ class UnwrappedPatientEncounterForm extends React.Component<
       mrn: encounter.mrn,
       dateOfBirth: encounter.dateOfBirth,
       clinic: encounter.clinic,
-      limitedEnglishProficiency: encounter.limitedEnglishProficiency,
+      limitedEnglishProficiency: !!encounter.limitedEnglishProficiency,
       location: encounter.location,
       md: encounter.md,
       diagnosisType: encounter.diagnosisType,
       diagnosisFreeText: encounter.diagnosisFreeText,
       diagnosisStage: encounter.diagnosisStage,
-      research: encounter.research
+      research: !!encounter.research
     });
 
     this.setState({ patientNameIndex });
@@ -563,6 +563,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
 
           <Form.Field
             control={Input}
+            disabled={!values.patientName}
             error={!!(touched.mrn && errors.mrn)}
             id="input-mrn"
             label="MRN"
@@ -575,6 +576,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
           <Ref innerRef={ref => (this.dateOfBirthRef = ref)}>
             <Form.Field
               control={Input}
+              disabled={!values.patientName}
               error={!!(touched.dateOfBirth && errors.dateOfBirth)}
               id="input-date-of-birth"
               label="Date of Birth"
@@ -589,6 +591,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
         <Form.Field
           control={Dropdown}
           deburr
+          disabled={!values.patientName}
           error={!!(touched.md && errors.md)}
           id="input-md"
           label={MD_LABEL}
@@ -605,6 +608,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
 
         <Form.Group widths="equal">
           <EncounterLocationField
+            disabled={!values.patientName}
             error={!!(touched.location && errors.location)}
             onBlur={this.handleBlur}
             onChange={this.handleChange}
@@ -612,6 +616,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
           />
 
           <EncounterClinicField
+            disabled={!values.patientName}
             error={!!(touched.clinic && errors.clinic)}
             onBlur={this.handleBlur}
             onChange={this.handleChange}
@@ -622,6 +627,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
         <Form.Group widths="equal">
           <Form.Field
             control={Dropdown}
+            disabled={!values.patientName}
             error={!!(touched.diagnosisType && errors.diagnosisType)}
             id="input-diagnosis-type"
             label="Diagnosis Type"
@@ -638,7 +644,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
 
           <Form.Field
             control={Input}
-            disabled={values.diagnosisType !== 'Malignant'}
+            disabled={!values.patientName || values.diagnosisType !== 'Malignant'}
             error={!!(touched.diagnosisFreeText && errors.diagnosisFreeText)}
             id="input-diagnosis-free-text"
             label="Diagnosis"
@@ -650,7 +656,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
 
           <Form.Field
             control={Dropdown}
-            disabled={values.diagnosisType !== 'Malignant'}
+            disabled={!values.patientName || values.diagnosisType !== 'Malignant'}
             error={!!(touched.diagnosisStage && errors.diagnosisStage)}
             id="input-diagnosis-stage"
             label={STAGE_LABEL}
@@ -669,6 +675,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
         <Form.Group>
           <Form.Field
             control={Checkbox}
+            disabled={!values.patientName}
             id="input-research"
             label={RESEARCH_LABEL}
             name="research"
@@ -679,6 +686,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
 
           <Form.Field
             control={Checkbox}
+            disabled={!values.patientName}
             id="input-limited-english-proficiency"
             label={LIMITED_ENGLISH_PROFICIENCY_LABEL}
             name="limitedEnglishProficiency"

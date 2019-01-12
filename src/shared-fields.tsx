@@ -5,6 +5,7 @@ import { Dropdown, Form, Input, Popup } from 'semantic-ui-react';
 import { InfoButton } from './InfoButton';
 
 type FieldProps = {
+  disabled?: boolean;
   error: boolean;
   value: any;
   onBlur: any;
@@ -43,11 +44,12 @@ export class EncounterLocationField extends React.Component<EncounterLocationFie
   };
 
   render() {
-    const { error, locations, onBlur, onChange, value } = this.props;
+    const { disabled, error, locations, onBlur, onChange, value } = this.props;
 
     return (
       <Form.Field
         control={Dropdown}
+        disabled={!!disabled}
         error={error}
         id="input-location"
         label="Location"
@@ -75,11 +77,12 @@ export class EncounterClinicField extends React.Component<EncounterClinicFieldPr
   };
 
   render() {
-    const { clinics, error, onBlur, onChange, value } = this.props;
+    const { clinics, disabled, error, onBlur, onChange, value } = this.props;
 
     return (
       <Form.Field
         control={Dropdown}
+        disabled={!!disabled}
         error={error}
         id="input-clinic"
         label="Clinic"
