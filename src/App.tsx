@@ -36,7 +36,7 @@ function currentUserIn(users: string[]) {
 
 const canSeeFakeEncounters = () => currentUserIn(['beau', 'carynstewart']);
 const canSeeReporting = () =>
-  currentUserIn(['beau', 'carynstewart', 'johnss1', 'lindce2', 'valejd1']);
+  currentUserIn(['beau', 'carynstewart', 'johnss1', 'lindce2', 'nejadsh1', 'valejd1']);
 
 const DELETE_BUTTON = <Button negative>Delete</Button>;
 
