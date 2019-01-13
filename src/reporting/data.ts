@@ -21,6 +21,7 @@ export interface TransformedPatientEncounter extends PatientEncounter {
   ageBucket?: AgeBucket;
 
   encounterDate: string;
+  parsedEncounterDate: moment.Moment;
   formattedEncounterType: string;
 
   doctorPrimary: string;
@@ -132,6 +133,8 @@ function transformEncounter(encounter: PatientEncounter): TransformedPatientEnco
 
     age,
     ageBucket: ageBucket(age),
+
+    parsedEncounterDate: moment(encounter.encounterDate, 'YYYY-MM-DD'),
 
     formattedEncounterType:
       encounter.encounterType[0].toUpperCase() + encounter.encounterType.slice(1),

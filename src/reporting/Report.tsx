@@ -89,7 +89,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
     const encountersByDateChart = dc.barChart('#encounter-date-chart');
     const interventionChart = dc.rowChart('#intervention-chart');
     const locationChart = dc.rowChart('#location-chart');
-    const numberOfTasksChart = dc.barChart('#number-of-tasks-chart');
+    const dayOfWeekChart = dc.barChart('#number-of-tasks-chart');
     const numberOfInterventionsChart = dc.barChart('#number-of-interventions-chart');
     const researchChart = dc.rowChart('#research-chart');
     const stageChart = dc.rowChart('#stage-chart');
@@ -144,6 +144,28 @@ export class Report extends React.Component<ReportProps, ReportState> {
     }
 
     renderNumber('#total-tasks', ndx.groupAll().reduceSum(d => d.parsedNumberOfTasks));
+
+    renderNumber(
+      '#average-tasks-per-entry',
+      ndx.groupAll().reduce(add, remove, init),
+      (entries: TransformedPatientEncounter[]) => {
+        let taskCount = 0;
+        let entryCount = 0;
+
+        entries.forEach(entry => {
+          if (entry.mrn === EXCLUDE_STRING_VALUE) {
+            return;
+          }
+
+          taskCount += entry.parsedNumberOfTasks;
+          entryCount += 1;
+        });
+
+        const value = taskCount / entryCount;
+
+        return isNaN(value) ? 0 : value;
+      }
+    );
 
     renderNumber(
       '#average-tasks',
@@ -242,10 +264,10 @@ export class Report extends React.Component<ReportProps, ReportState> {
     // #endregion
 
     // #region number of tasks
-    const numberOfTasksDimension = ndx.dimension(d => d.parsedNumberOfTasks);
-    const numberOfTasksGroup = numberOfTasksDimension.group();
+    const dayOfWeekDimension = ndx.dimension(d => d.parsedEncounterDate.isoWeekday());
+    const dayOfWeekGroup = dayOfWeekDimension.group().reduceSum(d => d.parsedNumberOfTasks);
 
-    numberOfTasksChart
+    dayOfWeekChart
       .width(windowWidth / 3)
       .height(200)
       .brushOn(false)
@@ -253,14 +275,17 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .xUnits(dc.units.ordinal)
       .elasticX(true)
       .elasticY(true)
-      .yAxisLabel('Entries')
-      .dimension(numberOfTasksDimension)
-      .group(removeExcludedData(numberOfTasksGroup))
+      .yAxisLabel('Tasks')
+      .dimension(dayOfWeekDimension)
+      .group(removeExcludedData(dayOfWeekGroup))
       .margins(OUR_MARGINS);
 
-    numberOfTasksChart.xAxis().ticks(7);
+    dayOfWeekChart
+      .xAxis()
+      .ticks(7)
+      .tickFormat(t => 'MTWTFSS'[t - 1]);
 
-    numberOfTasksChart.render();
+    dayOfWeekChart.render();
     // #endregion
 
     // #region number of interventions
@@ -509,13 +534,21 @@ export class Report extends React.Component<ReportProps, ReportState> {
           <Button onClick={() => this.props.onComplete()}>Back</Button>
         </div>
 
-        <Statistic.Group widths="4">
+        <Statistic.Group widths="5">
           <Statistic>
             <Statistic.Value>
               <span id="total-tasks" />
             </Statistic.Value>
 
             <Statistic.Label>Total tasks</Statistic.Label>
+          </Statistic>
+
+          <Statistic>
+            <Statistic.Value>
+              <span id="average-tasks-per-entry" />
+            </Statistic.Value>
+
+            <Statistic.Label>Average tasks/entry</Statistic.Label>
           </Statistic>
 
           <Statistic>
@@ -557,7 +590,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
         </div>
 
         <div id="number-of-tasks-chart">
-          <strong>Number of Tasks per Entry</strong>
+          <strong>Number of Tasks by Weekday</strong>
           <div className="clearfix" />
         </div>
 
