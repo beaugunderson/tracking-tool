@@ -115,7 +115,7 @@ function transformEncounter(encounter: PatientEncounter): TransformedPatientEnco
 
   const tests = [];
 
-  if (encounter.phq) {
+  if (encounter.gad) {
     tests.push('GAD');
   }
 
