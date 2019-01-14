@@ -450,7 +450,9 @@ export class Report extends React.Component<ReportProps, ReportState> {
     // #endregion
 
     // #region by user
-    const userDimension = ndx.dimension(d => USERNAMES[d.username] || d.username);
+    const userDimension = ndx.dimension(
+      d => USERNAMES[d.username.toLowerCase()] || d.username.toLowerCase()
+    );
     const userGroup = userDimension.group().reduceSum(d => d.parsedNumberOfTasks);
 
     userChart
