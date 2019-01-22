@@ -328,6 +328,11 @@ const FINANCIAL = {
       community: true
     },
     {
+      name: 'SCI Rx Assistance',
+      description:
+        'For person who is approving/denying Rx Assistance, not for the OSW requesting it. Can be selected whenever discussing Rx Assistance with an OSW about a specific patient'
+    },
+    {
       name: 'Community Grant Funds',
       description:
         'Cancer Lifeline, LLS, other organizations providing direct funding to patients',
