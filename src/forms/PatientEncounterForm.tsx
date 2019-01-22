@@ -17,21 +17,20 @@ import { InfoButton } from '../InfoButton';
 import {
   initialInterventionValues,
   interventionGroups,
-  interventionOptions
+  interventionOptions,
+  InitialInterventionValues
 } from '../patient-interventions';
 import { chain, deburr, escapeRegExp, isEmpty } from 'lodash';
 
-// eslint-disable-next-line no-unused-vars
 import { withFormik, FormikErrors, FormikProps } from 'formik';
-// eslint-disable-next-line no-unused-vars
 import { EncounterFormProps, Intervention } from '../types';
 
 const debug = Debug('tracking-tool:patient-encounter-form');
 
-export type PatientEncounter = {
-  [key: string]: any;
-
+export type PatientEncounter = InitialInterventionValues & {
   _id?: string;
+  username?: string;
+
   clinic: string;
   dateOfBirth: string;
   diagnosisFreeText: string;
@@ -65,6 +64,7 @@ export const INITIAL_VALUES = (): PatientEncounter => ({
   patientName: '',
   research: false,
   timeSpent: '',
+
   ...initialInterventionValues
 });
 

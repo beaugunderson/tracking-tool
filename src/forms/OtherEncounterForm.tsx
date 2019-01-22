@@ -11,10 +11,8 @@ import {
 import { InfoButton } from '../InfoButton';
 import { find, isEmpty } from 'lodash';
 
-// eslint-disable-next-line no-unused-vars
 import { withFormik, FormikProps, FormikErrors } from 'formik';
-// eslint-disable-next-line no-unused-vars
-import { EncounterFormProps, Intervention } from '../types';
+import { EncounterFormProps } from '../types';
 
 function addFieldNames(options: any) {
   return options.map((option: any) => {
@@ -87,6 +85,8 @@ type OtherEncounter = {
   [key: string]: any;
 
   _id?: string;
+  username?: string;
+
   activity: string;
   encounterDate: string;
   encounterType: 'other';

@@ -9,17 +9,17 @@ import {
   SubmitButtons,
   today
 } from '../shared-fields';
+import { EncounterFormProps } from '../types';
 import { isEmpty } from 'lodash';
 import { STAFF_CLINIC_OPTIONS } from '../options';
-// eslint-disable-next-line no-unused-vars
 import { withFormik, FormikErrors, FormikProps } from 'formik';
-// eslint-disable-next-line no-unused-vars
-import { EncounterFormProps, Intervention } from '../types';
 
 type StaffEncounter = {
   [key: string]: any;
 
   _id?: string;
+  username?: string;
+
   clinic: string;
   encounterDate: string;
   encounterType: 'staff';

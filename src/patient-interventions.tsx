@@ -7,7 +7,7 @@ import { sortBy } from 'lodash';
 import { Intervention } from './types';
 
 type InterventionOption = {
-  content: JSX.Element;
+  content: React.ReactNode;
   text: string;
   value: string;
 };
@@ -156,26 +156,17 @@ const ADVANCED_CARE_PLANNING = {
   label: 'Advanced Care Planning',
   interventions: withFieldNames([
     {
-      name: 'Facilitation',
+      name: 'Goals of Care',
       description:
-        'End of life discussions, including hospice/palliative care, Death with Dignity, activity related to advance directives'
-    },
-    {
-      name: 'Values Assessment',
-      description: 'Assessment of patient values to aid in treatment, end of life planning'
-    },
-    {
-      name: 'Advanced Illness',
-      description: 'Emotional, educational counseling related to advanced stage disease'
+        'End of life discussions, including hospice/palliative care, Death with Dignity, activity related to advance directives; ' +
+        'Assessment of patient values to aid in treatment, end of life planning; ' +
+        'Emotional, educational counseling related to advanced stage disease; ' +
+        'Providing patient with advance directives, or related education and assistance'
     },
     {
       name: 'Death with Dignity',
       description:
         'Discussion, education, referrals, coordination with physicians, related to Death with Dignity'
-    },
-    {
-      name: 'Form Completion',
-      description: 'Helping patient complete advance directives'
     }
   ])
 };
@@ -448,13 +439,103 @@ export const interventions = sortBy(_interventions, ['name']);
 
 export const communityInterventions = sortBy(_communityInterventions, ['name']);
 
-type InitialInterventionValues = {
-  [field: string]: string | boolean;
+export type InitialInterventionValues = {
+  accessingAccurateMedicalInformation: boolean;
+  adultProtection: boolean;
+  assessmentReferral: boolean;
+  assessmentUnderstandingTreatmentOptionsDiagnosis: boolean;
+  assistingTalkingToHealthcareTeam: boolean;
+  behavioralSafetyPlan: boolean;
+  careCoordination: boolean;
+  caregiverSupportiveCounselingEducation: boolean;
+  childProtection: boolean;
+  communityGrantFunds: boolean;
+  customerService: boolean;
+  deathWithDignity: boolean;
+  distressScreen: boolean;
+  documentation: boolean;
+  employment: boolean;
+  externalSupportiveCare: boolean;
+  familyMeeting: boolean;
+  food: boolean;
+  gad: boolean;
+  gadScore: string;
+  goalsOfCare: boolean;
+  holidayFamilies: boolean;
+  homeCareFacility: boolean;
+  homelessness: boolean;
+  insuranceAccessAssistance: boolean;
+  interpersonalViolence: boolean;
+  lodgingHousingShelter: boolean;
+  managingWorkHomeLifeIllness: boolean;
+  mandmMortalityAndMorbidity: boolean;
+  moca: boolean;
+  mocaScore: string;
+  neuroCognitiveTesting: boolean;
+  newDiagnosis: boolean;
+  otherCommunityResources: boolean;
+  otherMedicalBills: boolean;
+  palliativeCareHospice: boolean;
+  patientSupportiveCounselingEducation: boolean;
+  phq: boolean;
+  phqScore: string;
+  psychiatryPsychotherapy: boolean;
+  respiteCare: boolean;
+  sciGrantFunds: boolean;
+  sciRxAssistance: boolean;
+  sciSupportiveCare: boolean;
+  severeMentalIllness: boolean;
+  sexualityIntimacyFertility: boolean;
+  spiritualExistential: boolean;
+  statefederalIncome: boolean;
+  substanceUse: boolean;
+  suicidehomicide: boolean;
+  supportForChildren: boolean;
+  survivorship: boolean;
+  swedishFinancialAssistance: boolean;
+  transplantAssessment: boolean;
+  transportation: boolean;
+
+  // old fields
+  advancedIllness?: boolean;
+  facilitation?: boolean;
+  formCompletion?: boolean;
+  valuesAssessment?: boolean;
 };
 
-export const initialInterventionValues: InitialInterventionValues = {};
+export type InitialCommunityInterventionValues = {
+  adultProtection: boolean;
+  assessmentReferral: boolean;
+  careCoordination: boolean;
+  caregiverSupportiveCounselingEducation: boolean;
+  childProtection: boolean;
+  communityGrantFunds: boolean;
+  customerService: boolean;
+  employment: boolean;
+  externalSupportiveCare: boolean;
+  food: boolean;
+  homeCareFacility: boolean;
+  homelessness: boolean;
+  insuranceAccessAssistance: boolean;
+  interpersonalViolence: boolean;
+  lodgingHousingShelter: boolean;
+  managingWorkHomeLifeIllness: boolean;
+  otherCommunityResources: boolean;
+  palliativeCareHospice: boolean;
+  respiteCare: boolean;
+  sciGrantFunds: boolean;
+  sciSupportiveCare: boolean;
+  severeMentalIllness: boolean;
+  statefederalIncome: boolean;
+  substanceUse: boolean;
+  suicidehomicide: boolean;
+  supportForChildren: boolean;
+  transportation: boolean;
+};
 
-export const communityInitialInterventionValues: InitialInterventionValues = {};
+export const initialInterventionValues: InitialInterventionValues = {} as InitialInterventionValues;
+
+export const communityInitialInterventionValues: InitialCommunityInterventionValues = {} as InitialCommunityInterventionValues;
 
 interventions.forEach(intervention => {
   if (intervention.scored) {

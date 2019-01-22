@@ -2,7 +2,8 @@ import React from 'react';
 import {
   communityInitialInterventionValues,
   communityInterventionGroups,
-  communityInterventionOptions
+  communityInterventionOptions,
+  InitialCommunityInterventionValues
 } from '../patient-interventions';
 import { Checkbox, Divider, Dropdown, Form, Grid, Header } from 'semantic-ui-react';
 import { COMMUNITY_LOCATION_OPTIONS } from '../options';
@@ -16,15 +17,13 @@ import {
 } from '../shared-fields';
 import { InfoButton } from '../InfoButton';
 import { isEmpty } from 'lodash';
-// eslint-disable-next-line no-unused-vars
 import { withFormik, FormikProps, FormikErrors } from 'formik';
-// eslint-disable-next-line no-unused-vars
 import { EncounterFormProps, Intervention } from '../types';
 
-type CommunityEncounter = {
-  [key: string]: any;
-
+type CommunityEncounter = InitialCommunityInterventionValues & {
   _id?: string;
+  username?: string;
+
   encounterDate: string;
   encounterType: 'community';
   location: string;

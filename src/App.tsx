@@ -150,10 +150,16 @@ export class App extends React.Component<{}, AppState> {
 
     ensureUserDirectoryExists();
 
-    this.encounters = openEncounters();
+    openEncounters((error, dataStore) => {
+      if (error) {
+        return this.setState({ error });
+      }
 
-    this.searchPatients();
-    this.updateAssessments();
+      this.encounters = dataStore;
+
+      this.searchPatients();
+      this.updateAssessments();
+    });
   }
 
   componentDidUpdate(prevProps: any, prevState: AppState) {
