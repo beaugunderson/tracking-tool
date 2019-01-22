@@ -263,7 +263,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
     encountersByDateChart.render();
     // #endregion
 
-    // #region number of tasks
+    // #region day of week
     const dayOfWeekDimension = ndx.dimension(d => d.parsedEncounterDate.isoWeekday());
     const dayOfWeekGroup = dayOfWeekDimension.group().reduceSum(d => d.parsedNumberOfTasks);
 
