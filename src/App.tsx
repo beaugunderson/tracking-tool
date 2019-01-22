@@ -337,6 +337,11 @@ export class App extends React.Component<{}, AppState> {
 
         <Statistic.Group widths="3">
           <Statistic>
+            <Statistic.Value>{phqs}</Statistic.Value>
+            <Statistic.Label>PHQ assessments</Statistic.Label>
+          </Statistic>
+
+          <Statistic>
             <Statistic.Value>{gads}</Statistic.Value>
             <Statistic.Label>GAD assessments</Statistic.Label>
           </Statistic>
@@ -344,11 +349,6 @@ export class App extends React.Component<{}, AppState> {
           <Statistic>
             <Statistic.Value>{mocas}</Statistic.Value>
             <Statistic.Label>MoCA assessments</Statistic.Label>
-          </Statistic>
-
-          <Statistic>
-            <Statistic.Value>{phqs}</Statistic.Value>
-            <Statistic.Label>PHQ assessments</Statistic.Label>
           </Statistic>
         </Statistic.Group>
 
