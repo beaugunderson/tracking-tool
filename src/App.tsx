@@ -85,7 +85,9 @@ export class App extends React.Component<{}, AppState> {
 
     const { encounterSearchDate, encounterSearchPatientName, encounterSearchType } = this.state;
 
-    const criteria: any = {};
+    const criteria: any = {
+      encounterType: { $exists: true }
+    };
 
     if (encounterSearchType !== 'All') {
       criteria.encounterType = this.state.encounterSearchType.toLowerCase();
