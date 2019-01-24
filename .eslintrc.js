@@ -6,9 +6,9 @@ module.exports = {
     node: true
   },
 
-  parser: 'typescript-eslint-parser',
+  parser: '@typescript-eslint/parser',
 
-  plugins: ['filenames', 'import', 'prettier', 'react', 'react-perf', 'typescript'],
+  plugins: ['filenames', 'import', 'prettier', 'react', 'react-perf', '@typescript-eslint'],
 
   extends: ['airbnb', 'prettier', 'prettier/react'],
 
@@ -109,6 +109,6 @@ module.exports = {
 
     'rulesdir/import-match-filename': 'off',
 
-    'typescript/no-unused-vars': 'error'
+    '@typescript-eslint/no-unused-vars': 'error'
   }
 };
