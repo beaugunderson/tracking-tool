@@ -1,8 +1,8 @@
 import '../../node_modules/dc/dc.css';
 import './Report.css';
 
-import crossfilter from 'crossfilter2';
 import * as d3 from 'd3';
+import crossfilter from 'crossfilter2';
 import dc from 'dc';
 import moment from 'moment';
 import React from 'react';

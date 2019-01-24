@@ -19,10 +19,10 @@ import { CommunityEncounterForm } from './forms/CommunityEncounterForm';
 import { ENCOUNTER_TYPES, ENCOUNTER_TYPE_NAMES } from './options';
 import { ensureUserDirectoryExists, rootPathExists } from './store';
 import { ErrorMessage } from './ErrorMessage';
+import { fieldNameToName, OtherEncounterForm } from './forms/OtherEncounterForm';
 import { FirstTimeSetup } from './FirstTimeSetup';
 import { insertExamples } from './generate-data';
 import { openEncounters } from './data';
-import { fieldNameToName, OtherEncounterForm } from './forms/OtherEncounterForm';
 import { PatientEncounterForm, PatientEncounter } from './forms/PatientEncounterForm';
 import { Report } from './reporting/Report';
 import { StaffEncounterForm } from './forms/StaffEncounterForm';
@@ -145,11 +145,7 @@ export class App extends React.Component<{}, AppState> {
     });
   }
 
-  componentDidMount() {
-    if (this.state.firstTimeSetup) {
-      return;
-    }
-
+  initialize() {
     ensureUserDirectoryExists();
 
     openEncounters((error, dataStore) => {
@@ -162,6 +158,14 @@ export class App extends React.Component<{}, AppState> {
       this.searchPatients();
       this.updateAssessments();
     });
+  }
+
+  componentDidMount() {
+    if (this.state.firstTimeSetup) {
+      return;
+    }
+
+    this.initialize();
   }
 
   componentDidUpdate(prevProps: any, prevState: AppState) {
@@ -216,7 +220,11 @@ export class App extends React.Component<{}, AppState> {
     }
 
     if (firstTimeSetup) {
-      return <FirstTimeSetup onComplete={() => this.setState({ firstTimeSetup: false })} />;
+      return (
+        <FirstTimeSetup
+          onComplete={() => this.setState({ firstTimeSetup: false }, () => this.initialize())}
+        />
+      );
     }
 
     if (!this.encounters) {
