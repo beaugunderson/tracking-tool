@@ -21,6 +21,7 @@ import { ensureUserDirectoryExists, rootPathExists } from './store';
 import { ErrorMessage } from './ErrorMessage';
 import { fieldNameToName, OtherEncounterForm } from './forms/OtherEncounterForm';
 import { FirstTimeSetup } from './FirstTimeSetup';
+import { GridReport } from './reporting/GridReport';
 import { insertExamples } from './generate-data';
 import { openEncounters } from './data';
 import { PatientEncounterForm, PatientEncounter } from './forms/PatientEncounterForm';
@@ -37,6 +38,7 @@ function currentUserIn(users: string[]) {
 const canSeeFakeEncounters = () => currentUserIn(['beau', 'carynstewart']);
 const canSeeReporting = () =>
   currentUserIn(['beau', 'carynstewart', 'johnss1', 'lindce2', 'nejash1', 'valejd1']);
+const canSeeGridReporting = () => currentUserIn(['beau', 'carynstewart', 'lindce2']);
 
 const DELETE_BUTTON = <Button negative>Delete</Button>;
 
@@ -51,6 +53,7 @@ type AppState = {
   error: string | Error | null;
   firstTimeSetup: boolean;
   gads: number;
+  gridReporting: boolean;
   mocas: number;
   phqs: number;
   reporting: boolean;
@@ -69,6 +72,7 @@ export class App extends React.Component<{}, AppState> {
     encounterSearchType: 'All',
     error: null,
     firstTimeSetup: !rootPathExists(),
+    gridReporting: false,
     gads: 0,
     mocas: 0,
     phqs: 0,
@@ -210,6 +214,7 @@ export class App extends React.Component<{}, AppState> {
       error,
       firstTimeSetup,
       gads,
+      gridReporting,
       mocas,
       phqs,
       reporting
@@ -229,6 +234,10 @@ export class App extends React.Component<{}, AppState> {
 
     if (!this.encounters) {
       return null;
+    }
+
+    if (gridReporting) {
+      return <GridReport onComplete={() => this.setState({ gridReporting: false })} />;
     }
 
     if (reporting) {
@@ -329,6 +338,12 @@ export class App extends React.Component<{}, AppState> {
           {canSeeReporting() && (
             <Button onClick={() => this.setState({ reporting: true })} size="big">
               Reporting
+            </Button>
+          )}
+
+          {canSeeGridReporting() && (
+            <Button onClick={() => this.setState({ gridReporting: true })} size="big">
+              Grid Reporting
             </Button>
           )}
 

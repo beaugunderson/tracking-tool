@@ -29,3 +29,5 @@ export const USERNAMES = {
   beau: 'Beau Gunderson',
   carynstewart: 'Caryn Stewart'
 };
+
+export const INTERNS = ['goodmx1', 'jonasa1', 'kanedp2', 'maysam1', 'montme1', 'pughat1'];

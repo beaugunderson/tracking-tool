@@ -101,13 +101,16 @@ async function getAllEncounters(filename: string): Promise<PatientEncounter[]> {
   });
 
   return new Promise((resolve, reject) => {
-    dataStore.find({}, (err: Error, results: PatientEncounter[]) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(results);
+    dataStore.find(
+      { encounterType: { $exists: true } },
+      (err: Error, results: PatientEncounter[]) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(results);
+        }
       }
-    });
+    );
   });
 }
 
