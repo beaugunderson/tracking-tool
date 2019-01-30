@@ -114,7 +114,7 @@ async function getAllEncounters(filename: string): Promise<PatientEncounter[]> {
   });
 }
 
-function transformEncounter(encounter: PatientEncounter): TransformedPatientEncounter {
+export function transformEncounter(encounter: PatientEncounter): TransformedPatientEncounter {
   const age = moment().diff(moment(encounter.dateOfBirth, 'YYYY-MM-DD'), 'years');
 
   const tests = [];

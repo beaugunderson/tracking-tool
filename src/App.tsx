@@ -27,7 +27,7 @@ import { openEncounters } from './data';
 import { PatientEncounterForm, PatientEncounter } from './forms/PatientEncounterForm';
 import { Report } from './reporting/Report';
 import { StaffEncounterForm } from './forms/StaffEncounterForm';
-import { transformEncounters } from './reporting/data';
+import { transformEncounters, transformEncounter } from './reporting/data';
 
 const username = window.require('username');
 
@@ -433,28 +433,37 @@ export class App extends React.Component<{}, AppState> {
             </Table.Header>
 
             <Table.Body>
-              {this.state.encounters.map((doc: any, i: number) => (
-                <Table.Row key={i} onClick={() => this.editEncounter(doc)}>
-                  <Table.Cell className="delete-cell" textAlign="center">
-                    <Button
-                      size="mini"
-                      color="red"
-                      onClick={(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) =>
-                        this.handleDeleteClick(e, doc)
-                      }
-                    >
-                      Delete
-                    </Button>
-                  </Table.Cell>
-                  <Table.Cell>{moment(doc.encounterDate).format('M/D/YYYY')}</Table.Cell>
-                  <Table.Cell>{ENCOUNTER_TYPE_NAMES[doc.encounterType] || 'Patient'}</Table.Cell>
-                  <Table.Cell>{doc.patientName}</Table.Cell>
-                  <Table.Cell>{doc.clinic || fieldNameToName(doc.activity)}</Table.Cell>
-                  <Table.Cell>
-                    {doc.timeSpent} {doc.numberOfTasks && `/ ${doc.numberOfTasks}`}
-                  </Table.Cell>
-                </Table.Row>
-              ))}
+              {this.state.encounters.map((doc: any, i: number) => {
+                const transformed = transformEncounter(doc);
+
+                return (
+                  <Table.Row key={i} onClick={() => this.editEncounter(doc)}>
+                    <Table.Cell className="delete-cell" textAlign="center">
+                      <Button
+                        size="mini"
+                        color="red"
+                        onClick={(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) =>
+                          this.handleDeleteClick(e, doc)
+                        }
+                      >
+                        Delete
+                      </Button>
+                    </Table.Cell>
+                    <Table.Cell>{moment(doc.encounterDate).format('M/D/YYYY')}</Table.Cell>
+                    <Table.Cell>
+                      {ENCOUNTER_TYPE_NAMES[doc.encounterType] || 'Patient'}
+                      &nbsp;
+                      {(doc.encounterType === 'patient' || doc.encounterType === 'community') &&
+                        !transformed.numberOfInterventions && <Icon name="warning sign" />}
+                    </Table.Cell>
+                    <Table.Cell>{doc.patientName}</Table.Cell>
+                    <Table.Cell>{doc.clinic || fieldNameToName(doc.activity)}</Table.Cell>
+                    <Table.Cell>
+                      {doc.timeSpent} {doc.numberOfTasks && `/ ${doc.numberOfTasks}`}
+                    </Table.Cell>
+                  </Table.Row>
+                );
+              })}
             </Table.Body>
           </Table>
         </Segment>
