@@ -13,7 +13,7 @@ import {
   EXCLUDE_NUMBER_VALUE,
   EXCLUDE_STRING_VALUE,
   transform,
-  TransformedPatientEncounter
+  TransformedEncounter
 } from './data';
 import { USERNAMES } from '../usernames';
 
@@ -31,7 +31,7 @@ function removeExcludedData(group) {
 }
 
 const uniqueMrn = reductio()
-  .exception((d: TransformedPatientEncounter) => d.mrn)
+  .exception((d: TransformedEncounter) => d.mrn)
   .exceptionCount(true);
 
 interface ReportProps {
@@ -43,7 +43,7 @@ interface ReportState {
 }
 
 export class Report extends React.Component<ReportProps, ReportState> {
-  encounters?: TransformedPatientEncounter[];
+  encounters?: TransformedEncounter[];
 
   state = {
     windowWidth: null
@@ -102,10 +102,10 @@ export class Report extends React.Component<ReportProps, ReportState> {
     const colors = ['#6baed6'];
 
     // #region grouped reducers
-    const idKey = (d: TransformedPatientEncounter) => d._id;
+    const idKey = (d: TransformedEncounter) => d._id;
     const bisect = d3.bisector(idKey);
 
-    function add(elements: TransformedPatientEncounter[], item: TransformedPatientEncounter) {
+    function add(elements: TransformedEncounter[], item: TransformedEncounter) {
       const pos = bisect.right(elements, idKey(item));
 
       elements.splice(pos, 0, item);
@@ -113,7 +113,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       return elements;
     }
 
-    function remove(elements: TransformedPatientEncounter[], item: TransformedPatientEncounter) {
+    function remove(elements: TransformedEncounter[], item: TransformedEncounter) {
       const pos = bisect.left(elements, idKey(item));
 
       if (idKey(elements[pos]) === idKey(item)) {
@@ -123,7 +123,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       return elements;
     }
 
-    function init(): TransformedPatientEncounter[] {
+    function init(): TransformedEncounter[] {
       return [];
     }
     // #endregion
@@ -131,7 +131,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
     // #region totals
     function renderNumber(
       selector: string,
-      group: crossfilter.GroupAll<TransformedPatientEncounter, {}>,
+      group: crossfilter.GroupAll<TransformedEncounter, {}>,
       accessor: (d: any) => number | string = d => d
     ) {
       const number = dc.numberDisplay(selector);
@@ -148,7 +148,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
     renderNumber(
       '#average-tasks-per-entry',
       ndx.groupAll().reduce(add, remove, init),
-      (entries: TransformedPatientEncounter[]) => {
+      (entries: TransformedEncounter[]) => {
         let taskCount = 0;
         let entryCount = 0;
 
@@ -170,7 +170,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
     renderNumber(
       '#average-tasks',
       ndx.groupAll().reduce(add, remove, init),
-      (entries: TransformedPatientEncounter[]) => {
+      (entries: TransformedEncounter[]) => {
         const byMrn = {};
 
         entries.forEach(entry => {
@@ -194,7 +194,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
     renderNumber(
       '#average-time',
       ndx.groupAll().reduce(add, remove, init),
-      (entries: TransformedPatientEncounter[]) => {
+      (entries: TransformedEncounter[]) => {
         const byMrn = {};
 
         entries.forEach(entry => {
@@ -218,7 +218,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
     renderNumber(
       '#unique-patients',
       ndx.groupAll().reduce(add, remove, init),
-      (entries: TransformedPatientEncounter[]) => {
+      (entries: TransformedEncounter[]) => {
         const mrns = new Set();
 
         entries.forEach(entry => {

@@ -4,8 +4,8 @@ import { CLINICS, LOCATIONS } from '../options';
 import { extendMoment } from 'moment-range';
 import { INTERNS } from '../usernames';
 import { maxBy, minBy } from 'lodash';
-import { Table, Button } from 'semantic-ui-react';
-import { transform, TransformedPatientEncounter } from './data';
+import { Table, Button, Checkbox, CheckboxProps } from 'semantic-ui-react';
+import { transform, TransformedEncounter } from './data';
 
 const moment = extendMoment(Moment);
 
@@ -14,12 +14,23 @@ interface GridReportProps {
 }
 
 interface GridReportState {
-  encounters: TransformedPatientEncounter[] | null;
+  encounters: TransformedEncounter[] | null;
+  removeDocumentationTasks: boolean;
 }
 
 export class GridReport extends React.Component<GridReportProps, GridReportState> {
   state: GridReportState = {
-    encounters: null
+    encounters: null,
+    removeDocumentationTasks: false
+  };
+
+  changeIncludeDocumentation: (
+    event: React.FormEvent<HTMLInputElement>,
+    data: CheckboxProps
+  ) => void = (event, data) => {
+    this.setState({
+      removeDocumentationTasks: data.checked
+    });
   };
 
   async componentDidMount() {
@@ -32,6 +43,10 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
     const interns = months.map(() => 0);
     const nonInterns = months.map(() => 0);
 
+    const field = this.state.removeDocumentationTasks
+      ? 'parsedNumberOfTasksMinusDocumentation'
+      : 'parsedNumberOfTasks';
+
     for (const encounter of encounters) {
       for (let i = 0; i < months.length; i++) {
         if (
@@ -43,9 +58,9 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
           encounter.encounterDate.slice(0, 7) === months[i].format('YYYY-MM')
         ) {
           if (INTERNS.includes((encounter.username || '').toLowerCase())) {
-            interns[i] += encounter.parsedNumberOfTasks;
+            interns[i] += encounter[field];
           } else {
-            nonInterns[i] += encounter.parsedNumberOfTasks;
+            nonInterns[i] += encounter[field];
           }
         }
       }
@@ -120,6 +135,11 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
       <React.Fragment>
         <div>
           <Button onClick={() => this.props.onComplete()}>Back</Button>
+          &nbsp;&nbsp;&nbsp;
+          <Checkbox
+            label="Remove documentation tasks"
+            onChange={this.changeIncludeDocumentation}
+          />
         </div>
 
         <Table>

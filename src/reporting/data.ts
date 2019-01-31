@@ -16,7 +16,7 @@ export const EXCLUDE_NUMBER_VALUE = -666;
 export const EXCLUDE_STRING_VALUE = '__EXCLUDE__';
 
 // TODO update this to not extend PatientEncounter and encompass all optional fields correctly
-export interface TransformedPatientEncounter extends PatientEncounter {
+export interface TransformedEncounter extends PatientEncounter {
   age?: number;
   ageBucket?: AgeBucket;
 
@@ -29,7 +29,9 @@ export interface TransformedPatientEncounter extends PatientEncounter {
   interventions: string[];
 
   numberOfInterventions: number;
+
   parsedNumberOfTasks: number;
+  parsedNumberOfTasksMinusDocumentation: number;
 
   tests: string[];
 }
@@ -114,7 +116,7 @@ async function getAllEncounters(filename: string): Promise<PatientEncounter[]> {
   });
 }
 
-export function transformEncounter(encounter: PatientEncounter): TransformedPatientEncounter {
+export function transformEncounter(encounter: PatientEncounter): TransformedEncounter {
   const age = moment().diff(moment(encounter.dateOfBirth, 'YYYY-MM-DD'), 'years');
 
   const tests = [];
@@ -130,6 +132,16 @@ export function transformEncounter(encounter: PatientEncounter): TransformedPati
   if (encounter.phq) {
     tests.push('PHQ');
   }
+
+  const parsedNumberOfTasks = parseInt(encounter.numberOfTasks, 10);
+
+  const hasDocumentation = interventions.some(
+    intervention => intervention.fieldName === 'documentation'
+  );
+
+  const parsedNumberOfTasksMinusDocumentation = hasDocumentation
+    ? Math.max(parsedNumberOfTasks - 1, 0)
+    : parsedNumberOfTasks;
 
   return {
     ...encounter,
@@ -154,7 +166,9 @@ export function transformEncounter(encounter: PatientEncounter): TransformedPati
 
     mrn: encounter.mrn || EXCLUDE_STRING_VALUE,
 
-    parsedNumberOfTasks: parseInt(encounter.numberOfTasks, 10),
+    parsedNumberOfTasks,
+
+    parsedNumberOfTasksMinusDocumentation,
 
     numberOfInterventions: ['patient', 'community'].includes(encounter.encounterType)
       ? interventions.reduce(
@@ -171,7 +185,7 @@ export function transformEncounters(encounters: PatientEncounter[]) {
     .map(transformEncounter);
 }
 
-export async function transform(): Promise<TransformedPatientEncounter[]> {
+export async function transform(): Promise<TransformedEncounter[]> {
   const userEncounters = await copyEncounterFiles();
   const allEncounters: PatientEncounter[] = [];
 
