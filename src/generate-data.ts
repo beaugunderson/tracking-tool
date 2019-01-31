@@ -3,7 +3,7 @@ import moment from 'moment';
 import { DOCTORS } from './doctors';
 import { CLINICS, LOCATIONS } from './options';
 import { INITIAL_VALUES, PatientEncounter } from './forms/PatientEncounterForm';
-import { interventions } from './patient-interventions';
+import { INTERVENTIONS } from './patient-interventions';
 import { sample, sampleSize, times } from 'lodash';
 
 function doctors() {
@@ -71,7 +71,7 @@ export function insertExamples(encounters: Nedb) {
   const patients = times(records, fakePatient);
 
   function insertExample() {
-    const sampledInterventions = sampleSize(interventions, 1 + Math.floor(Math.random() * 5));
+    const sampledInterventions = sampleSize(INTERVENTIONS, 1 + Math.floor(Math.random() * 5));
     const interventionValues = {};
 
     for (const intervention of sampledInterventions) {

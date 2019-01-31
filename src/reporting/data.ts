@@ -1,6 +1,6 @@
 import moment from 'moment';
 import path from 'path';
-import { interventions } from '../patient-interventions';
+import { INTERVENTIONS } from '../patient-interventions';
 import { PatientEncounter } from '../forms/PatientEncounterForm';
 import { rootPath } from '../store';
 
@@ -135,11 +135,7 @@ export function transformEncounter(encounter: PatientEncounter): TransformedEnco
 
   const parsedNumberOfTasks = parseInt(encounter.numberOfTasks, 10);
 
-  const hasDocumentation = interventions.some(
-    intervention => intervention.fieldName === 'documentation'
-  );
-
-  const parsedNumberOfTasksMinusDocumentation = hasDocumentation
+  const parsedNumberOfTasksMinusDocumentation = encounter.documentation
     ? Math.max(parsedNumberOfTasks - 1, 0)
     : parsedNumberOfTasks;
 
@@ -158,7 +154,7 @@ export function transformEncounter(encounter: PatientEncounter): TransformedEnco
 
     doctorPrimary: (encounter.md && encounter.md[0]) || EXCLUDE_STRING_VALUE,
 
-    interventions: interventions.reduce(
+    interventions: INTERVENTIONS.reduce(
       (accumulator, intervention) =>
         encounter[intervention.fieldName] ? accumulator.concat([intervention.name]) : accumulator,
       []
@@ -171,7 +167,7 @@ export function transformEncounter(encounter: PatientEncounter): TransformedEnco
     parsedNumberOfTasksMinusDocumentation,
 
     numberOfInterventions: ['patient', 'community'].includes(encounter.encounterType)
-      ? interventions.reduce(
+      ? INTERVENTIONS.reduce(
           (accumulator, intervention) => accumulator + (encounter[intervention.fieldName] ? 1 : 0),
           0
         )

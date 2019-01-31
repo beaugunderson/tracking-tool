@@ -435,9 +435,9 @@ interventionGroups.forEach(column => {
   });
 });
 
-export const interventions = sortBy(_interventions, ['name']);
+export const INTERVENTIONS = sortBy(_interventions, ['name']);
 
-export const communityInterventions = sortBy(_communityInterventions, ['name']);
+export const COMMUNITY_INTERVENTIONS = sortBy(_communityInterventions, ['name']);
 
 export type InitialInterventionValues = {
   accessingAccurateMedicalInformation: boolean;
@@ -537,7 +537,7 @@ export const initialInterventionValues: InitialInterventionValues = {} as Initia
 
 export const communityInitialInterventionValues: InitialCommunityInterventionValues = {} as InitialCommunityInterventionValues;
 
-interventions.forEach(intervention => {
+INTERVENTIONS.forEach(intervention => {
   if (intervention.scored) {
     initialInterventionValues[`${intervention.fieldName}Score`] = '';
   }
