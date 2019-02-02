@@ -8,7 +8,15 @@ module.exports = {
 
   parser: '@typescript-eslint/parser',
 
-  plugins: ['filenames', 'import', 'prettier', 'react', 'react-perf', '@typescript-eslint'],
+  plugins: [
+    'filenames',
+    'import',
+    'prettier',
+    'react',
+    'react-perf',
+    'sort-imports-es6-autofix',
+    '@typescript-eslint'
+  ],
 
   extends: ['airbnb', 'prettier', 'prettier/react'],
 
@@ -109,6 +117,12 @@ module.exports = {
 
     'rulesdir/import-match-filename': 'off',
 
-    '@typescript-eslint/no-unused-vars': 'error'
+    '@typescript-eslint/no-unused-vars': 'error',
+
+    // preferable to built in 'sort-imports' because it handles default imports better and has better auto-fix
+    'sort-imports-es6-autofix/sort-imports-es6': [
+      'error',
+      { ignoreCase: true, memberSyntaxSortOrder: ['none', 'all', 'single', 'multiple'] }
+    ]
   }
 };

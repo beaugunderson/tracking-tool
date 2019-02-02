@@ -15,10 +15,10 @@ import {
   SubmitButtons,
   today
 } from '../shared-fields';
-import { InfoButton } from '../InfoButton';
-import { isEmpty } from 'lodash';
-import { withFormik, FormikProps, FormikErrors } from 'formik';
 import { EncounterFormProps, Intervention } from '../types';
+import { FormikErrors, FormikProps, withFormik } from 'formik';
+import { InfoButtonLabel } from '../InfoButtonLabel';
+import { isEmpty } from 'lodash';
 
 type CommunityEncounter = InitialCommunityInterventionValues & {
   _id?: string;
@@ -100,12 +100,11 @@ class UnwrappedCommunityEncounterForm extends React.Component<
       control={Checkbox}
       key={intervention.fieldName}
       label={
-        <label>
-          {intervention.name}{' '}
-          {this.state.activeInfoButton === intervention.fieldName && (
-            <InfoButton content={intervention.description} />
-          )}
-        </label>
+        <InfoButtonLabel
+          description={intervention.description}
+          name={intervention.name}
+          show={this.state.activeInfoButton === intervention.fieldName}
+        />
       }
       name={intervention.fieldName}
       onBlur={this.handleBlur}

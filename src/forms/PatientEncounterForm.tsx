@@ -13,17 +13,16 @@ import {
   SubmitButtons,
   today
 } from '../shared-fields';
+import { EncounterFormProps, Intervention } from '../types';
+import { FormikErrors, FormikProps, withFormik } from 'formik';
 import { InfoButton } from '../InfoButton';
+import { InfoButtonLabel } from '../InfoButtonLabel';
 import {
   initialInterventionValues,
+  InitialInterventionValues,
   interventionGroups,
-  interventionOptions,
-  InitialInterventionValues
+  interventionOptions
 } from '../patient-interventions';
-import { chain, deburr, escapeRegExp, isEmpty } from 'lodash';
-
-import { withFormik, FormikErrors, FormikProps } from 'formik';
-import { EncounterFormProps, Intervention } from '../types';
 
 const debug = Debug('tracking-tool:patient-encounter-form');
 
@@ -431,12 +430,11 @@ class UnwrappedPatientEncounterForm extends React.Component<
       control={Checkbox}
       key={intervention.fieldName}
       label={
-        <label>
-          {intervention.name}{' '}
-          {this.state.activeInfoButton === intervention.fieldName && (
-            <InfoButton content={intervention.description} />
-          )}
-        </label>
+        <InfoButtonLabel
+          description={intervention.description}
+          name={intervention.name}
+          show={this.state.activeInfoButton === intervention.fieldName}
+        />
       }
       name={intervention.fieldName}
       onBlur={this.handleBlur}

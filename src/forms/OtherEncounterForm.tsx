@@ -8,11 +8,10 @@ import {
   SubmitButtons,
   today
 } from '../shared-fields';
-import { InfoButton } from '../InfoButton';
-import { find, isEmpty } from 'lodash';
-
-import { withFormik, FormikProps, FormikErrors } from 'formik';
 import { EncounterFormProps } from '../types';
+import { find, isEmpty } from 'lodash';
+import { FormikErrors, FormikProps, withFormik } from 'formik';
+import { InfoButtonLabel } from '../InfoButtonLabel';
 
 function addFieldNames(options: any) {
   return options.map((option: any) => {
@@ -156,12 +155,11 @@ class UnwrappedOtherEncounterForm extends React.Component<
       control={Radio}
       key={option.fieldName}
       label={
-        <label>
-          {option.name}{' '}
-          {this.state.activeInfoButton === option.fieldName && (
-            <InfoButton content={option.description} wide />
-          )}
-        </label>
+        <InfoButtonLabel
+          description={option.description}
+          name={option.name}
+          show={this.state.activeInfoButton === option.fieldName}
+        />
       }
       name={option.fieldName}
       onBlur={this.handleBlur}
