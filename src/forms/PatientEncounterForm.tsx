@@ -149,6 +149,7 @@ const docToOption = (doc: PatientEncounter) => {
 };
 
 const STAGE_LABEL_CONTENT = (
+  // eslint-disable-next-line react-perf/jsx-no-jsx-as-prop
   <React.Fragment>
     Select <strong>Unknown</strong> if cancer has not yet been staged, then change your selection
     on the next encounter after staging is complete. Select <strong>Early</strong> if cancer is

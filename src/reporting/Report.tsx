@@ -74,12 +74,11 @@ export class Report extends React.Component<ReportProps, ReportState> {
   }
 
   async renderCharts() {
-    const windowWidth = this.state.windowWidth - 100;
-
     if (!this.encounters) {
       return;
     }
 
+    // #region chart definitions
     const ageBucketChart = dc.rowChart('#age-chart');
     const clinicChart = dc.rowChart('#clinic-chart');
     const diagnosisChart = dc.rowChart('#diagnosis-chart');
@@ -87,6 +86,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
     const encounterTypeChart = dc.rowChart('#encounter-type-chart');
     const encountersByDateChart = dc.barChart('#encounter-date-chart');
     const interventionChart = dc.rowChart('#intervention-chart');
+    const limitedEnglishProficiencyChart = dc.rowChart('#limited-english-proficiency-chart');
     const locationChart = dc.rowChart('#location-chart');
     const dayOfWeekChart = dc.barChart('#number-of-tasks-chart');
     const numberOfInterventionsChart = dc.barChart('#number-of-interventions-chart');
@@ -95,10 +95,12 @@ export class Report extends React.Component<ReportProps, ReportState> {
     const testChart = dc.rowChart('#test-chart');
     const timeChart = dc.barChart('#time-chart');
     const userChart = dc.rowChart('#user-chart');
+    // #endregion
 
     const ndx = crossfilter(this.encounters);
 
     const colors = ['#6baed6'];
+    const windowWidth = this.state.windowWidth - 100;
 
     // #region grouped reducers
     const idKey = (d: TransformedEncounter) => d._id;
@@ -465,6 +467,29 @@ export class Report extends React.Component<ReportProps, ReportState> {
     testChart.render();
     // #endregion
 
+    // #region by limited-english proficiency
+    const limitedEnglishProficiencyDimension = ndx.dimension(d => {
+      if (isBoolean(d.limitedEnglishProficiency)) {
+        return d.limitedEnglishProficiency ? 'LEP' : 'Non-LEP';
+      }
+
+      return EXCLUDE_STRING_VALUE;
+    });
+    const limitedEnglishProficiencyGroup = uniqueMrn(limitedEnglishProficiencyDimension.group());
+
+    limitedEnglishProficiencyChart
+      .width(windowWidth / 4)
+      .height(200)
+      .elasticX(true)
+      .ordinalColors(colors)
+      .dimension(limitedEnglishProficiencyDimension)
+      .group(removeExcludedData(limitedEnglishProficiencyGroup))
+      .valueAccessor(d => d.value.exceptionCount)
+      .ordering(d => -d.value.exceptionCount);
+
+    limitedEnglishProficiencyChart.render();
+    // #endregion
+
     // #region by user
     const userDimension = ndx.dimension(
       d => USERNAMES[d.username.toLowerCase()] || d.username.toLowerCase()
@@ -649,6 +674,11 @@ export class Report extends React.Component<ReportProps, ReportState> {
 
         <div id="test-chart">
           <strong>Tests Given</strong>
+          <div className="clearfix" />
+        </div>
+
+        <div id="limited-english-proficiency-chart">
+          <strong>English Proficiency</strong>
           <div className="clearfix" />
         </div>
 
