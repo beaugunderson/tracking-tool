@@ -6,7 +6,7 @@ import dc from 'dc';
 import moment from 'moment';
 import React from 'react';
 import reductio from 'reductio';
-import { Button, Statistic } from 'semantic-ui-react';
+import { Button, Checkbox, Statistic } from 'semantic-ui-react';
 import {
   EXCLUDE_NUMBER_VALUE,
   EXCLUDE_STRING_VALUE,
@@ -38,6 +38,7 @@ interface ReportProps {
 }
 
 interface ReportState {
+  hideSocialWorkers: boolean;
   windowWidth?: number;
 }
 
@@ -45,6 +46,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
   encounters?: TransformedEncounter[];
 
   state: ReportState = {
+    hideSocialWorkers: false,
     windowWidth: null
   };
 
@@ -490,7 +492,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
     limitedEnglishProficiencyChart.render();
     // #endregion
 
-    // #region by user
+    // #region by social worker
     const userDimension = ndx.dimension(
       d => USERNAMES[d.username.toLowerCase()] || d.username.toLowerCase()
     );
@@ -506,7 +508,11 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .xAxis()
       .ticks(4);
 
-    userChart.render();
+    if (this.state.hideSocialWorkers) {
+      document.querySelector('#user-chart svg').remove();
+    } else {
+      userChart.render();
+    }
     // #endregion
 
     // #region by doctor
@@ -697,6 +703,11 @@ export class Report extends React.Component<ReportProps, ReportState> {
 
           <div id="user-chart">
             <strong>Tasks per Social Worker</strong>
+            &nbsp;&nbsp;&nbsp;
+            <Checkbox
+              label="Hide"
+              onChange={(e, data) => this.setState({ hideSocialWorkers: data.checked })}
+            />
             <div className="clearfix" />
           </div>
 
