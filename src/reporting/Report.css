@@ -5,3 +5,7 @@
 .reset {
   cursor: pointer;
 }
+
+.hide-social-workers #user-chart svg {
+  visibility: hidden;
+}

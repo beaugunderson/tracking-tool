@@ -38,13 +38,12 @@ interface ReportProps {
 }
 
 interface ReportState {
+  encounters?: TransformedEncounter[];
   hideSocialWorkers: boolean;
   windowWidth?: number;
 }
 
 export class Report extends React.Component<ReportProps, ReportState> {
-  encounters?: TransformedEncounter[];
-
   state: ReportState = {
     hideSocialWorkers: false,
     windowWidth: null
@@ -62,21 +61,24 @@ export class Report extends React.Component<ReportProps, ReportState> {
 
     window.addEventListener('resize', this.resize);
 
-    this.encounters = await transform();
-
-    await this.renderCharts();
+    this.setState({ encounters: await transform() }, async () => this.renderCharts());
   }
 
   componentWillUnmount() {
     window.removeEventListener('resize', this.resize);
   }
 
-  async componentDidUpdate() {
-    await this.renderCharts();
+  async componentDidUpdate(prevProps: any, prevState: ReportState) {
+    if (
+      this.state.encounters !== prevState.encounters ||
+      this.state.windowWidth !== prevState.windowWidth
+    ) {
+      await this.renderCharts();
+    }
   }
 
   async renderCharts() {
-    if (!this.encounters) {
+    if (!this.state.encounters) {
       return;
     }
 
@@ -99,7 +101,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
     const userChart = dc.rowChart('#user-chart');
     // #endregion
 
-    const ndx = crossfilter(this.encounters);
+    const ndx = crossfilter(this.state.encounters);
 
     const colors = ['#6baed6'];
     const windowWidth = this.state.windowWidth - 100;
@@ -508,11 +510,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .xAxis()
       .ticks(4);
 
-    if (this.state.hideSocialWorkers) {
-      document.querySelector('#user-chart svg').remove();
-    } else {
-      userChart.render();
-    }
+    userChart.render();
     // #endregion
 
     // #region by doctor
@@ -578,7 +576,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
 
   render() {
     return (
-      <div>
+      <div className={this.state.hideSocialWorkers ? 'hide-social-workers' : ''}>
         <div>
           <Button onClick={() => this.props.onComplete()}>Back</Button>
         </div>
@@ -635,93 +633,94 @@ export class Report extends React.Component<ReportProps, ReportState> {
 
         <div id="encounter-date-chart">
           <strong>Tasks by Date</strong>
-          <div className="clearfix" />
+          <div className="clear" />
         </div>
 
         <div id="number-of-tasks-chart">
           <strong>Number of Tasks by Weekday</strong>
-          <div className="clearfix" />
+          <div className="clear" />
         </div>
 
         <div id="number-of-interventions-chart">
           <strong>Number of Interventions per Entry</strong>
-          <div className="clearfix" />
+          <div className="clear" />
         </div>
 
         <div id="time-chart">
           <strong>Time Spent per Entry</strong>
-          <div className="clearfix" />
+          <div className="clear" />
         </div>
 
         <div id="age-chart">
           <strong>Age (unique MRNs)</strong>
-          <div className="clearfix" />
+          <div className="clear" />
         </div>
 
         <div id="diagnosis-chart">
           <strong>Diagnosis Type (unique MRNs)</strong>
-          <div className="clearfix" />
+          <div className="clear" />
         </div>
 
         <div id="stage-chart">
           <strong>Stage (unique MRNs)</strong>
-          <div className="clearfix" />
+          <div className="clear" />
         </div>
 
         <div id="research-chart">
           <strong>Research (unique MRNs)</strong>
-          <div className="clearfix" />
+          <div className="clear" />
         </div>
 
         <div id="encounter-type-chart">
           <strong>Tasks per Type</strong>
-          <div className="clearfix" />
+          <div className="clear" />
         </div>
 
         <div id="test-chart">
           <strong>Tests Given</strong>
-          <div className="clearfix" />
+          <div className="clear" />
         </div>
 
         <div id="limited-english-proficiency-chart">
           <strong>English Proficiency</strong>
-          <div className="clearfix" />
+          <div className="clear" />
         </div>
 
-        <div className="clearfix" />
+        <div className="clear" />
 
         <div>
           <div id="clinic-chart">
             <strong>Tasks per Clinic</strong>
-            <div className="clearfix" />
+            <div className="clear" />
           </div>
 
           <div id="location-chart">
             <strong>Tasks per Location</strong>
-            <div className="clearfix" />
+            <div className="clear" />
           </div>
 
           <div id="user-chart">
-            <strong>Tasks per Social Worker</strong>
-            &nbsp;&nbsp;&nbsp;
-            <Checkbox
-              label="Hide"
-              onChange={(e, data) => this.setState({ hideSocialWorkers: data.checked })}
-            />
-            <div className="clearfix" />
+            <strong>
+              Tasks per Social Worker &nbsp;&nbsp;&nbsp;
+              <Checkbox
+                label="Hide"
+                onChange={(e, data) => this.setState({ hideSocialWorkers: data.checked })}
+              />
+            </strong>
+            <div className="clear" />
           </div>
 
-          <div className="clearfix" />
+          <div className="clear" />
         </div>
 
         <div id="doctor-chart">
           <strong>Primary Provider</strong>
-          <div className="clearfix" />
+          <div className="clear" />
         </div>
 
         <div id="intervention-chart">
           <strong>Intervention</strong>
-          <div className="clearfix" />
+          <div className="clear" />
         </div>
       </div>
     );
