@@ -122,8 +122,8 @@ const docToOption = (doc: PatientEncounter) => {
     content: (
       <React.Fragment>
         <strong>{doc.patientName}</strong>{' '}
-        <span style={{ color: '#666' }}>{formattedDateOfBirth}</span>{' '}
-        <span style={{ color: '#aaa' }}>{relativeTime}</span>
+        <span className="date-of-birth">{formattedDateOfBirth}</span>{' '}
+        <span className="relative-time">{relativeTime}</span>
       </React.Fragment>
     ),
 

@@ -74,7 +74,7 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
 
     function formatCount(count: number) {
       if (count === 0) {
-        return <span style={{ color: '#ccc' }}>{count}</span>;
+        return <span className="count">{count}</span>;
       }
 
       return count;

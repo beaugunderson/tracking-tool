@@ -596,7 +596,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
 
         <br />
 
-        <a className="reset" onClick={this.handleReset} style={{ cursor: 'pointer' }}>
+        <a className="reset" onClick={this.handleReset}>
           Reset filters
         </a>
 
