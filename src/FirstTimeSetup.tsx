@@ -1,9 +1,9 @@
 import './first-time-setup.css';
 import React from 'react';
 import { Button, Container, Header, Icon } from 'semantic-ui-react';
+import { DEFAULT_PATHS, ensureUserDirectoryExists, setRootPath, userDirectoryPath } from './store';
 import { ErrorMessage } from './ErrorMessage';
 import { isEmpty } from 'lodash';
-import { DEFAULT_PATHS, ensureUserDirectoryExists, setRootPath, userDirectoryPath } from './store';
 
 const electron = window.require('electron');
 const fs = electron.remote.require('fs');

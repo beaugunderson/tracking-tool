@@ -1,5 +1,5 @@
 import React from 'react';
-import { Divider, Header, Form } from 'semantic-ui-react';
+import { Divider, Form, Header } from 'semantic-ui-react';
 import {
   EncounterClinicField,
   EncounterDateField,
@@ -10,9 +10,9 @@ import {
   today
 } from '../shared-fields';
 import { EncounterFormProps } from '../types';
+import { FormikErrors, FormikProps, withFormik } from 'formik';
 import { isEmpty } from 'lodash';
 import { STAFF_CLINIC_OPTIONS } from '../options';
-import { withFormik, FormikErrors, FormikProps } from 'formik';
 
 type StaffEncounter = {
   [key: string]: any;

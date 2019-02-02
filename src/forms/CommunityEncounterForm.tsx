@@ -1,12 +1,12 @@
 import React from 'react';
+import { Checkbox, Divider, Dropdown, Form, Grid, Header } from 'semantic-ui-react';
+import { COMMUNITY_LOCATION_OPTIONS } from '../options';
 import {
   communityInitialInterventionValues,
   communityInterventionGroups,
   communityInterventionOptions,
   InitialCommunityInterventionValues
 } from '../patient-interventions';
-import { Checkbox, Divider, Dropdown, Form, Grid, Header } from 'semantic-ui-react';
-import { COMMUNITY_LOCATION_OPTIONS } from '../options';
 import {
   EncounterDateField,
   EncounterLocationField,

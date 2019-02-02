@@ -1,7 +1,7 @@
 import faker from 'faker';
 import moment from 'moment';
-import { DOCTORS } from './doctors';
 import { CLINICS, LOCATIONS } from './options';
+import { DOCTORS } from './doctors';
 import { INITIAL_VALUES, PatientEncounter } from './forms/PatientEncounterForm';
 import { INTERVENTIONS } from './patient-interventions';
 import { sample, sampleSize, times } from 'lodash';

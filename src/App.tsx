@@ -11,12 +11,12 @@ import {
   Icon,
   Input,
   Segment,
-  Table,
-  Statistic
+  Statistic,
+  Table
 } from 'semantic-ui-react';
 import { chain, escapeRegExp } from 'lodash';
 import { CommunityEncounterForm } from './forms/CommunityEncounterForm';
-import { ENCOUNTER_TYPES, ENCOUNTER_TYPE_NAMES } from './options';
+import { ENCOUNTER_TYPE_NAMES, ENCOUNTER_TYPES } from './options';
 import { ensureUserDirectoryExists, rootPathExists } from './store';
 import { ErrorMessage } from './ErrorMessage';
 import { fieldNameToName, OtherEncounterForm } from './forms/OtherEncounterForm';
@@ -24,10 +24,10 @@ import { FirstTimeSetup } from './FirstTimeSetup';
 import { GridReport } from './reporting/GridReport';
 import { insertExamples } from './generate-data';
 import { openEncounters } from './data';
-import { PatientEncounterForm, PatientEncounter } from './forms/PatientEncounterForm';
+import { PatientEncounter, PatientEncounterForm } from './forms/PatientEncounterForm';
 import { Report } from './reporting/Report';
 import { StaffEncounterForm } from './forms/StaffEncounterForm';
-import { transformEncounters, transformEncounter } from './reporting/data';
+import { transformEncounter, transformEncounters } from './reporting/data';
 
 const username = window.require('username');
 

@@ -1,8 +1,10 @@
+import './form.css';
 import * as Mousetrap from 'mousetrap';
+import Debug from 'debug';
 import moment from 'moment';
 import React from 'react';
-import { Checkbox, Divider, Dropdown, Grid, Header, Input, Form, Ref } from 'semantic-ui-react';
-import Debug from 'debug';
+import { chain, deburr, escapeRegExp, isEmpty } from 'lodash';
+import { Checkbox, Divider, Dropdown, Form, Grid, Header, Input, Ref } from 'semantic-ui-react';
 import { DIAGNOSES, DOCTORS, STAGES } from '../options';
 import {
   EncounterClinicField,

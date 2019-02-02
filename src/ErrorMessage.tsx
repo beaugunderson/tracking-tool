@@ -1,7 +1,7 @@
 import React from 'react';
 import { Header, Icon, List, Message, Segment } from 'semantic-ui-react';
-import { rootPath, store, userDirectoryPath } from './store';
 import { isError } from 'lodash';
+import { rootPath, store, userDirectoryPath } from './store';
 
 declare global {
   interface Window {

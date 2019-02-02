@@ -1,6 +1,5 @@
 import '../../node_modules/dc/dc.css';
 import './Report.css';
-
 import * as d3 from 'd3';
 import crossfilter from 'crossfilter2';
 import dc from 'dc';
@@ -8,13 +7,13 @@ import moment from 'moment';
 import React from 'react';
 import reductio from 'reductio';
 import { Button, Statistic } from 'semantic-ui-react';
-import { isBoolean, isNaN, isString, keys, sum, values } from 'lodash';
 import {
   EXCLUDE_NUMBER_VALUE,
   EXCLUDE_STRING_VALUE,
   transform,
   TransformedEncounter
 } from './data';
+import { isBoolean, isNaN, isString, keys, sum, values } from 'lodash';
 import { USERNAMES } from '../usernames';
 
 const DEFAULT_MARGINS = { top: 10, right: 50, bottom: 30, left: 30 };
