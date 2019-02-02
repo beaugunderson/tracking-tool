@@ -45,7 +45,7 @@ interface ReportState {
 export class Report extends React.Component<ReportProps, ReportState> {
   encounters?: TransformedEncounter[];
 
-  state = {
+  state: ReportState = {
     windowWidth: null
   };
 
@@ -248,7 +248,10 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .xUnits(dc.units.ordinal)
       .elasticX(true)
       .elasticY(true)
+      .renderLabel(true)
       .yAxisLabel('Tasks')
+      // @ts-ignore
+      .yAxisPadding('15%')
       .dimension(encounterDateDimension)
       .group(encounterDateGroup)
       .margins(OUR_MARGINS);
@@ -259,6 +262,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
     });
 
     encountersByDateChart.yAxis().ticks(7);
+    encountersByDateChart.yAxisMin = () => 0;
 
     encountersByDateChart.render();
     // #endregion
@@ -275,7 +279,10 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .xUnits(dc.units.ordinal)
       .elasticX(true)
       .elasticY(true)
+      .renderLabel(true)
       .yAxisLabel('Tasks')
+      // @ts-ignore
+      .yAxisPadding('10%')
       .dimension(dayOfWeekDimension)
       .group(removeExcludedData(dayOfWeekGroup))
       .margins(OUR_MARGINS);
@@ -284,6 +291,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .xAxis()
       .ticks(7)
       .tickFormat(t => 'MTWTFSS'[t - 1]);
+    dayOfWeekChart.yAxisMin = () => 0;
 
     dayOfWeekChart.render();
     // #endregion
@@ -300,11 +308,15 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .x(d3.scaleBand())
       .xUnits(dc.units.ordinal)
       .yAxisLabel('Entries')
+      .renderLabel(true)
+      // @ts-ignore
+      .yAxisPadding('10%')
       .dimension(numberOfInterventionsDimension)
       .margins(OUR_MARGINS)
-      .group(removeExcludedData(numberOfInterventionsGroup))
-      .xAxis()
-      .ticks(7);
+      .group(removeExcludedData(numberOfInterventionsGroup));
+
+    numberOfInterventionsChart.xAxis().ticks(7);
+    numberOfInterventionsChart.yAxisMin = () => 0;
 
     numberOfInterventionsChart.render();
     // #endregion
@@ -321,11 +333,16 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .x(d3.scaleBand())
       .xUnits(dc.units.ordinal)
       .yAxisLabel('Entries')
+      // @ts-ignore
+      .yAxisPadding('10%')
+      .renderLabel(true)
       .dimension(timeDimension)
       .margins(OUR_MARGINS)
       .group(timeGroup)
       .xAxis()
       .ticks(7);
+
+    timeChart.yAxisMin = () => 0;
 
     timeChart.render();
     // #endregion
