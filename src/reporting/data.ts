@@ -133,7 +133,7 @@ export function transformEncounter(encounter: PatientEncounter): TransformedEnco
     tests.push('PHQ');
   }
 
-  const parsedNumberOfTasks = parseInt(encounter.numberOfTasks, 10);
+  const parsedNumberOfTasks = parseInt(encounter.numberOfTasks, 10) || 0;
 
   const parsedNumberOfTasksMinusDocumentation = encounter.documentation
     ? Math.max(parsedNumberOfTasks - 1, 0)
@@ -177,7 +177,9 @@ export function transformEncounter(encounter: PatientEncounter): TransformedEnco
 
 export function transformEncounters(encounters: PatientEncounter[]) {
   return encounters
-    .filter(encounter => ['community', 'patient', 'staff'].includes(encounter.encounterType))
+    .filter(encounter =>
+      ['community', 'patient', 'other', 'staff'].includes(encounter.encounterType)
+    )
     .map(transformEncounter);
 }
 

@@ -42,6 +42,7 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
 
     const interns = months.map(() => 0);
     const nonInterns = months.map(() => 0);
+    const staff = months.map(() => 0);
 
     const field = this.state.removeDocumentationTasks
       ? 'parsedNumberOfTasksMinusDocumentation'
@@ -50,14 +51,18 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
     for (const encounter of encounters) {
       for (let i = 0; i < months.length; i++) {
         if (
-          (encounter.encounterType === 'patient' || encounter.encounterType === 'community') &&
+          (encounter.encounterType === 'community' ||
+            encounter.encounterType === 'patient' ||
+            encounter.encounterType === 'staff') &&
           ((encounter.clinic === clinic && encounter.location === location) ||
             (encounter.encounterType === 'community' &&
               encounter.location === location &&
               clinic === 'Community')) &&
           encounter.encounterDate.slice(0, 7) === months[i].format('YYYY-MM')
         ) {
-          if (INTERNS.includes((encounter.username || '').toLowerCase())) {
+          if (encounter.encounterType === 'staff') {
+            staff[i] += encounter[field];
+          } else if (INTERNS.includes((encounter.username || '').toLowerCase())) {
             interns[i] += encounter[field];
           } else {
             nonInterns[i] += encounter[field];
@@ -76,7 +81,7 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
 
     return (
       <React.Fragment key={`${location}-${clinic}`}>
-        {(nonInterns.some(count => count > 0) && (
+        {nonInterns.some(count => count > 0) && (
           <Table.Row key={`${location}-${clinic}-non-interns`}>
             <Table.Cell>{location}</Table.Cell>
             <Table.Cell>{clinic}</Table.Cell>
@@ -87,10 +92,9 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
               </Table.Cell>
             ))}
           </Table.Row>
-        )) ||
-          null}
+        )}
 
-        {(interns.some(count => count > 0) && (
+        {interns.some(count => count > 0) && (
           <Table.Row key={`${location}-${clinic}-interns`}>
             <Table.Cell>{location}</Table.Cell>
             <Table.Cell>{clinic}</Table.Cell>
@@ -101,8 +105,20 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
               </Table.Cell>
             ))}
           </Table.Row>
-        )) ||
-          null}
+        )}
+
+        {staff.some(count => count > 0) && (
+          <Table.Row key={`${location}-${clinic}-staff`}>
+            <Table.Cell>{location}</Table.Cell>
+            <Table.Cell>{clinic}</Table.Cell>
+            <Table.Cell>Staff</Table.Cell>
+            {staff.map((count, i) => (
+              <Table.Cell key={months[i].format('YYYY-MM')} textAlign="right">
+                {formatCount(count)}
+              </Table.Cell>
+            ))}
+          </Table.Row>
+        )}
       </React.Fragment>
     );
   }
