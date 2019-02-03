@@ -1,8 +1,15 @@
 import moment from 'moment';
 import React from 'react';
-import { CLINIC_OPTIONS, LOCATION_OPTIONS, option } from './options';
+import {
+  CLINIC_LOCATION_OPTIONS,
+  CLINIC_LOCATION_STAFF_OPTIONS,
+  LOCATION_OPTIONS,
+  option
+} from './options';
 import { Dropdown, Form, Input, Popup } from 'semantic-ui-react';
 import { InfoButton } from './InfoButton';
+
+const EMPTY_ARRAY = [];
 
 type FieldProps = {
   disabled?: boolean;
@@ -68,16 +75,15 @@ export class EncounterLocationField extends React.Component<EncounterLocationFie
 }
 
 type EncounterClinicFieldProps = FieldProps & {
-  clinics?: option[];
+  community?: boolean;
+  location?: string;
+  staff?: boolean;
 };
 
+// Used in Patient and Staff encounters
 export class EncounterClinicField extends React.Component<EncounterClinicFieldProps> {
-  static defaultProps = {
-    clinics: CLINIC_OPTIONS
-  };
-
   render() {
-    const { clinics, disabled, error, onBlur, onChange, value } = this.props;
+    const { disabled, error, location, onBlur, onChange, staff, value } = this.props;
 
     return (
       <Form.Field
@@ -90,7 +96,10 @@ export class EncounterClinicField extends React.Component<EncounterClinicFieldPr
         onBlur={onBlur}
         onChange={onChange}
         onClose={onBlur}
-        options={clinics}
+        options={
+          (staff ? CLINIC_LOCATION_STAFF_OPTIONS[location] : CLINIC_LOCATION_OPTIONS[location]) ||
+          EMPTY_ARRAY
+        }
         search
         selection
         selectOnBlur={false}

@@ -12,7 +12,6 @@ import {
 import { EncounterFormProps } from '../types';
 import { FormikErrors, FormikProps, withFormik } from 'formik';
 import { isEmpty } from 'lodash';
-import { STAFF_CLINIC_OPTIONS } from '../options';
 
 type StaffEncounter = {
   [key: string]: any;
@@ -53,6 +52,11 @@ class UnwrappedStaffEncounterForm extends React.Component<
   handleChange = (e, { name, value, checked }) =>
     this.props.setFieldValue(name, value !== undefined ? value : checked);
 
+  handleLocationChange = (e, { value }) => {
+    this.props.setFieldValue('location', value);
+    this.props.setFieldValue('clinic', '');
+  };
+
   render() {
     const { dirty, errors, isSubmitting, onCancel, submitForm, touched, values } = this.props;
 
@@ -71,15 +75,16 @@ class UnwrappedStaffEncounterForm extends React.Component<
           <EncounterLocationField
             error={!!(touched.location && errors.location)}
             onBlur={this.handleBlur}
-            onChange={this.handleChange}
+            onChange={this.handleLocationChange}
             value={values.location}
           />
 
           <EncounterClinicField
-            clinics={STAFF_CLINIC_OPTIONS}
             error={!!(touched.clinic && errors.clinic)}
+            location={values.location}
             onBlur={this.handleBlur}
             onChange={this.handleChange}
+            staff
             value={values.clinic}
           />
         </Form.Group>

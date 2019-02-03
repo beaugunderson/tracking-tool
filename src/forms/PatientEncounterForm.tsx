@@ -330,6 +330,11 @@ class UnwrappedPatientEncounterForm extends React.Component<
   handleChangeTrimmed = (e: any, { name, value }: any) =>
     this.props.setFieldValue(name, (value || '').trim());
 
+  handleLocationChange = (e, { value }) => {
+    this.props.setFieldValue('location', value);
+    this.props.setFieldValue('clinic', '');
+  };
+
   handlePatientAddition = (e: any, { value }: any) => {
     this.setState(
       state => ({
@@ -612,13 +617,14 @@ class UnwrappedPatientEncounterForm extends React.Component<
             disabled={!values.patientName}
             error={!!(touched.location && errors.location)}
             onBlur={this.handleBlur}
-            onChange={this.handleChange}
+            onChange={this.handleLocationChange}
             value={values.location}
           />
 
           <EncounterClinicField
             disabled={!values.patientName}
             error={!!(touched.clinic && errors.clinic)}
+            location={values.location}
             onBlur={this.handleBlur}
             onChange={this.handleChange}
             value={values.clinic}

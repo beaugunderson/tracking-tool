@@ -3,6 +3,7 @@ export type option = {
   text: string;
 };
 
+import { mapValues } from 'lodash';
 import { DOCTORS as RAW_DOCTORS } from './doctors';
 
 function makeOptions(options: string[]): option[] {
@@ -23,6 +24,9 @@ const RADIATION_ONCOLOGY = 'Radiation Oncology';
 const RADIOSURGERY = 'Radiosurgery';
 const THORACIC_SURGERY = 'Thoracic Surgery';
 
+// Only used for Staff encounters
+const TREATMENT_CENTER = 'Treatment Center';
+
 export const CLINICS = [
   BREAST_SURGERY,
   COLORECTAL_SURGERY,
@@ -41,7 +45,7 @@ export const CLINICS = [
 
 export const CLINIC_OPTIONS = makeOptions(CLINICS);
 
-export const STAFF_CLINIC_OPTIONS = makeOptions(CLINICS.concat(['Treatment Center']).sort());
+export const STAFF_CLINIC_OPTIONS = makeOptions(CLINICS.concat([TREATMENT_CENTER]).sort());
 
 export const DIAGNOSES = makeOptions(['Malignant', 'Benign/Other', 'Unknown']);
 
@@ -123,3 +127,11 @@ export const CLINIC_LOCATIONS = {
     RADIATION_ONCOLOGY
   ]
 };
+
+export const CLINIC_LOCATION_OPTIONS = mapValues(CLINIC_LOCATIONS, locations =>
+  makeOptions(locations)
+);
+
+export const CLINIC_LOCATION_STAFF_OPTIONS = mapValues(CLINIC_LOCATIONS, (locations, clinic) =>
+  makeOptions(clinic !== CHERRY_HILL ? locations.concat([TREATMENT_CENTER]) : locations)
+);
