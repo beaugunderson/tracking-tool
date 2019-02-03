@@ -2,7 +2,7 @@ import './GridReport.css';
 import * as Moment from 'moment';
 import React from 'react';
 import { Button, Checkbox, CheckboxProps, Table } from 'semantic-ui-react';
-import { CLINICS, LOCATIONS } from '../options';
+import { CLINICS, LOCATIONS, TREATMENT_CENTER } from '../options';
 import { extendMoment } from 'moment-range';
 import { INTERNS } from '../usernames';
 import { maxBy, minBy } from 'lodash';
@@ -143,7 +143,7 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
     const permutations = [];
 
     for (const location of LOCATIONS) {
-      for (const clinic of CLINICS.concat(['Community'])) {
+      for (const clinic of CLINICS.concat([TREATMENT_CENTER, 'Community'])) {
         permutations.push([clinic, location]);
       }
     }

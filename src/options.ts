@@ -25,7 +25,7 @@ const RADIOSURGERY = 'Radiosurgery';
 const THORACIC_SURGERY = 'Thoracic Surgery';
 
 // Only used for Staff encounters
-const TREATMENT_CENTER = 'Treatment Center';
+export const TREATMENT_CENTER = 'Treatment Center';
 
 export const CLINICS = [
   BREAST_SURGERY,
