@@ -38,7 +38,7 @@ export type PatientEncounter = InitialInterventionValues & {
   diagnosisStage: string;
   diagnosisType: string;
   encounterDate: string;
-  encounterType: 'community' | 'patient' | 'staff';
+  encounterType: 'community' | 'patient' | 'other' | 'staff';
   limitedEnglishProficiency: boolean;
   location: string;
   md: string[];

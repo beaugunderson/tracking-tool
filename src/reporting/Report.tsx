@@ -466,7 +466,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
     const encounterTypeDimension = ndx.dimension(d => d.formattedEncounterType);
     const encounterTypeGroup = encounterTypeDimension
       .group()
-      .reduceSum(d => d.parsedNumberOfTasks);
+      .reduceSum(d => (d.encounterType === 'other' ? 1 : d.parsedNumberOfTasks));
 
     encounterTypeChart
       .width(windowWidth / 4)
@@ -539,7 +539,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
 
     // #region by doctor
     const doctorDimension = ndx.dimension(d => d.doctorPrimary);
-    const doctorGroup = doctorDimension.group();
+    const doctorGroup = doctorDimension.group().reduceSum(d => d.parsedNumberOfTasks);
 
     doctorChart
       .width(windowWidth / 2)
@@ -568,7 +568,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
     // #endregion
 
     // #region by location
-    const locationDimension = ndx.dimension(d => d.location);
+    const locationDimension = ndx.dimension(d => (d.location ? d.location : EXCLUDE_STRING_VALUE));
     const locationGroup = locationDimension.group().reduceSum(d => d.parsedNumberOfTasks);
 
     locationChart
@@ -577,7 +577,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .elasticX(true)
       .ordinalColors(colors)
       .dimension(locationDimension)
-      .group(locationGroup);
+      .group(removeExcludedData(locationGroup));
 
     locationChart.render();
     // #endregion
