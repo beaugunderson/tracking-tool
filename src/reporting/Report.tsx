@@ -327,7 +327,23 @@ export class Report extends React.Component<ReportProps, ReportState> {
     // #endregion
 
     // #region time spent
-    const timeDimension = ndx.dimension(d => parseInt(d.timeSpent, 10));
+    const timeRange = [0, 100];
+    const timeBinWidth = 10;
+
+    const timeDimension = ndx.dimension(d => {
+      let timeSpent = parseInt(d.timeSpent, 10);
+
+      if (timeSpent <= timeRange[0]) {
+        timeSpent = timeRange[0];
+      }
+
+      if (timeSpent >= timeRange[1]) {
+        timeSpent = timeRange[1] - timeBinWidth;
+      }
+
+      return timeBinWidth * Math.floor(timeSpent / timeBinWidth);
+    });
+
     const timeGroup = timeDimension.group();
 
     timeChart
@@ -335,8 +351,6 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .height(200)
       .brushOn(false)
       .elasticY(true)
-      .x(d3.scaleBand())
-      .xUnits(dc.units.ordinal)
       .yAxisLabel('Entries')
       // @ts-ignore
       .yAxisPadding('10%')
@@ -344,8 +358,17 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .dimension(timeDimension)
       .margins(OUR_MARGINS)
       .group(timeGroup)
-      .xAxis()
-      .ticks(7);
+      .x(d3.scaleLinear().domain(timeRange))
+      .xUnits(dc.units.fp.precision(timeBinWidth))
+      .round((d: number) => timeBinWidth * Math.floor(d / timeBinWidth));
+
+    timeChart.xAxis().tickFormat(d => {
+      if (d === timeRange[1]) {
+        return '100+';
+      }
+
+      return d3.format('d')(d);
+    });
 
     timeChart.yAxisMin = () => 0;
 
