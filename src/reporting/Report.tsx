@@ -334,6 +334,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       let timeSpent = parseInt(d.timeSpent, 10);
 
       if (timeSpent <= timeRange[0]) {
+        // eslint-disable-next-line prefer-destructuring
         timeSpent = timeRange[0];
       }
 
