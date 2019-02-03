@@ -194,7 +194,7 @@ function indexValues(values: any) {
 }
 
 type PatientEncounterFormProps = {
-  encounter: PatientEncounter | null;
+  encounter?: PatientEncounter;
 } & EncounterFormProps;
 
 type PatientEncounterFormState = {
@@ -212,10 +212,10 @@ class UnwrappedPatientEncounterForm extends React.Component<
   PatientEncounterFormProps & FormikProps<PatientEncounter>,
   PatientEncounterFormState
 > {
-  patientNameRef: HTMLElement | undefined;
-  dateOfBirthRef: HTMLElement | undefined;
+  patientNameRef?: HTMLElement;
+  dateOfBirthRef?: HTMLElement;
 
-  state = {
+  state: PatientEncounterFormState = {
     activeInfoButton: null,
     patientNameIndex: '',
     patientOptions: []

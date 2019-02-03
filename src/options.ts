@@ -9,20 +9,34 @@ function makeOptions(options: string[]): option[] {
   return options.map(option => ({ value: option, text: option }));
 }
 
+const BREAST_SURGERY = 'Breast Surgery';
+const COLORECTAL_SURGERY = 'Colorectal Surgery';
+const GYN_ONC = 'Gyn Onc';
+const HEAD_NECK_SURGERY = 'Head/Neck Surgery';
+const HEMATOLOGY = 'Hematology';
+const INPATIENT = 'Inpatient';
+const IVY = 'Ivy';
+const MEDICAL_ONCOLOGY = 'Medical Oncology';
+const NON_SCI_MD = 'Non-SCI MD';
+const PALLIATIVE_CARE = 'Palliative Care';
+const RADIATION_ONCOLOGY = 'Radiation Oncology';
+const RADIOSURGERY = 'Radiosurgery';
+const THORACIC_SURGERY = 'Thoracic Surgery';
+
 export const CLINICS = [
-  'Breast Surgery',
-  'Colorectal Surgery',
-  'Gyn Onc',
-  'Head/Neck Surgery',
-  'Hematology',
-  'Inpatient',
-  'Ivy',
-  'Medical Oncology',
-  'Non-SCI MD',
-  'Palliative Care',
-  'Radiation Oncology',
-  'Radiosurgery',
-  'Thoracic Surgery'
+  BREAST_SURGERY,
+  COLORECTAL_SURGERY,
+  GYN_ONC,
+  HEAD_NECK_SURGERY,
+  HEMATOLOGY,
+  INPATIENT,
+  IVY,
+  MEDICAL_ONCOLOGY,
+  NON_SCI_MD,
+  PALLIATIVE_CARE,
+  RADIATION_ONCOLOGY,
+  RADIOSURGERY,
+  THORACIC_SURGERY
 ];
 
 export const CLINIC_OPTIONS = makeOptions(CLINICS);
@@ -44,19 +58,68 @@ export const ENCOUNTER_TYPE_NAMES: EncounterTypeNames = {
   other: 'Other'
 };
 
-export const LOCATIONS = [
-  'Ballard',
-  'Cherry Hill',
-  'Edmonds',
-  'Issaquah',
-  'First Hill',
-  'True Cancer Center'
-];
+const BALLARD = 'Ballard';
+const CHERRY_HILL = 'Cherry Hill';
+const EDMONDS = 'Edmonds';
+const ISSAQUAH = 'Issaquah';
+const FIRST_HILL = 'First Hill';
+const TRUE_CANCER_CENTER = 'True Cancer Center';
+
+export const LOCATIONS = [BALLARD, CHERRY_HILL, EDMONDS, ISSAQUAH, FIRST_HILL, TRUE_CANCER_CENTER];
 
 export const LOCATION_OPTIONS = makeOptions(LOCATIONS);
 
 export const COMMUNITY_LOCATION_OPTIONS = makeOptions(
-  LOCATIONS.filter(location => location !== 'True Cancer Center')
+  LOCATIONS.filter(location => location !== TRUE_CANCER_CENTER)
 );
 
 export const STAGES = makeOptions(['Unknown', 'Early', 'Advanced']);
+
+export const CLINIC_LOCATIONS = {
+  [BALLARD]: [INPATIENT, MEDICAL_ONCOLOGY, NON_SCI_MD],
+
+  [CHERRY_HILL]: [INPATIENT, IVY, RADIOSURGERY],
+
+  [EDMONDS]: [
+    COLORECTAL_SURGERY,
+    HEAD_NECK_SURGERY,
+    INPATIENT,
+    MEDICAL_ONCOLOGY,
+    NON_SCI_MD,
+    PALLIATIVE_CARE,
+    RADIATION_ONCOLOGY
+  ],
+
+  [ISSAQUAH]: [
+    BREAST_SURGERY,
+    COLORECTAL_SURGERY,
+    INPATIENT,
+    MEDICAL_ONCOLOGY,
+    NON_SCI_MD,
+    RADIATION_ONCOLOGY,
+    THORACIC_SURGERY
+  ],
+
+  [FIRST_HILL]: [
+    BREAST_SURGERY,
+    COLORECTAL_SURGERY,
+    GYN_ONC,
+    HEAD_NECK_SURGERY,
+    HEMATOLOGY,
+    INPATIENT,
+    MEDICAL_ONCOLOGY,
+    NON_SCI_MD,
+    PALLIATIVE_CARE,
+    RADIATION_ONCOLOGY,
+    THORACIC_SURGERY
+  ],
+
+  [TRUE_CANCER_CENTER]: [
+    BREAST_SURGERY,
+    INPATIENT,
+    MEDICAL_ONCOLOGY,
+    NON_SCI_MD,
+    PALLIATIVE_CARE,
+    RADIATION_ONCOLOGY
+  ]
+};
