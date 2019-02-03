@@ -27,7 +27,7 @@ type Option = {
   fieldName: string;
 };
 
-const OPTIONS: Option[] = addFieldNames([
+export const OTHER_ENCOUNTER_OPTIONS: Option[] = addFieldNames([
   {
     name: 'Rounding/Tumor Board',
     description:
@@ -75,7 +75,7 @@ const OPTIONS: Option[] = addFieldNames([
 ]);
 
 export function fieldNameToName(fieldName: string) {
-  const option = find(OPTIONS, { fieldName });
+  const option = find(OTHER_ENCOUNTER_OPTIONS, { fieldName });
 
   return (option && option.name) || '';
 }
@@ -171,7 +171,7 @@ class UnwrappedOtherEncounterForm extends React.Component<
 
   render() {
     const { dirty, errors, isSubmitting, onCancel, submitForm, touched, values } = this.props;
-    const options = OPTIONS.map(option => this.renderField(option));
+    const options = OTHER_ENCOUNTER_OPTIONS.map(option => this.renderField(option));
 
     return (
       <Form size="large">

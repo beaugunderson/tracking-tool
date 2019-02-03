@@ -17,6 +17,9 @@ export const EXCLUDE_STRING_VALUE = '__EXCLUDE__';
 
 // TODO update this to not extend PatientEncounter and encompass all optional fields correctly
 export interface TransformedEncounter extends PatientEncounter {
+  // from Other encounter
+  activity?: string;
+
   age?: number;
   ageBucket?: AgeBucket;
 

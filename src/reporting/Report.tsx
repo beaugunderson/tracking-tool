@@ -13,11 +13,18 @@ import {
   transform,
   TransformedEncounter
 } from './data';
-import { isBoolean, isNaN, isString, keys, sum, values } from 'lodash';
+import { isBoolean, isNaN, isString, keys, map, sum, values, zipObject } from 'lodash';
+import { OTHER_ENCOUNTER_OPTIONS } from '../forms/OtherEncounterForm';
 import { USERNAMES } from '../usernames';
 
 const DEFAULT_MARGINS = { top: 10, right: 50, bottom: 30, left: 30 };
 const OUR_MARGINS = { ...DEFAULT_MARGINS, left: 55 };
+
+const OTHER_FIELD_NAMES: string[] = map(OTHER_ENCOUNTER_OPTIONS, 'fieldName') as string[];
+const OTHER_FIELD_MAPPING = zipObject(OTHER_FIELD_NAMES, map(
+  OTHER_ENCOUNTER_OPTIONS,
+  'name'
+) as string[]);
 
 function removeExcludedData(group) {
   return {
@@ -94,6 +101,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
     const locationChart = dc.rowChart('#location-chart');
     const dayOfWeekChart = dc.barChart('#number-of-tasks-chart');
     const numberOfInterventionsChart = dc.barChart('#number-of-interventions-chart');
+    const otherCategoryChart = dc.rowChart('#other-category-chart');
     const researchChart = dc.rowChart('#research-chart');
     const stageChart = dc.rowChart('#stage-chart');
     const testChart = dc.rowChart('#test-chart');
@@ -518,6 +526,25 @@ export class Report extends React.Component<ReportProps, ReportState> {
     limitedEnglishProficiencyChart.render();
     // #endregion
 
+    // #region by other category
+    const otherCategoryDimension = ndx.dimension(d =>
+      d.activity ? OTHER_FIELD_MAPPING[d.activity] : EXCLUDE_STRING_VALUE
+    );
+    const otherCategoryGroup = otherCategoryDimension.group();
+
+    otherCategoryChart
+      .width(windowWidth / 4)
+      .height(200)
+      .elasticX(true)
+      .ordinalColors(colors)
+      .dimension(otherCategoryDimension)
+      .group(removeExcludedData(otherCategoryGroup))
+      .xAxis()
+      .ticks(5);
+
+    otherCategoryChart.render();
+    // #endregion
+
     // #region by social worker
     const userDimension = ndx.dimension(
       d => USERNAMES[d.username.toLowerCase()] || d.username.toLowerCase()
@@ -709,6 +736,11 @@ export class Report extends React.Component<ReportProps, ReportState> {
 
         <div id="limited-english-proficiency-chart">
           <strong>English Proficiency (unique MRNs)</strong>
+          <div className="clear" />
+        </div>
+
+        <div id="other-category-chart">
+          <strong>Other category</strong>
           <div className="clear" />
         </div>
 
