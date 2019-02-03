@@ -3968,10 +3968,10 @@ d3-zoom@1:
     d3-selection "1"
     d3-transition "1"
 
-d3@^5.7.0:
-  version "5.7.0"
-  resolved "https://registry.yarnpkg.com/d3/-/d3-5.7.0.tgz#f189d338bdde62acf02f308918e0ec34dd7568f9"
-  integrity sha512-8KEIfx+dFm8PlbJN9PI0suazrZ41QcaAufsKE9PRcqYPWLngHIyWJZX96n6IQKePGgeSu0l7rtlueSSNq8Zc3g==
+d3@^5.8.0:
+  version "5.8.0"
+  resolved "https://registry.yarnpkg.com/d3/-/d3-5.8.0.tgz#251f12fe46d811ef300664590ec85eb574c44896"
+  integrity sha512-0rc4LL3fbyWhAqrxOt00svoxB2qoHHo6Bgs0WGcDPZ8ELqbA09evfeCnuy0ZrYbRHc+hCvBZaTT+GW3pnn05fw==
   dependencies:
     d3-array "1"
     d3-axis "1"
@@ -4051,13 +4051,13 @@ dateformat@^3.0.0:
   resolved "https://registry.yarnpkg.com/dateformat/-/dateformat-3.0.3.tgz#a6e37499a4d9a9cf85ef5872044d62901c9889ae"
   integrity sha512-jyCETtSl3VMZMWeRo7iY1FL19ges1t55hMo5yaam4Jrsm5EPL89UQkoQRyiI+Yf4k8r2ZpdngkV8hr1lIdjb3Q==
 
-dc@^3.0.9:
-  version "3.0.9"
-  resolved "https://registry.yarnpkg.com/dc/-/dc-3.0.9.tgz#9e9dfd3e2edde77f5a10110d03aebee11b85db87"
-  integrity sha512-bAupWEtqRYazUl6eigL9BvRsITx52GK1bCkV2SotowI1uoQ7hq9dk8EHOGzSsa3G8oRAhy4L3yCA3OC+lijPjw==
+dc@^3.0.11:
+  version "3.0.11"
+  resolved "https://registry.yarnpkg.com/dc/-/dc-3.0.11.tgz#d69f71127c71f2ef1b243421232cf0af8714bfe3"
+  integrity sha512-nIX3p939XwLJrT1nJSic9SrHvdLaQ7NiwE/BveewLZJin0iVMhq/a5qrjm9sqDdo5EE+bjxdkB54CapXrwv/Ag==
   dependencies:
     crossfilter2 "^1.4.5"
-    d3 "^5.7.0"
+    d3 "^5.8.0"
 
 debug@2.6.9, debug@^2.1.2, debug@^2.1.3, debug@^2.2.0, debug@^2.3.3, debug@^2.6.0, debug@^2.6.6, debug@^2.6.8, debug@^2.6.9:
   version "2.6.9"
@@ -4538,10 +4538,10 @@ electron-builder@^20.38.5:
     update-notifier "^2.5.0"
     yargs "^12.0.5"
 
-electron-context-menu@^0.10.1:
-  version "0.10.1"
-  resolved "https://registry.yarnpkg.com/electron-context-menu/-/electron-context-menu-0.10.1.tgz#9e202f1f65c0972cca8c0ef2047a13a100770368"
-  integrity sha512-KFkKwFbT6iJUgarEknYuXQlJAT+naJZtSWFBtHf9RiSb70wscWdDNpYoUERzF7FgqYE1Mil4npfRWsjqGLwtog==
+electron-context-menu@^0.11.0:
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/electron-context-menu/-/electron-context-menu-0.11.0.tgz#3ecefb0231151add474c9b0df2fb66fde3ad5731"
+  integrity sha512-sgDIGqjgazUQ5fbfz0ObRkmODAsw00eylQprp5q4jyuL6dskd27yslhoJTrjLbFGErfVVYzRXPW2rQPJxARKmg==
   dependencies:
     electron-dl "^1.2.0"
     electron-is-dev "^1.0.1"
@@ -5256,24 +5256,25 @@ execa@^0.10.0:
     signal-exit "^3.0.0"
     strip-eof "^1.0.0"
 
-execa@^0.11.0:
-  version "0.11.0"
-  resolved "https://registry.yarnpkg.com/execa/-/execa-0.11.0.tgz#0b3c71daf9b9159c252a863cd981af1b4410d97a"
-  dependencies:
-    cross-spawn "^6.0.0"
-    get-stream "^4.0.0"
-    is-stream "^1.1.0"
-    npm-run-path "^2.0.0"
-    p-finally "^1.0.0"
-    signal-exit "^3.0.0"
-    strip-eof "^1.0.0"
-
 execa@^0.7.0:
   version "0.7.0"
   resolved "https://registry.yarnpkg.com/execa/-/execa-0.7.0.tgz#944becd34cc41ee32a63a9faf27ad5a65fc59777"
   dependencies:
     cross-spawn "^5.0.1"
     get-stream "^3.0.0"
+    is-stream "^1.1.0"
+    npm-run-path "^2.0.0"
+    p-finally "^1.0.0"
+    signal-exit "^3.0.0"
+    strip-eof "^1.0.0"
+
+execa@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/execa/-/execa-1.0.0.tgz#c6236a5bb4df6d6f15e88e7f017798216749ddd8"
+  integrity sha512-adbxcyWV46qiHyvSp50TKt05tB4tK3HcmF7/nxfAdhnox83seTDbwnaqKO4sXRy7roHAIFqJP/Rw/AuEbX61LA==
+  dependencies:
+    cross-spawn "^6.0.0"
+    get-stream "^4.0.0"
     is-stream "^1.1.0"
     npm-run-path "^2.0.0"
     p-finally "^1.0.0"
@@ -5778,10 +5779,10 @@ form-data@~2.3.2:
     combined-stream "1.0.6"
     mime-types "^2.1.12"
 
-formik@^1.4.2:
-  version "1.4.2"
-  resolved "https://registry.yarnpkg.com/formik/-/formik-1.4.2.tgz#684e6e9fb0c8309a17b0d8f3f57993ee83bf96f2"
-  integrity sha512-ZssZJmR15wEE+gepEUQQjNoyUIfpc+zwLFZiWNnC4ZolhBM7EQO7wjip+gIC9y/1k3c4tDeEite+CMCwk4ti4Q==
+formik@^1.4.3:
+  version "1.4.3"
+  resolved "https://registry.yarnpkg.com/formik/-/formik-1.4.3.tgz#a3bece72f545981f8fc825c21d5292d9aac524d2"
+  integrity sha512-rwwcCPhidgiACnh1RBY8vp+Zp9ompHxezuGeIqmOh9RvmNCB8GCupoCWdDkWB0DZ1MBoDl76swB2v/FbMxeEmw==
   dependencies:
     create-react-context "^0.2.2"
     deepmerge "^2.1.1"
@@ -8273,13 +8274,6 @@ mem@^1.1.0:
   resolved "https://registry.yarnpkg.com/mem/-/mem-1.1.0.tgz#5edd52b485ca1d900fe64895505399a0dfa45f76"
   dependencies:
     mimic-fn "^1.0.0"
-
-mem@^3.0.1:
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/mem/-/mem-3.0.1.tgz#152410d0d7e835e4a4363e626238d9e5be3d6f5a"
-  dependencies:
-    mimic-fn "^1.0.0"
-    p-is-promise "^1.1.0"
 
 mem@^4.0.0:
   version "4.0.0"
@@ -12766,12 +12760,13 @@ use@^3.1.0:
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/use/-/use-3.1.1.tgz#d50c8cac79a19fbc20f2911f56eb973f4e10070f"
 
-username@^4.0.0:
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/username/-/username-4.0.0.tgz#41114dde19bc8d280bda9a59cfa3346e36dd35c8"
+username@^4.1.0:
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/username/-/username-4.1.0.tgz#640f2ae13d17c51e7fb1d3517ad7c17fcd5d1670"
+  integrity sha512-sKh1KCsMfv8jPIC9VdeQhrNAgkl842jS/M74HQv7Byr0AMAwKZt8mLWX9DmtMeD8nQA3eKa10f5LbqlSVmokMg==
   dependencies:
-    execa "^0.11.0"
-    mem "^3.0.1"
+    execa "^1.0.0"
+    mem "^4.0.0"
 
 utf8-byte-length@^1.0.1:
   version "1.0.4"
