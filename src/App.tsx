@@ -16,6 +16,7 @@ import {
 } from 'semantic-ui-react';
 import { chain, escapeRegExp } from 'lodash';
 import { CommunityEncounterForm } from './forms/CommunityEncounterForm';
+import { CrisisReport } from './reporting/CrisisReport';
 import { ENCOUNTER_TYPE_NAMES, ENCOUNTER_TYPES } from './options';
 import { ensureUserDirectoryExists, rootPathExists } from './store';
 import { ErrorMessage } from './ErrorMessage';
@@ -35,15 +36,17 @@ function currentUserIn(users: string[]) {
   return users.indexOf(username.sync().toLowerCase()) !== -1;
 }
 
+const canSeeCrisisReporting = () => currentUserIn(['beau', 'carynstewart', 'lindce2']);
 const canSeeFakeEncounters = () => currentUserIn(['beau', 'carynstewart']);
+const canSeeGridReporting = () => currentUserIn(['beau', 'carynstewart', 'lindce2']);
 const canSeeReporting = () =>
   currentUserIn(['beau', 'carynstewart', 'johnss1', 'lindce2', 'nejash1', 'valejd1']);
-const canSeeGridReporting = () => currentUserIn(['beau', 'carynstewart', 'lindce2']);
 
 const DELETE_BUTTON = <Button negative>Delete</Button>;
 
 type AppState = {
   confirmDeletion: string | null;
+  crisisReporting: boolean;
   encounter: any;
   encounterForm: string | null;
   encounters: any[];
@@ -62,8 +65,9 @@ type AppState = {
 export class App extends React.Component<{}, AppState> {
   encounters?: Nedb;
 
-  state = {
+  state: AppState = {
     confirmDeletion: null,
+    crisisReporting: false,
     encounter: null,
     encounterForm: null,
     encounters: [],
@@ -209,6 +213,7 @@ export class App extends React.Component<{}, AppState> {
   render() {
     const {
       confirmDeletion,
+      crisisReporting,
       encounter,
       encounterForm,
       error,
@@ -234,6 +239,10 @@ export class App extends React.Component<{}, AppState> {
 
     if (!this.encounters) {
       return null;
+    }
+
+    if (crisisReporting) {
+      return <CrisisReport onComplete={() => this.setState({ crisisReporting: false })} />;
     }
 
     if (gridReporting) {
@@ -338,6 +347,12 @@ export class App extends React.Component<{}, AppState> {
           {canSeeReporting() && (
             <Button onClick={() => this.setState({ reporting: true })} size="big">
               Reporting
+            </Button>
+          )}
+
+          {canSeeCrisisReporting() && (
+            <Button onClick={() => this.setState({ crisisReporting: true })} size="big">
+              Crisis Reporting
             </Button>
           )}
 

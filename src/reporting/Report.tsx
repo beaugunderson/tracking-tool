@@ -15,7 +15,7 @@ import {
 } from './data';
 import { isBoolean, isNaN, isString, keys, map, sum, values, zipObject } from 'lodash';
 import { OTHER_ENCOUNTER_OPTIONS } from '../forms/OtherEncounterForm';
-import { USERNAMES } from '../usernames';
+import { usernameToName } from '../usernames';
 
 const DEFAULT_MARGINS = { top: 10, right: 50, bottom: 30, left: 30 };
 const OUR_MARGINS = { ...DEFAULT_MARGINS, left: 55 };
@@ -546,9 +546,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
     // #endregion
 
     // #region by social worker
-    const userDimension = ndx.dimension(
-      d => USERNAMES[d.username.toLowerCase()] || d.username.toLowerCase()
-    );
+    const userDimension = ndx.dimension(d => usernameToName(d.username));
     const userGroup = userDimension.group().reduceSum(d => d.parsedNumberOfTasks);
 
     userChart

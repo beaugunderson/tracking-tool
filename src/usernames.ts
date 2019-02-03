@@ -31,3 +31,7 @@ export const USERNAMES = {
 };
 
 export const INTERNS = ['goodmx1', 'jonasa1', 'kanedp2', 'maysam1', 'montme1', 'pughat1'];
+
+export function usernameToName(username: string) {
+  return USERNAMES[username.toLowerCase()] || username.toLowerCase();
+}
