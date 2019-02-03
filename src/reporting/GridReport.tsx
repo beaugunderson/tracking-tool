@@ -152,6 +152,7 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
       <React.Fragment>
         <div>
           <Button onClick={() => this.props.onComplete()}>Back</Button>
+          <Button onClick={() => window.print()}>Print</Button>
           &nbsp;&nbsp;&nbsp;
           <Checkbox
             label="Remove documentation tasks"

@@ -603,6 +603,8 @@ export class Report extends React.Component<ReportProps, ReportState> {
       <div className={this.state.hideSocialWorkers ? 'hide-social-workers' : ''}>
         <div>
           <Button onClick={() => this.props.onComplete()}>Back</Button>
+
+          <Button onClick={() => window.print()}>Print</Button>
         </div>
 
         <Statistic.Group widths="5">
