@@ -658,7 +658,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
         <br />
 
         <div id="encounter-date-chart">
-          <strong>Tasks by Date</strong>
+          <strong>Tasks by Month</strong>
           <div className="clear" />
         </div>
 
@@ -708,7 +708,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
         </div>
 
         <div id="limited-english-proficiency-chart">
-          <strong>English Proficiency</strong>
+          <strong>English Proficiency (unique MRNs)</strong>
           <div className="clear" />
         </div>
 
@@ -740,12 +740,12 @@ export class Report extends React.Component<ReportProps, ReportState> {
         </div>
 
         <div id="doctor-chart">
-          <strong>Primary Provider</strong>
+          <strong>Primary Provider (tasks)</strong>
           <div className="clear" />
         </div>
 
         <div id="intervention-chart">
-          <strong>Intervention</strong>
+          <strong>Intervention (entries)</strong>
           <div className="clear" />
         </div>
       </div>
