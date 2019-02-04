@@ -26,7 +26,7 @@ const OTHER_FIELD_MAPPING = zipObject(OTHER_FIELD_NAMES, map(
   'name'
 ) as string[]);
 
-const TITLE_PADDING = 72;
+const TITLE_PADDING = 78;
 
 function removeExcludedData(group) {
   return {
