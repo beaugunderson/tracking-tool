@@ -1,0 +1,11 @@
+a {
+  cursor: pointer;
+}
+
+a .icon {
+  visibility: hidden;
+}
+
+a:hover .icon {
+  visibility: initial;
+}
