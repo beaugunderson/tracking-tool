@@ -26,6 +26,8 @@ const OTHER_FIELD_MAPPING = zipObject(OTHER_FIELD_NAMES, map(
   'name'
 ) as string[]);
 
+const TITLE_PADDING = 72;
+
 function removeExcludedData(group) {
   return {
     all() {
@@ -398,6 +400,9 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .group(removeExcludedData(ageGroup))
       .valueAccessor(d => d.value.exceptionCount)
       .ordering(d => -d.value.exceptionCount)
+      .renderTitleLabel(true)
+      .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
+      .title(d => d.value.exceptionCount)
       .xAxis()
       .ticks(4);
 
@@ -416,6 +421,9 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .group(removeExcludedData(diagnosisGroup))
       .valueAccessor(d => d.value.exceptionCount)
       .ordering(d => -d.value.exceptionCount)
+      .renderTitleLabel(true)
+      .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
+      .title(d => d.value.exceptionCount)
       .xAxis()
       .ticks(4);
 
@@ -440,6 +448,9 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .group(removeExcludedData(stageGroup))
       .valueAccessor(d => d.value.exceptionCount)
       .ordering(d => -d.value.exceptionCount)
+      .renderTitleLabel(true)
+      .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
+      .title(d => d.value.exceptionCount)
       .xAxis()
       .ticks(4);
 
@@ -464,6 +475,9 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .group(removeExcludedData(researchGroup))
       .valueAccessor(d => d.value.exceptionCount)
       .ordering(d => -d.value.exceptionCount)
+      .renderTitleLabel(true)
+      .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
+      .title(d => d.value.exceptionCount)
       .xAxis()
       .ticks(4);
 
@@ -482,6 +496,9 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .elasticX(true)
       .dimension(encounterTypeDimension)
       .group(encounterTypeGroup)
+      .renderTitleLabel(true)
+      .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
+      .title(d => d.value)
       .xAxis()
       .ticks(4);
 
@@ -498,7 +515,10 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .elasticX(true)
       .ordinalColors(colors)
       .dimension(testDimension)
-      .group(testGroup);
+      .group(testGroup)
+      .renderTitleLabel(true)
+      .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
+      .title(d => d.value);
 
     testChart.render();
     // #endregion
@@ -521,7 +541,10 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .dimension(limitedEnglishProficiencyDimension)
       .group(removeExcludedData(limitedEnglishProficiencyGroup))
       .valueAccessor(d => d.value.exceptionCount)
-      .ordering(d => -d.value.exceptionCount);
+      .ordering(d => -d.value.exceptionCount)
+      .renderTitleLabel(true)
+      .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
+      .title(d => d.value.exceptionCount);
 
     limitedEnglishProficiencyChart.render();
     // #endregion
@@ -539,6 +562,9 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .ordinalColors(colors)
       .dimension(otherCategoryDimension)
       .group(removeExcludedData(otherCategoryGroup))
+      .renderTitleLabel(true)
+      .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
+      .title(d => d.value)
       .xAxis()
       .ticks(5);
 
@@ -556,6 +582,9 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .ordinalColors(colors)
       .dimension(userDimension)
       .group(userGroup)
+      .renderTitleLabel(true)
+      .titleLabelOffsetX(windowWidth / 3 - TITLE_PADDING)
+      .title(d => d.value)
       .xAxis()
       .ticks(4);
 
@@ -572,7 +601,10 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .elasticX(true)
       .ordinalColors(colors)
       .dimension(doctorDimension)
-      .group(removeExcludedData(doctorGroup));
+      .group(removeExcludedData(doctorGroup))
+      .renderTitleLabel(true)
+      .titleLabelOffsetX(windowWidth / 2 - TITLE_PADDING)
+      .title(d => d.value);
 
     doctorChart.render();
     // #endregion
@@ -587,7 +619,10 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .elasticX(true)
       .ordinalColors(colors)
       .dimension(interventionDimension)
-      .group(interventionGroup);
+      .group(interventionGroup)
+      .renderTitleLabel(true)
+      .titleLabelOffsetX(windowWidth / 2 - TITLE_PADDING)
+      .title(d => d.value);
 
     interventionChart.render();
     // #endregion
@@ -602,7 +637,10 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .elasticX(true)
       .ordinalColors(colors)
       .dimension(locationDimension)
-      .group(removeExcludedData(locationGroup));
+      .group(removeExcludedData(locationGroup))
+      .renderTitleLabel(true)
+      .titleLabelOffsetX(windowWidth / 3 - TITLE_PADDING)
+      .title(d => d.value);
 
     locationChart.render();
     // #endregion
@@ -617,7 +655,10 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .elasticX(true)
       .dimension(clinicDimension)
       .ordinalColors(colors)
-      .group(removeExcludedData(clinicGroup));
+      .group(removeExcludedData(clinicGroup))
+      .renderTitleLabel(true)
+      .titleLabelOffsetX(windowWidth / 3 - TITLE_PADDING)
+      .title(d => d.value);
 
     clinicChart.render();
     // #endregion
