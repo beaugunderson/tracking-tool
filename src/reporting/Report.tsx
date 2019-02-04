@@ -53,6 +53,8 @@ interface ReportState {
 }
 
 export class Report extends React.Component<ReportProps, ReportState> {
+  state: ReportState = {};
+
   resize = () => this.setState({ windowWidth: window.innerWidth });
 
   handleReset = () => {
