@@ -48,16 +48,11 @@ interface ReportProps {
 
 interface ReportState {
   encounters?: TransformedEncounter[];
-  hideSocialWorkers: boolean;
+  hideSocialWorkers?: boolean;
   windowWidth?: number;
 }
 
 export class Report extends React.Component<ReportProps, ReportState> {
-  state: ReportState = {
-    hideSocialWorkers: false,
-    windowWidth: null
-  };
-
   resize = () => this.setState({ windowWidth: window.innerWidth });
 
   handleReset = () => {

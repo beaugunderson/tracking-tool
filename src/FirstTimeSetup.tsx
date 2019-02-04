@@ -24,14 +24,10 @@ type FirstTimeSetupProps = {
 };
 
 type FirstTimeSetupState = {
-  error: string | undefined;
+  error?: string;
 };
 
 export class FirstTimeSetup extends React.Component<FirstTimeSetupProps, FirstTimeSetupState> {
-  state = {
-    error: null
-  };
-
   handleChooseClick = () => {
     const selectedPaths = electron.remote.dialog.showOpenDialog({
       buttonLabel: 'Choose Directory',

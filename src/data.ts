@@ -25,7 +25,8 @@ const migrations: Migration[] = [
           encounter.facilitation ||
           encounter.valuesAssessment ||
           encounter.advancedIllness ||
-          encounter.formCompletion
+          encounter.formCompletion ||
+          false
       };
     }
   }

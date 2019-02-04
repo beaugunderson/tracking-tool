@@ -16,7 +16,7 @@ interface GridReportProps {
 
 interface GridReportState {
   encounters: TransformedEncounter[] | null;
-  removeDocumentationTasks: boolean;
+  removeDocumentationTasks?: boolean;
 }
 
 export class GridReport extends React.Component<GridReportProps, GridReportState> {

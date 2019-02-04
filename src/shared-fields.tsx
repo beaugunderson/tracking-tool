@@ -9,7 +9,7 @@ import {
 import { Dropdown, Form, Input, Popup } from 'semantic-ui-react';
 import { InfoButton } from './InfoButton';
 
-const EMPTY_ARRAY = [];
+const EMPTY_ARRAY: never[] = [] as never[];
 
 type FieldProps = {
   disabled?: boolean;
@@ -76,7 +76,7 @@ export class EncounterLocationField extends React.Component<EncounterLocationFie
 
 type EncounterClinicFieldProps = FieldProps & {
   community?: boolean;
-  location?: string;
+  location: string;
   staff?: boolean;
 };
 

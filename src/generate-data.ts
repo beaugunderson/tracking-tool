@@ -71,14 +71,14 @@ export function insertExamples(encounters: Nedb) {
   const patients = times(records, fakePatient);
 
   function insertExample() {
+    const patient = sample(patients) as any;
+
     const sampledInterventions = sampleSize(INTERVENTIONS, 1 + Math.floor(Math.random() * 5));
-    const interventionValues = {};
+    const interventionValues: { [key: string]: boolean } = {};
 
     for (const intervention of sampledInterventions) {
       interventionValues[intervention.fieldName] = true;
     }
-
-    const patient = sample(patients);
 
     // 10% of the time generate a new diagnosis
     const patientDiagnosis = Math.random() > 0.1 ? patient.diagnosis : diagnosis();

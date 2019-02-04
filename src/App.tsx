@@ -52,7 +52,7 @@ type AppState = {
   encounterSearchDate: string;
   encounterSearchPatientName: string;
   encounterSearchType: string;
-  error: string | Error | null;
+  error?: string | Error;
   firstTimeSetup: boolean;
   gads: number;
   gridReporting: boolean;
@@ -73,7 +73,6 @@ export class App extends React.Component<{}, AppState> {
     encounterSearchDate: '',
     encounterSearchPatientName: '',
     encounterSearchType: 'All',
-    error: null,
     firstTimeSetup: !rootPathExists(),
     gridReporting: false,
     gads: 0,
@@ -139,7 +138,7 @@ export class App extends React.Component<{}, AppState> {
         return moment(encounter.encounterDate, 'YYYY-MM-DD').isBetween(
           monthStart,
           monthEnd,
-          null,
+          undefined,
           '[]'
         );
       });

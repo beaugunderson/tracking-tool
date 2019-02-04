@@ -49,7 +49,7 @@ interface CopyFilesResult {
   temporaryDirectory: string;
 }
 
-function ageBucket(age?: number): AgeBucket {
+function ageBucket(age?: number): AgeBucket | undefined {
   if (!age) {
     return;
   }
@@ -158,7 +158,7 @@ export function transformEncounter(encounter: PatientEncounter): TransformedEnco
     doctorPrimary: (encounter.md && encounter.md[0]) || EXCLUDE_STRING_VALUE,
 
     interventions: INTERVENTIONS.reduce(
-      (accumulator, intervention) =>
+      (accumulator: string[], intervention) =>
         encounter[intervention.fieldName] ? accumulator.concat([intervention.name]) : accumulator,
       []
     ),
