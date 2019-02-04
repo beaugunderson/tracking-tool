@@ -590,7 +590,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
 
     // #region by doctor
     const doctorDimension = ndx.dimension(d => d.doctorPrimary);
-    const doctorGroup = doctorDimension.group().reduceSum(d => d.parsedNumberOfTasks);
+    const doctorGroup = uniqueMrn(doctorDimension.group());
 
     doctorChart
       .width(windowWidth / 2)
@@ -598,10 +598,12 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .elasticX(true)
       .ordinalColors(colors)
       .dimension(doctorDimension)
+      .valueAccessor(d => d.value.exceptionCount)
+      .ordering(d => -d.value.exceptionCount)
       .group(removeExcludedData(doctorGroup))
       .renderTitleLabel(true)
       .titleLabelOffsetX(windowWidth / 2 - TITLE_PADDING)
-      .title(d => d.value);
+      .title(d => d.value.exceptionCount);
 
     doctorChart.render();
     // #endregion
@@ -808,7 +810,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
         </div>
 
         <div id="doctor-chart">
-          <strong>Primary Provider (tasks)</strong>
+          <strong>Primary Provider (unique MRNs)</strong>
           <div className="clear" />
         </div>
 
