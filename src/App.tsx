@@ -36,11 +36,10 @@ function currentUserIn(users: string[]) {
   return users.indexOf(username.sync().toLowerCase()) !== -1;
 }
 
-const canSeeCrisisReporting = () => currentUserIn(['beau', 'carynstewart', 'lindce2']);
+const REPORTING_USERS = ['beau', 'carynstewart', 'johnss1', 'lindce2', 'nejash1', 'valejd1'];
+
 const canSeeFakeEncounters = () => currentUserIn(['beau', 'carynstewart']);
-const canSeeGridReporting = () => currentUserIn(['beau', 'carynstewart', 'lindce2']);
-const canSeeReporting = () =>
-  currentUserIn(['beau', 'carynstewart', 'johnss1', 'lindce2', 'nejash1', 'valejd1']);
+const canSeeReporting = () => currentUserIn(REPORTING_USERS);
 
 const DELETE_BUTTON = <Button negative>Delete</Button>;
 
@@ -345,33 +344,33 @@ export class App extends React.Component<{}, AppState> {
           </Button>
 
           {canSeeReporting() && (
-            <Button onClick={() => this.setState({ reporting: true })} size="big">
-              Reporting
-            </Button>
-          )}
+            <React.Fragment>
+              <Divider hidden />
 
-          {canSeeCrisisReporting() && (
-            <Button onClick={() => this.setState({ crisisReporting: true })} size="big">
-              Crisis Reporting
-            </Button>
-          )}
+              <Button onClick={() => this.setState({ reporting: true })} size="big">
+                Interactive Report
+              </Button>
 
-          {canSeeGridReporting() && (
-            <Button onClick={() => this.setState({ gridReporting: true })} size="big">
-              Grid Reporting
-            </Button>
-          )}
+              <Button onClick={() => this.setState({ crisisReporting: true })} size="big">
+                Crisis Report
+              </Button>
 
-          {canSeeFakeEncounters() && (
-            <Button
-              icon
-              labelPosition="left"
-              onClick={() => insertExamples(this.encounters)}
-              size="big"
-            >
-              <Icon name="plus circle" />
-              Add fake encounters
-            </Button>
+              <Button onClick={() => this.setState({ gridReporting: true })} size="big">
+                Monthly Report
+              </Button>
+
+              {canSeeFakeEncounters() && (
+                <Button
+                  icon
+                  labelPosition="left"
+                  onClick={() => insertExamples(this.encounters)}
+                  size="big"
+                >
+                  <Icon name="plus circle" />
+                  Add fake encounters
+                </Button>
+              )}
+            </React.Fragment>
           )}
         </Segment>
 
