@@ -384,9 +384,13 @@ export class Report extends React.Component<ReportProps, ReportState> {
     // #endregion
 
     // #region by age
-    const ageDimension = ndx.dimension(d =>
-      isString(d.ageBucket) ? d.ageBucket : EXCLUDE_STRING_VALUE
-    );
+    const ageDimension = ndx.dimension(d => {
+      if (d.encounterType === 'patient') {
+        return isString(d.ageBucket) ? d.ageBucket : 'Unknown';
+      }
+
+      return EXCLUDE_STRING_VALUE;
+    });
     const ageGroup = uniqueMrn(ageDimension.group());
 
     ageBucketChart

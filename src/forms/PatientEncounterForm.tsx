@@ -25,6 +25,7 @@ import {
   interventionGroups,
   interventionOptions
 } from '../patient-interventions';
+import { parseDate } from '../reporting/data';
 
 const debug = Debug('tracking-tool:patient-encounter-form');
 
@@ -82,22 +83,6 @@ const REQUIRED_FIELDS = [
 ];
 
 const SCORED_FIELDS = ['phq', 'gad', 'moca'];
-
-function parseDate(date: string) {
-  return moment(date.trim(), [
-    'MM/DD/YYYY',
-    'M/D/YYYY',
-    'MM/DD/YYYY',
-    'M/D/YY',
-
-    'MM-DD-YYYY',
-    'M-D-YYYY',
-    'MM-DD-YYYY',
-    'M-D-YY',
-
-    'YYYY-MM-DD'
-  ]);
-}
 
 const docToOption = (doc: PatientEncounter) => {
   const _today = moment()

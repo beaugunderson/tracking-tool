@@ -1,6 +1,7 @@
 import moment from 'moment';
 import path from 'path';
 import { INTERVENTIONS } from '../patient-interventions';
+import { isNaN, isNumber } from 'lodash';
 import { PatientEncounter } from '../forms/PatientEncounterForm';
 import { rootPath } from '../store';
 
@@ -14,6 +15,22 @@ export type AgeBucket = '<= 39 years' | '40 to 64 years' | '>= 65 years';
 
 export const EXCLUDE_NUMBER_VALUE = -666;
 export const EXCLUDE_STRING_VALUE = '__EXCLUDE__';
+
+export function parseDate(date: string) {
+  return moment(date.trim(), [
+    'MM/DD/YYYY',
+    'M/D/YYYY',
+    'MM/DD/YYYY',
+    'M/D/YY',
+
+    'MM-DD-YYYY',
+    'M-D-YYYY',
+    'MM-DD-YYYY',
+    'M-D-YY',
+
+    'YYYY-MM-DD'
+  ]);
+}
 
 // TODO update this to not extend PatientEncounter and encompass all optional fields correctly
 export interface TransformedEncounter extends PatientEncounter {
@@ -49,8 +66,8 @@ interface CopyFilesResult {
   temporaryDirectory: string;
 }
 
-function ageBucket(age?: number): AgeBucket | undefined {
-  if (!age) {
+function bucketAge(age?: number): AgeBucket | undefined {
+  if (isNaN(age) || !isNumber(age)) {
     return;
   }
 
@@ -120,7 +137,13 @@ async function getAllEncounters(filename: string): Promise<PatientEncounter[]> {
 }
 
 export function transformEncounter(encounter: PatientEncounter): TransformedEncounter {
-  const age = moment().diff(moment(encounter.dateOfBirth, 'YYYY-MM-DD'), 'years');
+  let age: number | undefined;
+  let ageBucket: AgeBucket | undefined;
+
+  if (encounter.encounterType === 'patient') {
+    age = moment().diff(parseDate(encounter.dateOfBirth), 'years');
+    ageBucket = bucketAge(age);
+  }
 
   const tests = [];
 
@@ -146,7 +169,7 @@ export function transformEncounter(encounter: PatientEncounter): TransformedEnco
     ...encounter,
 
     age,
-    ageBucket: ageBucket(age),
+    ageBucket,
 
     parsedEncounterDate: moment(encounter.encounterDate, 'YYYY-MM-DD'),
 
