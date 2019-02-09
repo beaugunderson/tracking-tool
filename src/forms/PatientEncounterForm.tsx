@@ -3,7 +3,8 @@ import * as Mousetrap from 'mousetrap';
 import Debug from 'debug';
 import moment from 'moment';
 import React from 'react';
-import { chain, deburr, escapeRegExp, isEmpty } from 'lodash';
+import { ageYears, parseDate } from '../reporting/data';
+import { chain, deburr, escapeRegExp, isEmpty, isNaN } from 'lodash';
 import { Checkbox, Divider, Dropdown, Form, Grid, Header, Input, Ref } from 'semantic-ui-react';
 import { DIAGNOSES, DOCTORS, STAGES } from '../options';
 import {
@@ -25,7 +26,6 @@ import {
   interventionGroups,
   interventionOptions
 } from '../patient-interventions';
-import { parseDate } from '../reporting/data';
 
 const debug = Debug('tracking-tool:patient-encounter-form');
 
@@ -90,7 +90,6 @@ const docToOption = (doc: PatientEncounter) => {
     .minute(0)
     .second(0)
     .millisecond(0);
-  const dateOfBirth = moment(doc.dateOfBirth);
 
   let relativeTime = moment(doc.encounterDate).from(_today);
 
@@ -100,6 +99,7 @@ const docToOption = (doc: PatientEncounter) => {
     relativeTime = 'yesterday';
   }
 
+  const dateOfBirth = parseDate(doc.dateOfBirth);
   const formattedDateOfBirth = dateOfBirth.format('M/D/YYYY');
 
   return {
@@ -502,6 +502,16 @@ class UnwrappedPatientEncounterForm extends React.Component<
       );
     });
 
+    let dateOfBirthLabel = 'Date of Birth';
+
+    if (values.dateOfBirth) {
+      const age = ageYears(values.dateOfBirth);
+
+      if (!isNaN(age)) {
+        dateOfBirthLabel = `Date of Birth (${age} years old)`;
+      }
+    }
+
     return (
       <Form size="large">
         <Header>New Patient Encounter</Header>
@@ -570,7 +580,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
               disabled={!values.patientName}
               error={!!(touched.dateOfBirth && errors.dateOfBirth)}
               id="input-date-of-birth"
-              label="Date of Birth"
+              label={dateOfBirthLabel}
               name="dateOfBirth"
               onBlur={this.handleBlur}
               onChange={this.handleChange}
@@ -802,8 +812,12 @@ export const PatientEncounterForm = withFormik<PatientEncounterFormProps, Patien
       }
     });
 
-    if (!parseDate(values.dateOfBirth).isValid()) {
+    const parsedDate = parseDate(values.dateOfBirth);
+
+    if (!parsedDate.isValid()) {
       errors.dateOfBirth = 'Must be a valid date';
+    } else if (parsedDate.isAfter(moment())) {
+      errors.dateOfBirth = 'Must be in the past';
     }
 
     if (!/(0|5)$/.test(values.timeSpent)) {

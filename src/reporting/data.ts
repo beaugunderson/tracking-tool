@@ -16,20 +16,42 @@ export type AgeBucket = '<= 39 years' | '40 to 64 years' | '>= 65 years';
 export const EXCLUDE_NUMBER_VALUE = -666;
 export const EXCLUDE_STRING_VALUE = '__EXCLUDE__';
 
+moment.parseTwoDigitYear = function parseTwoDigitYear(yearString) {
+  const currentYear = moment().year() - 2000;
+  const year = parseInt(yearString, 10);
+
+  // 18 <= 19; return 2018
+  if (year <= currentYear) {
+    return 2000 + year;
+  }
+
+  // 20 > 19; return 1920
+  return 1900 + year;
+};
+
 export function parseDate(date: string) {
-  return moment(date.trim(), [
-    'MM/DD/YYYY',
-    'M/D/YYYY',
-    'MM/DD/YYYY',
-    'M/D/YY',
+  return moment(
+    date.trim(),
+    [
+      'MM/DD/YYYY',
+      'M/D/YYYY',
+      'MM/DD/YYYY',
+      'M/D/YY',
 
-    'MM-DD-YYYY',
-    'M-D-YYYY',
-    'MM-DD-YYYY',
-    'M-D-YY',
+      'MM-DD-YYYY',
+      'M-D-YYYY',
+      'MM-DD-YYYY',
+      'M-D-YY',
 
-    'YYYY-MM-DD'
-  ]);
+      'YYYY-MM-DD'
+    ],
+    // strict mode
+    true
+  );
+}
+
+export function ageYears(dateString: string): number {
+  return moment().diff(parseDate(dateString), 'years');
 }
 
 // TODO update this to not extend PatientEncounter and encompass all optional fields correctly
@@ -141,7 +163,7 @@ export function transformEncounter(encounter: PatientEncounter): TransformedEnco
   let ageBucket: AgeBucket | undefined;
 
   if (encounter.encounterType === 'patient') {
-    age = moment().diff(parseDate(encounter.dateOfBirth), 'years');
+    age = ageYears(encounter.dateOfBirth);
     ageBucket = bucketAge(age);
   }
 

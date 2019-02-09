@@ -1,6 +1,8 @@
 import async from 'async';
 import Debug from 'debug';
+import moment from 'moment';
 import { isEqual } from 'lodash';
+import { parseDate } from './reporting/data';
 import { PatientEncounter } from './forms/PatientEncounterForm';
 import { userFilePath } from './store';
 
@@ -28,6 +30,26 @@ const migrations: Migration[] = [
           encounter.formCompletion ||
           false
       };
+    }
+  },
+
+  {
+    id: 'c1823bb1-1509-4684-8c3c-f0cad40b24e9',
+    query: { encounterType: 'patient' },
+    transform: (encounter: PatientEncounter): PatientEncounter => {
+      const dateOfBirth = parseDate(encounter.dateOfBirth);
+
+      // if date of birth is in the future...
+      if (dateOfBirth.isValid() && dateOfBirth.isAfter(moment())) {
+        return {
+          ...encounter,
+
+          // then subtract 100 years, as it was likely specified in ambiguous two-digit format
+          dateOfBirth: dateOfBirth.subtract(100, 'years').format('YYYY-MM-DD')
+        };
+      }
+
+      return encounter;
     }
   }
 ];
@@ -71,6 +93,7 @@ export const openEncounters = (cb: (err: Error, dataStore: Nedb) => void): void 
     }
   );
 };
+
 function applyMigration(
   results: PatientEncounter[],
   migration: Migration,
