@@ -86,7 +86,7 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
           <Table.Row key={`${location}-${clinic}-non-interns`}>
             <Table.Cell>{location}</Table.Cell>
             <Table.Cell>{clinic}</Table.Cell>
-            <Table.Cell>Non-Interns</Table.Cell>
+            <Table.Cell>OSW</Table.Cell>
             {nonInterns.map((count, i) => (
               <Table.Cell key={months[i].format('YYYY-MM')} textAlign="right">
                 {formatCount(count)}
@@ -112,7 +112,7 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
           <Table.Row key={`${location}-${clinic}-staff`}>
             <Table.Cell>{location}</Table.Cell>
             <Table.Cell>{clinic}</Table.Cell>
-            <Table.Cell>Staff</Table.Cell>
+            <Table.Cell>Staff Support</Table.Cell>
             {staff.map((count, i) => (
               <Table.Cell key={months[i].format('YYYY-MM')} textAlign="right">
                 {formatCount(count)}
