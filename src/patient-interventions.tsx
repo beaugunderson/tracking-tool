@@ -355,6 +355,12 @@ const FINANCIAL = {
       name: 'State/Federal Income',
       description: 'Benefits consultation, assistance with SSI, SSDI, Food Stamps, LIHEAP, TANF',
       community: true
+    },
+    {
+      name: 'Legal',
+      description:
+        'For discussions, referrals related to legal concerns, including estate planning, immigration letters, coordination with legal systems, etc.',
+      community: true
     }
   ])
 };
