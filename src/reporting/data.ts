@@ -75,6 +75,10 @@ export interface TransformedEncounter extends PatientEncounter {
   parsedNumberOfTasks: number;
   parsedNumberOfTasksMinusDocumentation: number;
 
+  gadScoreLabel?: string;
+  mocaScoreLabel?: string;
+  phqScoreLabel?: string;
+
   tests: string[];
 }
 
@@ -158,6 +162,42 @@ async function getAllEncounters(filename: string): Promise<PatientEncounter[]> {
   });
 }
 
+function scoreGad(score: number) {
+  if (score >= 15) {
+    return 'Severe';
+  }
+
+  if (score >= 10) {
+    return 'Moderate';
+  }
+
+  return 'Mild, minimal, or none';
+}
+
+function scoreMoca(score: number) {
+  if (score >= 26) {
+    return 'Normal';
+  }
+
+  return 'May indicate cognitive impairment';
+}
+
+function scorePhq(score: number) {
+  if (score >= 20) {
+    return 'Severe';
+  }
+
+  if (score >= 15) {
+    return 'Moderately severe';
+  }
+
+  if (score >= 10) {
+    return 'Moderate';
+  }
+
+  return 'Mild, minimal, or none';
+}
+
 export function transformEncounter(encounter: PatientEncounter): TransformedEncounter {
   let age: number | undefined;
   let ageBucket: AgeBucket | undefined;
@@ -187,6 +227,22 @@ export function transformEncounter(encounter: PatientEncounter): TransformedEnco
     ? Math.max(parsedNumberOfTasks - 1, 0)
     : parsedNumberOfTasks;
 
+  let gadScoreLabel: string;
+  let mocaScoreLabel: string;
+  let phqScoreLabel: string;
+
+  if (encounter.gad && /\d+/.test(encounter.gadScore)) {
+    gadScoreLabel = scoreGad(parseInt(encounter.gadScore, 10));
+  }
+
+  if (encounter.moca && /\d+/.test(encounter.mocaScore)) {
+    mocaScoreLabel = scoreMoca(parseInt(encounter.mocaScore, 10));
+  }
+
+  if (encounter.phq && /\d+/.test(encounter.phqScore)) {
+    phqScoreLabel = scorePhq(parseInt(encounter.phqScore, 10));
+  }
+
   return {
     ...encounter,
 
@@ -213,6 +269,10 @@ export function transformEncounter(encounter: PatientEncounter): TransformedEnco
     parsedNumberOfTasks,
 
     parsedNumberOfTasksMinusDocumentation,
+
+    phqScoreLabel,
+    gadScoreLabel,
+    mocaScoreLabel,
 
     numberOfInterventions: ['patient', 'community'].includes(encounter.encounterType)
       ? INTERVENTIONS.reduce(

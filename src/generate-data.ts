@@ -74,10 +74,22 @@ export function insertExamples(encounters: Nedb) {
     const patient = sample(patients) as any;
 
     const sampledInterventions = sampleSize(INTERVENTIONS, 1 + Math.floor(Math.random() * 5));
-    const interventionValues: { [key: string]: boolean } = {};
+    const interventionValues: { [key: string]: boolean | string } = {};
 
     for (const intervention of sampledInterventions) {
       interventionValues[intervention.fieldName] = true;
+    }
+
+    if (sampledInterventions.some(i => i.fieldName === 'gad')) {
+      interventionValues.gadScore = `${Math.floor(Math.random() * 20)}`;
+    }
+
+    if (sampledInterventions.some(i => i.fieldName === 'moca')) {
+      interventionValues.mocaScore = `${Math.floor(Math.random() * 50)}`;
+    }
+
+    if (sampledInterventions.some(i => i.fieldName === 'phq')) {
+      interventionValues.phqScore = `${Math.floor(Math.random() * 25)}`;
     }
 
     // 10% of the time generate a new diagnosis

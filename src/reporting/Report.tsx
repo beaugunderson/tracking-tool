@@ -91,16 +91,19 @@ export class Report extends React.Component<ReportProps, ReportState> {
     // #region chart definitions
     const ageBucketChart = dc.rowChart('#age-chart');
     const clinicChart = dc.rowChart('#clinic-chart');
+    const dayOfWeekChart = dc.barChart('#number-of-tasks-chart');
     const diagnosisChart = dc.rowChart('#diagnosis-chart');
     const doctorChart = dc.rowChart('#doctor-chart');
     const encounterTypeChart = dc.rowChart('#encounter-type-chart');
     const encountersByDateChart = dc.barChart('#encounter-date-chart');
+    const gadChart = dc.rowChart('#gad-chart');
     const interventionChart = dc.rowChart('#intervention-chart');
     const limitedEnglishProficiencyChart = dc.rowChart('#limited-english-proficiency-chart');
     const locationChart = dc.rowChart('#location-chart');
-    const dayOfWeekChart = dc.barChart('#number-of-tasks-chart');
+    const mocaChart = dc.rowChart('#moca-chart');
     const numberOfInterventionsChart = dc.barChart('#number-of-interventions-chart');
     const otherCategoryChart = dc.rowChart('#other-category-chart');
+    const phqChart = dc.rowChart('#phq-chart');
     const researchChart = dc.rowChart('#research-chart');
     const stageChart = dc.rowChart('#stage-chart');
     const testChart = dc.rowChart('#test-chart');
@@ -381,6 +384,63 @@ export class Report extends React.Component<ReportProps, ReportState> {
     timeChart.yAxisMin = () => 0;
 
     timeChart.render();
+    // #endregion
+
+    // #region gad
+    const gadDimension = ndx.dimension(d => d.gadScoreLabel || EXCLUDE_STRING_VALUE);
+    const gadGroup = gadDimension.group().reduceCount();
+
+    gadChart
+      .dimension(gadDimension)
+      .group(removeExcludedData(gadGroup))
+      .width(windowWidth / 4)
+      .height(200)
+      .elasticX(true)
+      .renderTitleLabel(true)
+      .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
+      .title(d => d.value)
+      .xAxis()
+      .ticks(4);
+
+    gadChart.render();
+    // #endregion
+
+    // #region moca
+    const mocaDimension = ndx.dimension(d => d.mocaScoreLabel || EXCLUDE_STRING_VALUE);
+    const mocaGroup = mocaDimension.group().reduceCount();
+
+    mocaChart
+      .dimension(mocaDimension)
+      .group(removeExcludedData(mocaGroup))
+      .width(windowWidth / 4)
+      .height(200)
+      .elasticX(true)
+      .renderTitleLabel(true)
+      .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
+      .title(d => d.value)
+      .xAxis()
+      .ticks(4);
+
+    mocaChart.render();
+    // #endregion
+
+    // #region phq
+    const phqDimension = ndx.dimension(d => d.phqScoreLabel || EXCLUDE_STRING_VALUE);
+    const phqGroup = phqDimension.group().reduceCount();
+
+    phqChart
+      .dimension(phqDimension)
+      .group(removeExcludedData(phqGroup))
+      .width(windowWidth / 4)
+      .height(200)
+      .elasticX(true)
+      .renderTitleLabel(true)
+      .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
+      .title(d => d.value)
+      .xAxis()
+      .ticks(4);
+
+    phqChart.render();
     // #endregion
 
     // #region by age
@@ -746,6 +806,26 @@ export class Report extends React.Component<ReportProps, ReportState> {
           <div className="clear" />
         </div>
 
+        <div id="test-chart">
+          <strong>Tests Given</strong>
+          <div className="clear" />
+        </div>
+
+        <div id="gad-chart">
+          <strong>GAD Scores</strong>
+          <div className="clear" />
+        </div>
+
+        <div id="moca-chart">
+          <strong>MOCA Scores</strong>
+          <div className="clear" />
+        </div>
+
+        <div id="phq-chart">
+          <strong>PHQ Scores</strong>
+          <div className="clear" />
+        </div>
+
         <div id="age-chart">
           <strong>Age (unique MRNs)</strong>
           <div className="clear" />
@@ -768,11 +848,6 @@ export class Report extends React.Component<ReportProps, ReportState> {
 
         <div id="encounter-type-chart">
           <strong>Tasks per Type</strong>
-          <div className="clear" />
-        </div>
-
-        <div id="test-chart">
-          <strong>Tests Given</strong>
           <div className="clear" />
         </div>
 
