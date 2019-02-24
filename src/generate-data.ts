@@ -81,15 +81,15 @@ export function insertExamples(encounters: Nedb) {
     }
 
     if (sampledInterventions.some(i => i.fieldName === 'gad')) {
-      interventionValues.gadScore = `${Math.floor(Math.random() * 20)}`;
+      interventionValues.gadScore = sample([`${Math.floor(Math.random() * 20)}`, 'n/a']);
     }
 
     if (sampledInterventions.some(i => i.fieldName === 'moca')) {
-      interventionValues.mocaScore = `${Math.floor(Math.random() * 50)}`;
+      interventionValues.mocaScore = sample([`${Math.floor(Math.random() * 50)}`, 'n/a']);
     }
 
     if (sampledInterventions.some(i => i.fieldName === 'phq')) {
-      interventionValues.phqScore = `${Math.floor(Math.random() * 25)}`;
+      interventionValues.phqScore = sample([`${Math.floor(Math.random() * 25)}`, 'n/a']);
     }
 
     // 10% of the time generate a new diagnosis

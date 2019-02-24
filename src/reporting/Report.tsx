@@ -418,6 +418,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .width(windowWidth / 4)
       .height(200)
       .elasticX(true)
+      .ordinalColors(colors)
       .renderTitleLabel(true)
       .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
       .title(d => d.value)
@@ -437,6 +438,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .width(windowWidth / 4)
       .height(200)
       .elasticX(true)
+      .ordinalColors(colors)
       .renderTitleLabel(true)
       .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
       .title(d => d.value)
@@ -454,6 +456,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .dimension(phqDimension)
       .group(removeExcludedData(phqGroup))
       .width(windowWidth / 4)
+      .ordinalColors(colors)
       .height(200)
       .elasticX(true)
       .renderTitleLabel(true)
@@ -481,6 +484,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .elasticX(true)
       .dimension(ageDimension)
       .group(removeExcludedData(ageGroup))
+      .ordinalColors(colors)
       .valueAccessor(d => d.value.exceptionCount)
       .ordering(d => -d.value.exceptionCount)
       .renderTitleLabel(true)
@@ -502,6 +506,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .elasticX(true)
       .dimension(diagnosisDimension)
       .group(removeExcludedData(diagnosisGroup))
+      .ordinalColors(colors)
       .valueAccessor(d => d.value.exceptionCount)
       .ordering(d => -d.value.exceptionCount)
       .renderTitleLabel(true)
@@ -529,6 +534,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .elasticX(true)
       .dimension(stageDimension)
       .group(removeExcludedData(stageGroup))
+      .ordinalColors(colors)
       .valueAccessor(d => d.value.exceptionCount)
       .ordering(d => -d.value.exceptionCount)
       .renderTitleLabel(true)
@@ -556,6 +562,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .elasticX(true)
       .dimension(researchDimension)
       .group(removeExcludedData(researchGroup))
+      .ordinalColors(colors)
       .valueAccessor(d => d.value.exceptionCount)
       .ordering(d => -d.value.exceptionCount)
       .renderTitleLabel(true)
@@ -579,6 +586,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .elasticX(true)
       .dimension(encounterTypeDimension)
       .group(encounterTypeGroup)
+      .ordinalColors(colors)
       .renderTitleLabel(true)
       .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
       .title(d => d.value)
@@ -647,6 +655,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .ordinalColors(colors)
       .dimension(otherCategoryDimension)
       .group(removeExcludedData(otherCategoryGroup))
+      .ordinalColors(colors)
       .renderTitleLabel(true)
       .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
       .title(d => d.value)
@@ -843,6 +852,11 @@ export class Report extends React.Component<ReportProps, ReportState> {
           <div className="clear" />
         </div>
 
+        <div id="phq-chart">
+          <strong>PHQ Scores</strong>
+          <div className="clear" />
+        </div>
+
         <div id="gad-chart">
           <strong>GAD Scores</strong>
           <div className="clear" />
@@ -850,11 +864,6 @@ export class Report extends React.Component<ReportProps, ReportState> {
 
         <div id="moca-chart">
           <strong>MOCA Scores</strong>
-          <div className="clear" />
-        </div>
-
-        <div id="phq-chart">
-          <strong>PHQ Scores</strong>
           <div className="clear" />
         </div>
 
@@ -896,13 +905,13 @@ export class Report extends React.Component<ReportProps, ReportState> {
         <div className="clear" />
 
         <div>
-          <div id="clinic-chart">
-            <strong>Tasks per Clinic</strong>
+          <div id="location-chart">
+            <strong>Tasks per Location</strong>
             <div className="clear" />
           </div>
 
-          <div id="location-chart">
-            <strong>Tasks per Location</strong>
+          <div id="clinic-chart">
+            <strong>Tasks per Clinic</strong>
             <div className="clear" />
           </div>
 

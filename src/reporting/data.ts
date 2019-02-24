@@ -16,6 +16,8 @@ export type AgeBucket = '<= 39 years' | '40 to 64 years' | '>= 65 years';
 export const EXCLUDE_NUMBER_VALUE = -666;
 export const EXCLUDE_STRING_VALUE = '__EXCLUDE__';
 
+const RE_SCORE = /\d+|n\/a/i;
+
 moment.parseTwoDigitYear = function parseTwoDigitYear(yearString) {
   const currentYear = moment().year() - 2000;
   const year = parseInt(yearString, 10);
@@ -162,7 +164,13 @@ async function getAllEncounters(filename: string): Promise<PatientEncounter[]> {
   });
 }
 
-function scoreGad(score: number) {
+function scoreGad(scoreString: string) {
+  if (scoreString.toLowerCase() === 'n/a') {
+    return 'Declined';
+  }
+
+  const score = parseInt(scoreString, 10);
+
   if (score >= 15) {
     return 'Severe';
   }
@@ -174,7 +182,13 @@ function scoreGad(score: number) {
   return 'Mild, minimal, or none';
 }
 
-function scoreMoca(score: number) {
+function scoreMoca(scoreString: string) {
+  if (scoreString.toLowerCase() === 'n/a') {
+    return 'Declined';
+  }
+
+  const score = parseInt(scoreString, 10);
+
   if (score >= 26) {
     return 'Normal';
   }
@@ -182,7 +196,13 @@ function scoreMoca(score: number) {
   return 'May indicate cognitive impairment';
 }
 
-function scorePhq(score: number) {
+function scorePhq(scoreString: string) {
+  if (scoreString.toLowerCase() === 'n/a') {
+    return 'Declined';
+  }
+
+  const score = parseInt(scoreString, 10);
+
   if (score >= 20) {
     return 'Severe';
   }
@@ -231,16 +251,16 @@ export function transformEncounter(encounter: PatientEncounter): TransformedEnco
   let mocaScoreLabel: string;
   let phqScoreLabel: string;
 
-  if (encounter.gad && /\d+/.test(encounter.gadScore)) {
-    gadScoreLabel = scoreGad(parseInt(encounter.gadScore, 10));
+  if (encounter.gad && RE_SCORE.test(encounter.gadScore)) {
+    gadScoreLabel = scoreGad(encounter.gadScore);
   }
 
-  if (encounter.moca && /\d+/.test(encounter.mocaScore)) {
-    mocaScoreLabel = scoreMoca(parseInt(encounter.mocaScore, 10));
+  if (encounter.moca && RE_SCORE.test(encounter.mocaScore)) {
+    mocaScoreLabel = scoreMoca(encounter.mocaScore);
   }
 
-  if (encounter.phq && /\d+/.test(encounter.phqScore)) {
-    phqScoreLabel = scorePhq(parseInt(encounter.phqScore, 10));
+  if (encounter.phq && RE_SCORE.test(encounter.phqScore)) {
+    phqScoreLabel = scorePhq(encounter.phqScore);
   }
 
   return {
