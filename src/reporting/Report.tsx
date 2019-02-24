@@ -161,6 +161,28 @@ export class Report extends React.Component<ReportProps, ReportState> {
     renderNumber('#total-tasks', ndx.groupAll().reduceSum(d => d.parsedNumberOfTasks));
 
     renderNumber(
+      '#average-minutes-per-entry',
+      ndx.groupAll().reduce(add, remove, init),
+      (entries: TransformedEncounter[]) => {
+        let minuteCount = 0;
+        let entryCount = 0;
+
+        entries.forEach(entry => {
+          if (entry.mrn === EXCLUDE_STRING_VALUE) {
+            return;
+          }
+
+          minuteCount += parseInt(entry.timeSpent, 10);
+          entryCount += 1;
+        });
+
+        const value = minuteCount / entryCount;
+
+        return isNaN(value) ? 0 : value;
+      }
+    );
+
+    renderNumber(
       '#average-tasks-per-entry',
       ndx.groupAll().reduce(add, remove, init),
       (entries: TransformedEncounter[]) => {
@@ -738,13 +760,21 @@ export class Report extends React.Component<ReportProps, ReportState> {
           <Button onClick={() => window.print()}>Print</Button>
         </div>
 
-        <Statistic.Group widths="5">
+        <Statistic.Group widths="6">
           <Statistic>
             <Statistic.Value>
               <span id="total-tasks" />
             </Statistic.Value>
 
             <Statistic.Label>Total tasks</Statistic.Label>
+          </Statistic>
+
+          <Statistic>
+            <Statistic.Value>
+              <span id="average-minutes-per-entry" />
+            </Statistic.Value>
+
+            <Statistic.Label>Average minutes/entry</Statistic.Label>
           </Statistic>
 
           <Statistic>
