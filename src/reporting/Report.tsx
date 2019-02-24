@@ -605,7 +605,9 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .ordering(d => -d.value.exceptionCount)
       .renderTitleLabel(true)
       .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
-      .title(d => d.value.exceptionCount);
+      .title(d => d.value.exceptionCount)
+      .xAxis()
+      .ticks(4);
 
     limitedEnglishProficiencyChart.render();
     // #endregion
