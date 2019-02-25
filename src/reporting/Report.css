@@ -2,6 +2,10 @@
   fill: #000 !important;
 }
 
+.dc-chart text.barLabel {
+  font-size: 12px;
+}
+
 .reset {
   cursor: pointer;
 }
