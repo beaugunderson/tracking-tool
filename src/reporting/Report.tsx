@@ -1,12 +1,15 @@
+/* eslint-disable no-await-in-loop */
 import '../../node_modules/dc/dc.css';
 import './Report.css';
 import * as d3 from 'd3';
 import crossfilter from 'crossfilter2';
 import dc from 'dc';
+import mergeImg from 'merge-img';
 import moment from 'moment';
 import React from 'react';
 import reductio from 'reductio';
-import { Button, Checkbox, Statistic } from 'semantic-ui-react';
+import typedArrayToBuffer from 'typedarray-to-buffer';
+import { Button, Checkbox, Container, Dimmer, Loader, Modal, Statistic } from 'semantic-ui-react';
 import {
   EXCLUDE_NUMBER_VALUE,
   EXCLUDE_STRING_VALUE,
@@ -23,6 +26,8 @@ import {
 import { isBoolean, isNaN, isString, keys, map, sum, values, zipObject } from 'lodash';
 import { OTHER_ENCOUNTER_OPTIONS } from '../forms/OtherEncounterForm';
 import { usernameToName } from '../usernames';
+
+const { remote, screen } = window.require('electron');
 
 const DEFAULT_MARGINS = { top: 10, right: 50, bottom: 30, left: 30 };
 const OUR_MARGINS = { ...DEFAULT_MARGINS, left: 55 };
@@ -49,6 +54,23 @@ const MOCA_ORDERING = {
   [SCORE_DECLINED]: 2
 };
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function screenshot(difference?: number) {
+  const { scaleFactor } = screen.getPrimaryDisplay();
+
+  const captureRect = {
+    x: 0,
+    y: difference || 0,
+    width: window.innerWidth * scaleFactor,
+    height: (difference ? window.innerHeight - difference : window.innerHeight) * scaleFactor
+  };
+
+  return new Promise(resolve => remote.getCurrentWindow().capturePage(captureRect, resolve));
+}
+
 function removeExcludedData(group) {
   return {
     all() {
@@ -70,6 +92,8 @@ interface ReportProps {
 interface ReportState {
   encounters?: TransformedEncounter[];
   hideSocialWorkers?: boolean;
+  loading?: boolean;
+  screenshotData?: string;
   windowWidth?: number;
 }
 
@@ -789,10 +813,76 @@ export class Report extends React.Component<ReportProps, ReportState> {
   render() {
     return (
       <div className={this.state.hideSocialWorkers ? 'hide-social-workers' : ''}>
+        {this.state.loading && (
+          <Dimmer active>
+            <Loader size="large" />
+          </Dimmer>
+        )}
+
+        <Modal open={!!this.state.screenshotData}>
+          <Modal.Header>Screenshot</Modal.Header>
+
+          <Modal.Content>
+            <Container textAlign="center">
+              <img
+                src={this.state.screenshotData}
+                alt="Screenshot"
+                style={{ maxHeight: '800px', maxWidth: '100%' }}
+              />
+            </Container>
+          </Modal.Content>
+
+          <Modal.Actions>
+            <Button
+              onClick={() => this.setState({ screenshotData: null })}
+              positive
+              content="Close"
+            />
+          </Modal.Actions>
+        </Modal>
+
         <div>
           <Button onClick={() => this.props.onComplete()}>Back</Button>
 
           <Button onClick={() => window.print()}>Print</Button>
+
+          <Button
+            onClick={async () => {
+              const images = [];
+              const height = document.scrollingElement.scrollHeight;
+              const widthWithoutScrollbars = document.body.scrollWidth;
+
+              for (let y = 0; y < height; y += window.innerHeight) {
+                window.scrollTo(0, y);
+
+                await sleep(250);
+
+                // were we able to scroll the full amount?
+                const difference = y - window.scrollY;
+
+                if (difference > 0) {
+                  images.push(await screenshot(difference));
+                } else {
+                  images.push(await screenshot());
+                }
+              }
+
+              window.scrollTo(0, 0);
+
+              this.setState({ loading: true });
+
+              const pngs = images.map(image => typedArrayToBuffer(image.toPNG()));
+              const merged = await mergeImg(pngs, { direction: true });
+
+              merged.crop(0, 0, widthWithoutScrollbars * 2, merged.bitmap.height);
+
+              merged.getBase64('image/png', (err, screenshotData) => {
+                this.setState({ loading: false, screenshotData });
+              });
+            }}
+          >
+            Screenshot
+          </Button>
         </div>
 
         <Statistic.Group widths="6">
