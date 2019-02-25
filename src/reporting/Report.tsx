@@ -355,7 +355,9 @@ export class Report extends React.Component<ReportProps, ReportState> {
     // #endregion
 
     // #region number of interventions
-    const numberOfInterventionsDimension = ndx.dimension(d => d.numberOfInterventions);
+    const numberOfInterventionsDimension = ndx.dimension(d =>
+      d.numberOfInterventions < 10 ? `${d.numberOfInterventions}` : '10+'
+    );
     const numberOfInterventionsGroup = numberOfInterventionsDimension.group();
 
     numberOfInterventionsChart
