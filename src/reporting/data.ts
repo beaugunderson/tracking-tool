@@ -164,58 +164,67 @@ async function getAllEncounters(filename: string): Promise<PatientEncounter[]> {
   });
 }
 
+export const SCORE_DECLINED = 'Declined';
+export const SCORE_SEVERE = 'Severe';
+export const SCORE_MODERATE = 'Moderate';
+export const SCORE_MODERATELY_SEVERE = 'Moderately severe';
+export const SCORE_MILD_MINIMAL_OR_NONE = 'Mild, minimal, or none';
+
+export const SCORE_NORMAL = 'Normal';
+export const SCORE_MAY_INDICATE_COGNITIVE_IMPAIRMENT = 'May indicate cognitive impairment';
+
 function scoreGad(scoreString: string) {
   if (scoreString.toLowerCase() === 'n/a') {
-    return 'Declined';
+    return SCORE_DECLINED;
   }
 
   const score = parseInt(scoreString, 10);
 
   if (score >= 15) {
-    return 'Severe';
+    return SCORE_SEVERE;
   }
 
   if (score >= 10) {
-    return 'Moderate';
+    return SCORE_MODERATE;
   }
 
-  return 'Mild, minimal, or none';
+  return SCORE_MILD_MINIMAL_OR_NONE;
 }
 
 function scoreMoca(scoreString: string) {
   if (scoreString.toLowerCase() === 'n/a') {
-    return 'Declined';
+    return SCORE_DECLINED;
   }
 
   const score = parseInt(scoreString, 10);
 
   if (score >= 26) {
-    return 'Normal';
+    return SCORE_NORMAL;
   }
 
-  return 'May indicate cognitive impairment';
+  return SCORE_MAY_INDICATE_COGNITIVE_IMPAIRMENT;
 }
 
 function scorePhq(scoreString: string) {
   if (scoreString.toLowerCase() === 'n/a') {
-    return 'Declined';
+    return SCORE_DECLINED;
   }
 
   const score = parseInt(scoreString, 10);
 
   if (score >= 20) {
-    return 'Severe';
+    return SCORE_SEVERE;
   }
 
   if (score >= 15) {
-    return 'Moderately severe';
+    return SCORE_MODERATELY_SEVERE;
   }
 
   if (score >= 10) {
-    return 'Moderate';
+    return SCORE_MODERATE;
   }
 
-  return 'Mild, minimal, or none';
+  return SCORE_MILD_MINIMAL_OR_NONE;
 }
 
 export function transformEncounter(encounter: PatientEncounter): TransformedEncounter {

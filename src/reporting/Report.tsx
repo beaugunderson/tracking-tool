@@ -10,6 +10,13 @@ import { Button, Checkbox, Statistic } from 'semantic-ui-react';
 import {
   EXCLUDE_NUMBER_VALUE,
   EXCLUDE_STRING_VALUE,
+  SCORE_DECLINED,
+  SCORE_MAY_INDICATE_COGNITIVE_IMPAIRMENT,
+  SCORE_MILD_MINIMAL_OR_NONE,
+  SCORE_MODERATE,
+  SCORE_MODERATELY_SEVERE,
+  SCORE_NORMAL,
+  SCORE_SEVERE,
   transform,
   TransformedEncounter
 } from './data';
@@ -27,6 +34,20 @@ const OTHER_FIELD_MAPPING = zipObject(OTHER_FIELD_NAMES, map(
 ) as string[]);
 
 const TITLE_PADDING = 78;
+
+const GAD_PHQ_ORDERING = {
+  [SCORE_SEVERE]: 0,
+  [SCORE_MODERATELY_SEVERE]: 1,
+  [SCORE_MODERATE]: 2,
+  [SCORE_MILD_MINIMAL_OR_NONE]: 3,
+  [SCORE_DECLINED]: 4
+};
+
+const MOCA_ORDERING = {
+  [SCORE_MAY_INDICATE_COGNITIVE_IMPAIRMENT]: 0,
+  [SCORE_NORMAL]: 1,
+  [SCORE_DECLINED]: 2
+};
 
 function removeExcludedData(group) {
   return {
@@ -422,6 +443,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .renderTitleLabel(true)
       .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
       .title(d => d.value)
+      .ordering(d => GAD_PHQ_ORDERING[d.key])
       .xAxis()
       .ticks(4);
 
@@ -442,6 +464,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .renderTitleLabel(true)
       .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
       .title(d => d.value)
+      .ordering(d => MOCA_ORDERING[d.key])
       .xAxis()
       .ticks(4);
 
@@ -462,6 +485,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .renderTitleLabel(true)
       .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
       .title(d => d.value)
+      .ordering(d => GAD_PHQ_ORDERING[d.key])
       .xAxis()
       .ticks(4);
 
