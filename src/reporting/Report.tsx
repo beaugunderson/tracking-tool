@@ -148,6 +148,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
     const mocaChart = dc.rowChart('#moca-chart');
     const numberOfInterventionsChart = dc.barChart('#number-of-interventions-chart');
     const otherCategoryChart = dc.rowChart('#other-category-chart');
+    const otherCategoryTimeChart = dc.rowChart('#other-category-time-chart');
     const phqChart = dc.rowChart('#phq-chart');
     const researchChart = dc.rowChart('#research-chart');
     const stageChart = dc.rowChart('#stage-chart');
@@ -696,7 +697,11 @@ export class Report extends React.Component<ReportProps, ReportState> {
     const otherCategoryDimension = ndx.dimension(d =>
       d.activity ? OTHER_FIELD_MAPPING[d.activity] : EXCLUDE_STRING_VALUE
     );
+
     const otherCategoryGroup = otherCategoryDimension.group();
+    const otherCategoryTimeGroup = otherCategoryDimension
+      .group()
+      .reduceSum(d => parseInt(d.timeSpent, 10));
 
     otherCategoryChart
       .width(windowWidth / 4)
@@ -713,6 +718,22 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .ticks(5);
 
     otherCategoryChart.render();
+
+    otherCategoryTimeChart
+      .width(windowWidth / 4)
+      .height(200)
+      .elasticX(true)
+      .ordinalColors(colors)
+      .dimension(otherCategoryDimension)
+      .group(removeExcludedData(otherCategoryTimeGroup))
+      .ordinalColors(colors)
+      .renderTitleLabel(true)
+      .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
+      .title(d => d.value)
+      .xAxis()
+      .ticks(5);
+
+    otherCategoryTimeChart.render();
     // #endregion
 
     // #region by social worker
@@ -824,11 +845,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
 
           <Modal.Content>
             <Container textAlign="center">
-              <img
-                src={this.state.screenshotData}
-                alt="Screenshot"
-                style={{ maxHeight: '800px', maxWidth: '100%' }}
-              />
+              <img alt="Screenshot" className="screenshot" src={this.state.screenshotData} />
             </Container>
           </Modal.Content>
 
@@ -1014,7 +1031,12 @@ export class Report extends React.Component<ReportProps, ReportState> {
         </div>
 
         <div id="other-category-chart">
-          <strong>Other category</strong>
+          <strong>Other category (entries)</strong>
+          <div className="clear" />
+        </div>
+
+        <div id="other-category-time-chart">
+          <strong>Other category (time)</strong>
           <div className="clear" />
         </div>
 

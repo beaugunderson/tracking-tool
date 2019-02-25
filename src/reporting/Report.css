@@ -13,3 +13,8 @@
 .hide-social-workers #user-chart svg {
   visibility: hidden;
 }
+
+img.screenshot {
+  max-height: 800px;
+  max-width: 100%;
+}
