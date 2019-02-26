@@ -381,7 +381,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
 
     // #region number of interventions
     const numberOfInterventionsDimension = ndx.dimension(d =>
-      d.numberOfInterventions < 10 ? `${d.numberOfInterventions}` : '10+'
+      d.numberOfInterventions < 10 ? d.numberOfInterventions : 10
     );
     const numberOfInterventionsGroup = numberOfInterventionsDimension.group();
 
@@ -400,7 +400,17 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .margins(OUR_MARGINS)
       .group(removeExcludedData(numberOfInterventionsGroup));
 
-    numberOfInterventionsChart.xAxis().ticks(7);
+    numberOfInterventionsChart
+      .xAxis()
+      .ticks(7)
+      .tickFormat(d => {
+        if (d === 10) {
+          return '10+';
+        }
+
+        return d3.format('d')(d);
+      });
+
     numberOfInterventionsChart.yAxisMin = () => 0;
 
     numberOfInterventionsChart.render();
@@ -701,7 +711,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
     const otherCategoryGroup = otherCategoryDimension.group();
     const otherCategoryTimeGroup = otherCategoryDimension
       .group()
-      .reduceSum(d => parseInt(d.timeSpent, 10));
+      .reduceSum(d => parseInt(d.timeSpent, 10) / 60);
 
     otherCategoryChart
       .width(windowWidth / 4)
@@ -729,7 +739,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .ordinalColors(colors)
       .renderTitleLabel(true)
       .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
-      .title(d => d.value)
+      .title(d => d3.format('.1~f')(d.value))
       .xAxis()
       .ticks(5);
 
@@ -1036,7 +1046,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
         </div>
 
         <div id="other-category-time-chart">
-          <strong>Other category (time)</strong>
+          <strong>Other category (hours)</strong>
           <div className="clear" />
         </div>
 
