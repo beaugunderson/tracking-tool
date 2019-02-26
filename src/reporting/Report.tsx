@@ -1,4 +1,5 @@
 /* eslint-disable no-await-in-loop */
+
 import '../../node_modules/dc/dc.css';
 import './Report.css';
 import * as d3 from 'd3';
