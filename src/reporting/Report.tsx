@@ -875,6 +875,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
 
           <Button onClick={() => window.print()}>Print</Button>
 
+          {/*
           <Button
             onClick={async () => {
               const images = [];
@@ -912,6 +913,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
           >
             Screenshot
           </Button>
+          */}
         </div>
 
         <Statistic.Group widths="6">
