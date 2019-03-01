@@ -710,9 +710,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
     );
 
     const otherCategoryGroup = otherCategoryDimension.group();
-    const otherCategoryTimeGroup = otherCategoryDimension
-      .group()
-      .reduceSum(d => parseInt(d.timeSpent, 10) / 60);
+    const otherCategoryTimeGroup = otherCategoryDimension.group().reduceSum(d => d.timeSpentHours);
 
     otherCategoryChart
       .width(windowWidth / 4)
@@ -730,17 +728,20 @@ export class Report extends React.Component<ReportProps, ReportState> {
 
     otherCategoryChart.render();
 
+    const formatTitle = d3.format('.1~f');
+
     otherCategoryTimeChart
       .width(windowWidth / 4)
       .height(200)
-      .elasticX(true)
+      // causes super weird issue
+      // .elasticX(true)
       .ordinalColors(colors)
       .dimension(otherCategoryDimension)
       .group(removeExcludedData(otherCategoryTimeGroup))
       .ordinalColors(colors)
       .renderTitleLabel(true)
       .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
-      .title(d => d3.format('.1~f')(d.value))
+      .title(d => formatTitle(d.value))
       .xAxis()
       .ticks(5);
 

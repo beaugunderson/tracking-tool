@@ -82,6 +82,8 @@ export interface TransformedEncounter extends PatientEncounter {
   phqScoreLabel?: string;
 
   tests: string[];
+
+  timeSpentHours: number;
 }
 
 interface CopiedFile {
@@ -308,7 +310,9 @@ export function transformEncounter(encounter: PatientEncounter): TransformedEnco
           (accumulator, intervention) => accumulator + (encounter[intervention.fieldName] ? 1 : 0),
           0
         )
-      : EXCLUDE_NUMBER_VALUE
+      : EXCLUDE_NUMBER_VALUE,
+
+    timeSpentHours: parseInt(encounter.timeSpent, 10) / 60
   };
 }
 
