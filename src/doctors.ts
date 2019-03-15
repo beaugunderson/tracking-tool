@@ -49,6 +49,7 @@ export const DOCTORS: string[] = [
   'Lindsley, Skylar',
   'Loiselle, Christopher',
   'Lopez, Jay',
+  'Lott, Jenny',
   'Louie, Brian',
   'Lynn, Cecilia',
   'Marrs, Jessie',
