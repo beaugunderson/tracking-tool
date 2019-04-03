@@ -158,10 +158,13 @@ async function getAllEncounters(filename: string): Promise<PatientEncounter[]> {
   });
 
   return new Promise((resolve, reject) => {
+    log.debug(`getAllEncounters: calling dataStore.find for "${filename}`);
+
     dataStore.find(
       { encounterType: { $exists: true } },
       (err: Error, results: PatientEncounter[]) => {
         if (err) {
+          log.debug(`getAllEncounters: error in dataStore.find "${err}"`);
           reject(err);
         } else {
           resolve(results);
@@ -334,13 +337,16 @@ export function transformEncounters(encounters: PatientEncounter[]) {
 export async function transform(): Promise<TransformedEncounter[]> {
   log.debug('transform: copying encounter files');
   const userEncounters = await copyEncounterFiles();
+
   const allEncounters: PatientEncounter[] = [];
 
   for (const userEncounter of userEncounters.files) {
-    log.debug(`transform: getting all encounters for ${userEncounter.filename}`);
+    log.debug(`transform: getting all encounters for "${userEncounter.filename}"`);
 
     // eslint-disable-next-line no-await-in-loop
     const encounters = await getAllEncounters(userEncounter.filename);
+
+    log.debug(`transform: got ${encounters.length} encounters for "${userEncounter.filename}"`);
 
     for (const encounter of encounters) {
       allEncounters.push({ ...encounter, username: userEncounter.username });
