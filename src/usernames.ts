@@ -23,6 +23,7 @@ export const USERNAMES = {
   stracp1: 'Carolyn Maret',
   stramr3: 'Meg Strader',
   torrdc1: 'Danielle McLaughlin',
+  tennta1: 'Tyne Tennyson-Ray',
   yangge1: 'Grace Yang',
 
   // development users
