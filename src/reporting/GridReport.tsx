@@ -12,6 +12,14 @@ const log = window.require('electron-log');
 
 const moment = extendMoment(Moment);
 
+function formatCount(count: number) {
+  if (count === 0) {
+    return <span className="count">{count}</span>;
+  }
+
+  return count;
+}
+
 interface GridReportProps {
   onComplete: (err?: Error) => void;
 }
@@ -58,7 +66,7 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
     types: ROW_TYPE[],
     months: Moment.Moment[]
   ) {
-    // log.debug(`rowsForPemutation: ${clinic}, ${location}, [${types}]`);
+    log.debug(`rowsForPemutation: ${clinic}, ${location}, [${types.join(', ')}]`);
 
     const { encounters } = this.state;
 
@@ -93,13 +101,7 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
       }
     }
 
-    function formatCount(count: number) {
-      if (count === 0) {
-        return <span className="count">{count}</span>;
-      }
-
-      return count;
-    }
+    log.debug(`rowsForPemutation returning`);
 
     return (
       <React.Fragment key={`${location}-${clinic}`}>
@@ -181,6 +183,8 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
     const max = monthStart(maxBy(encounters, 'encounterDate').encounterDate);
 
     const months = Array.from(moment.range(min, max).by('month'));
+
+    log.debug(`GridComponent render: rendering ${months.length} months`);
 
     return (
       <React.Fragment>
