@@ -40,6 +40,12 @@ export class ErrorMessage extends React.Component<ErrorProps> {
           <Header>Debugging information</Header>
 
           <List>
+            {isError(error) && (
+              <List.Item>
+                <strong>Stack:</strong> <pre style={{ whiteSpace: 'pre-wrap' }}>{error.stack}</pre>
+              </List.Item>
+            )}
+
             <List.Item>
               <strong>Version:</strong> <code>{app.getVersion()}</code>
             </List.Item>

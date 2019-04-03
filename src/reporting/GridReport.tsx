@@ -11,17 +11,19 @@ import { transform, TransformedEncounter } from './data';
 const moment = extendMoment(Moment);
 
 interface GridReportProps {
-  onComplete: () => void;
+  onComplete: (err?: Error) => void;
 }
 
 interface GridReportState {
   encounters: TransformedEncounter[] | null;
+  loading: boolean;
   removeDocumentationTasks?: boolean;
 }
 
 export class GridReport extends React.Component<GridReportProps, GridReportState> {
   state: GridReportState = {
     encounters: null,
+    loading: true,
     removeDocumentationTasks: false
   };
 
@@ -35,7 +37,11 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
   };
 
   async componentDidMount() {
-    this.setState({ encounters: await transform() });
+    try {
+      this.setState({ encounters: await transform(), loading: false });
+    } catch (e) {
+      this.props.onComplete(e);
+    }
   }
 
   rowsForPermutation(
@@ -130,10 +136,29 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
   }
 
   render() {
-    const { encounters } = this.state;
+    const { encounters, loading } = this.state;
 
-    if (!encounters) {
-      return null;
+    if (loading) {
+      return <h1>Loading encounters...</h1>;
+    }
+
+    const header = (
+      <div>
+        <Button onClick={() => this.props.onComplete()}>Back</Button>
+        <Button onClick={() => window.print()}>Print</Button>
+        &nbsp;&nbsp;&nbsp;
+        <Checkbox label="Remove documentation tasks" onChange={this.changeIncludeDocumentation} />
+      </div>
+    );
+
+    if (!encounters || encounters.length === 0) {
+      return (
+        <React.Fragment>
+          {header}
+
+          <h1>There are no encounters to display.</h1>
+        </React.Fragment>
+      );
     }
 
     function monthStart(date: string) {
@@ -147,15 +172,7 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
 
     return (
       <React.Fragment>
-        <div>
-          <Button onClick={() => this.props.onComplete()}>Back</Button>
-          <Button onClick={() => window.print()}>Print</Button>
-          &nbsp;&nbsp;&nbsp;
-          <Checkbox
-            label="Remove documentation tasks"
-            onChange={this.changeIncludeDocumentation}
-          />
-        </div>
+        {header}
 
         <Table>
           <Table.Header>

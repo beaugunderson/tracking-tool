@@ -244,7 +244,9 @@ export class App extends React.Component<{}, AppState> {
     }
 
     if (gridReporting) {
-      return <GridReport onComplete={() => this.setState({ gridReporting: false })} />;
+      return (
+        <GridReport onComplete={err => this.setState({ error: err, gridReporting: false })} />
+      );
     }
 
     if (reporting) {
