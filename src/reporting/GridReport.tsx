@@ -2,10 +2,10 @@ import './GridReport.css';
 import * as Moment from 'moment';
 import React from 'react';
 import { Button, Checkbox, CheckboxProps, Table } from 'semantic-ui-react';
-import { CLINICS, LOCATIONS, TREATMENT_CENTER } from '../options';
 import { extendMoment } from 'moment-range';
 import { INTERNS } from '../usernames';
 import { maxBy, minBy } from 'lodash';
+import { MONTHLY_REPORT_OPTIONS, ROW_TYPE } from '../options';
 import { transform, TransformedEncounter } from './data';
 
 const moment = extendMoment(Moment);
@@ -38,7 +38,12 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
     this.setState({ encounters: await transform() });
   }
 
-  rowsForPermutation(clinic: string, location: string, months: Moment.Moment[]) {
+  rowsForPermutation(
+    clinic: string,
+    location: string,
+    types: ROW_TYPE[],
+    months: Moment.Moment[]
+  ) {
     const { encounters } = this.state;
 
     const interns = months.map(() => 0);
@@ -82,7 +87,7 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
 
     return (
       <React.Fragment key={`${location}-${clinic}`}>
-        {nonInterns.some(count => count > 0) && (
+        {types.includes(ROW_TYPE.OSW) && (
           <Table.Row key={`${location}-${clinic}-non-interns`}>
             <Table.Cell>{location}</Table.Cell>
             <Table.Cell>{clinic}</Table.Cell>
@@ -95,7 +100,7 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
           </Table.Row>
         )}
 
-        {interns.some(count => count > 0) && (
+        {types.includes(ROW_TYPE.INTERNS) && (
           <Table.Row key={`${location}-${clinic}-interns`}>
             <Table.Cell>{location}</Table.Cell>
             <Table.Cell>{clinic}</Table.Cell>
@@ -108,7 +113,7 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
           </Table.Row>
         )}
 
-        {staff.some(count => count > 0) && (
+        {types.includes(ROW_TYPE.STAFF_SUPPORT) && (
           <Table.Row key={`${location}-${clinic}-staff`}>
             <Table.Cell>{location}</Table.Cell>
             <Table.Cell>{clinic}</Table.Cell>
@@ -140,14 +145,6 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
 
     const months = Array.from(moment.range(min, max).by('month'));
 
-    const permutations = [];
-
-    for (const location of LOCATIONS) {
-      for (const clinic of CLINICS.concat([TREATMENT_CENTER, 'Community'])) {
-        permutations.push([clinic, location]);
-      }
-    }
-
     return (
       <React.Fragment>
         <div>
@@ -175,8 +172,8 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
           </Table.Header>
 
           <Table.Body>
-            {permutations.map(([clinic, location]) =>
-              this.rowsForPermutation(clinic, location, months)
+            {MONTHLY_REPORT_OPTIONS.map(([location, clinic, type]) =>
+              this.rowsForPermutation(clinic, location, type, months)
             )}
           </Table.Body>
         </Table>
