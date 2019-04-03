@@ -8,6 +8,7 @@ import { rootPath } from '../store';
 const DataStore = window.require('nedb');
 const fs = window.require('fs');
 const glob = window.require('glob');
+const log = window.require('electron-log');
 const os = window.require('os');
 const rimraf = window.require('rimraf');
 
@@ -130,6 +131,8 @@ async function copyEncounterFiles(): Promise<CopyFilesResult> {
   const encounterFiles = await getEncounterFiles();
 
   for (const file of encounterFiles) {
+    log.debug(`copyEncounterFiles: copying "${file}"`);
+
     const parts = path.dirname(file).split(path.sep);
     const username = parts[parts.length - 1];
     const destination = path.join(copyPath, `${username}.json`);
@@ -146,6 +149,8 @@ async function copyEncounterFiles(): Promise<CopyFilesResult> {
 }
 
 async function getAllEncounters(filename: string): Promise<PatientEncounter[]> {
+  log.debug(`getAllEncounters: "${filename}"`);
+
   const dataStore: Nedb = new DataStore({
     autoload: true,
     filename,
@@ -317,6 +322,8 @@ export function transformEncounter(encounter: PatientEncounter): TransformedEnco
 }
 
 export function transformEncounters(encounters: PatientEncounter[]) {
+  log.debug(`transformEncounters: transforming ${encounters.length} encounters`);
+
   return encounters
     .filter(encounter =>
       ['community', 'patient', 'other', 'staff'].includes(encounter.encounterType)
@@ -325,10 +332,13 @@ export function transformEncounters(encounters: PatientEncounter[]) {
 }
 
 export async function transform(): Promise<TransformedEncounter[]> {
+  log.debug('transform: copying encounter files');
   const userEncounters = await copyEncounterFiles();
   const allEncounters: PatientEncounter[] = [];
 
   for (const userEncounter of userEncounters.files) {
+    log.debug(`transform: getting all encounters for ${userEncounter.filename}`);
+
     // eslint-disable-next-line no-await-in-loop
     const encounters = await getAllEncounters(userEncounter.filename);
 
@@ -337,7 +347,9 @@ export async function transform(): Promise<TransformedEncounter[]> {
     }
   }
 
+  log.debug(`transform: removing temporary directory "${userEncounters.temporaryDirectory}"`);
   rimraf.sync(userEncounters.temporaryDirectory, { glob: false });
 
+  log.debug(`transform: running transformEncounters on ${allEncounters.length} encounters`);
   return transformEncounters(allEncounters);
 }

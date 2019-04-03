@@ -8,6 +8,8 @@ import { maxBy, minBy } from 'lodash';
 import { MONTHLY_REPORT_OPTIONS, ROW_TYPE } from '../options';
 import { transform, TransformedEncounter } from './data';
 
+const log = window.require('electron-log');
+
 const moment = extendMoment(Moment);
 
 interface GridReportProps {
@@ -37,9 +39,15 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
   };
 
   async componentDidMount() {
+    log.debug('GridReport componentDidMount');
+
     try {
-      this.setState({ encounters: await transform(), loading: false });
+      const encounters = await transform();
+
+      log.debug(`GridReport componentDidMount: loaded ${encounters.length} encounters`);
+      this.setState({ encounters, loading: false });
     } catch (e) {
+      log.debug(`GridReport componentDidMount: error "${e}"`);
       this.props.onComplete(e);
     }
   }
@@ -50,6 +58,8 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
     types: ROW_TYPE[],
     months: Moment.Moment[]
   ) {
+    // log.debug(`rowsForPemutation: ${clinic}, ${location}, [${types}]`);
+
     const { encounters } = this.state;
 
     const interns = months.map(() => 0);
@@ -160,6 +170,8 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
         </React.Fragment>
       );
     }
+
+    log.debug(`GridComponent render: rendering ${encounters.length} encounters`);
 
     function monthStart(date: string) {
       return moment(date, 'YYYY-MM-DD').startOf('month');
