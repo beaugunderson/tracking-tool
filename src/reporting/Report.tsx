@@ -5,11 +5,11 @@ import './Report.css';
 import * as d3 from 'd3';
 import crossfilter from 'crossfilter2';
 import dc from 'dc';
-import mergeImg from 'merge-img';
+// import mergeImg from 'merge-img';
 import moment from 'moment';
 import React from 'react';
 import reductio from 'reductio';
-import typedArrayToBuffer from 'typedarray-to-buffer';
+// import typedArrayToBuffer from 'typedarray-to-buffer';
 import { Button, Checkbox, Container, Dimmer, Loader, Modal, Statistic } from 'semantic-ui-react';
 import {
   EXCLUDE_NUMBER_VALUE,
@@ -28,7 +28,7 @@ import { isBoolean, isNaN, isString, keys, map, sum, values, zipObject } from 'l
 import { OTHER_ENCOUNTER_OPTIONS } from '../forms/OtherEncounterForm';
 import { usernameToName } from '../usernames';
 
-const { remote, screen } = window.require('electron');
+// const { remote, screen } = window.require('electron');
 
 const DEFAULT_MARGINS = { top: 10, right: 50, bottom: 30, left: 30 };
 const OUR_MARGINS = { ...DEFAULT_MARGINS, left: 55 };
@@ -55,22 +55,22 @@ const MOCA_ORDERING = {
   [SCORE_DECLINED]: 2
 };
 
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
+// function sleep(ms) {
+//   return new Promise(resolve => setTimeout(resolve, ms));
+// }
 
-function screenshot(difference?: number) {
-  const { scaleFactor } = screen.getPrimaryDisplay();
+// function screenshot(difference?: number) {
+//   const { scaleFactor } = screen.getPrimaryDisplay();
 
-  const captureRect = {
-    x: 0,
-    y: difference || 0,
-    width: window.innerWidth * scaleFactor,
-    height: (difference ? window.innerHeight - difference : window.innerHeight) * scaleFactor
-  };
+//   const captureRect = {
+//     x: 0,
+//     y: difference || 0,
+//     width: window.innerWidth * scaleFactor,
+//     height: (difference ? window.innerHeight - difference : window.innerHeight) * scaleFactor
+//   };
 
-  return new Promise(resolve => remote.getCurrentWindow().capturePage(captureRect, resolve));
-}
+//   return new Promise(resolve => remote.getCurrentWindow().capturePage(captureRect, resolve));
+// }
 
 function removeExcludedData(group) {
   return {
