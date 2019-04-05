@@ -17,6 +17,7 @@ import {
 import { chain, escapeRegExp } from 'lodash';
 import { CommunityEncounterForm } from './forms/CommunityEncounterForm';
 import { CrisisReport } from './reporting/CrisisReport';
+import { DataAuditReport } from './reporting/DataAuditReport';
 import { ENCOUNTER_TYPE_NAMES, ENCOUNTER_TYPES } from './options';
 import { ensureUserDirectoryExists, rootPathExists } from './store';
 import { ErrorMessage } from './ErrorMessage';
@@ -36,16 +37,17 @@ function currentUserIn(users: string[]) {
   return users.indexOf(username.sync().toLowerCase()) !== -1;
 }
 
-const REPORTING_USERS = ['beau', 'carynstewart', 'johnss1', 'lindce2', 'nejash1', 'valejd1'];
-
 const canSeeFakeEncounters = () => currentUserIn(['beau', 'carynstewart']);
-const canSeeReporting = () => currentUserIn(REPORTING_USERS);
+const canSeeAuditReport = () => currentUserIn(['beau', 'carynstewart', 'lindce2']);
+const canSeeReporting = () =>
+  currentUserIn(['beau', 'carynstewart', 'johnss1', 'lindce2', 'nejash1', 'valejd1']);
 
 const DELETE_BUTTON = <Button negative>Delete</Button>;
 
 type AppState = {
   confirmDeletion: string | null;
   crisisReporting: boolean;
+  dataAuditReporting: boolean;
   encounter: any;
   encounterForm: string | null;
   encounters: any[];
@@ -67,6 +69,7 @@ export class App extends React.Component<{}, AppState> {
   state: AppState = {
     confirmDeletion: null,
     crisisReporting: false,
+    dataAuditReporting: false,
     encounter: null,
     encounterForm: null,
     encounters: [],
@@ -212,6 +215,7 @@ export class App extends React.Component<{}, AppState> {
     const {
       confirmDeletion,
       crisisReporting,
+      dataAuditReporting,
       encounter,
       encounterForm,
       error,
@@ -241,6 +245,10 @@ export class App extends React.Component<{}, AppState> {
 
     if (crisisReporting) {
       return <CrisisReport onComplete={() => this.setState({ crisisReporting: false })} />;
+    }
+
+    if (dataAuditReporting) {
+      return <DataAuditReport onComplete={() => this.setState({ dataAuditReporting: false })} />;
     }
 
     if (gridReporting) {
@@ -355,6 +363,12 @@ export class App extends React.Component<{}, AppState> {
               <Button onClick={() => this.setState({ crisisReporting: true })} size="big">
                 Crisis Report
               </Button>
+
+              {canSeeAuditReport() && (
+                <Button onClick={() => this.setState({ dataAuditReporting: true })} size="big">
+                  Data Audit Report
+                </Button>
+              )}
 
               <Button onClick={() => this.setState({ gridReporting: true })} size="big">
                 Monthly Report
