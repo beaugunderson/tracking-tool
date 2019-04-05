@@ -1,6 +1,7 @@
 import Moment from 'moment';
 import React from 'react';
 import { Button, Icon, Table } from 'semantic-ui-react';
+import { ENCOUNTER_TYPE_NAMES } from '../options';
 import { sortBy } from 'lodash';
 import { transform, TransformedEncounter } from './data';
 import { usernameToName } from '../usernames';
@@ -45,16 +46,16 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
     }
 
     function abnormalNumberOfTasks(encounter: TransformedEncounter) {
-      return encounter.parsedNumberOfTasks >= 5;
+      return encounter.parsedNumberOfTasks >= 6;
     }
 
     function abnormalTimeSpent(encounter: TransformedEncounter) {
-      return encounter.timeSpentHours >= 1.25;
+      return encounter.timeSpentHours >= 100 / 60;
     }
 
     const abnormalEncounters = sortBy(
       encounters.filter(encounter => {
-        if (encounter.encounterType !== 'patient') {
+        if (encounter.encounterType !== 'patient' && encounter.encounterType !== 'other') {
           return false;
         }
 
@@ -77,6 +78,7 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
         <Table>
           <Table.Header>
             <Table.Row>
+              <Table.HeaderCell>Type</Table.HeaderCell>
               <Table.HeaderCell>Social Worker</Table.HeaderCell>
               <Table.HeaderCell>Date</Table.HeaderCell>
               <Table.HeaderCell>MRN</Table.HeaderCell>
@@ -91,19 +93,22 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
           <Table.Body>
             {abnormalEncounters.map(encounter => (
               <Table.Row>
+                <Table.Cell>{ENCOUNTER_TYPE_NAMES[encounter.encounterType]}</Table.Cell>
                 <Table.Cell>{usernameToName(encounter.username)}</Table.Cell>
                 <Table.Cell negative={abnormalDate(encounter)}>
                   {encounter.parsedEncounterDate.format('MM/DD/YYYY')}
                 </Table.Cell>
                 <Table.Cell>
-                  <a onClick={() => clipboard.writeText(encounter.mrn)}>
-                    {encounter.mrn} <Icon name="copy" />
-                  </a>
+                  {encounter.encounterType === 'patient' && (
+                    <a onClick={() => clipboard.writeText(encounter.mrn)}>
+                      {encounter.mrn} <Icon name="copy" />
+                    </a>
+                  )}
                 </Table.Cell>
                 <Table.Cell>{encounter.location}</Table.Cell>
                 <Table.Cell>{encounter.clinic}</Table.Cell>
                 <Table.Cell negative={abnormalInterventions(encounter)}>
-                  {encounter.numberOfInterventions}
+                  {encounter.encounterType === 'patient' && encounter.numberOfInterventions}
                 </Table.Cell>
                 <Table.Cell negative={abnormalNumberOfTasks(encounter)}>
                   {encounter.numberOfTasks}
