@@ -4,7 +4,7 @@ import React from 'react';
 import { Button, Checkbox, CheckboxProps, Table } from 'semantic-ui-react';
 import { extendMoment } from 'moment-range';
 import { INTERNS } from '../usernames';
-import { maxBy, minBy } from 'lodash';
+// import { maxBy, minBy } from 'lodash';
 import { MONTHLY_REPORT_OPTIONS, ROW_TYPE } from '../options';
 import { transform, TransformedEncounter } from './data';
 
