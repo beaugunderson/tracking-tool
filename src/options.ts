@@ -133,7 +133,11 @@ export const CLINIC_LOCATION_OPTIONS = mapValues(CLINIC_LOCATIONS, locations =>
 );
 
 export const CLINIC_LOCATION_STAFF_OPTIONS = mapValues(CLINIC_LOCATIONS, (locations, clinic) =>
-  makeOptions(clinic !== CHERRY_HILL ? locations.concat([TREATMENT_CENTER]) : locations)
+  makeOptions(
+    clinic !== CHERRY_HILL && clinic !== TRUE_CANCER_CENTER
+      ? locations.concat([TREATMENT_CENTER])
+      : locations
+  )
 );
 
 export const COMMUNITY = 'Community';
