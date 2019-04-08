@@ -1,6 +1,6 @@
 const isDev = require('electron-is-dev');
 const path = require('path');
-const { app, BrowserWindow, ipcMain, Menu, shell } = require('electron');
+const { app, BrowserWindow, dialog, ipcMain, Menu, shell } = require('electron');
 const defaultMenu = require('electron-default-menu');
 
 require('electron-context-menu')({ showSaveImageAs: true });
@@ -47,6 +47,29 @@ const createWindow = () => {
       shell.openExternal(arg);
     });
   });
+
+  mainWindow.on('close', e => {
+    if (app.showExitPrompt) {
+      e.preventDefault();
+
+      dialog.showMessageBox(
+        {
+          type: 'question',
+          buttons: ['Yes', 'No'],
+          title: 'Confirm',
+          message: 'Are you sure you want to quit?'
+        },
+
+        response => {
+          if (response === 0) {
+            app.showExitPrompt = false;
+
+            mainWindow.close();
+          }
+        }
+      );
+    }
+  });
 };
 
 const generateMenu = () => {
@@ -58,6 +81,8 @@ const generateMenu = () => {
 };
 
 app.on('ready', () => {
+  app.showExitPrompt = true;
+
   createWindow();
   generateMenu();
 });
@@ -68,6 +93,8 @@ app.on('window-all-closed', () => {
 
 app.on('activate', () => {
   if (mainWindow === null) {
+    app.showExitPrompt = true;
+
     createWindow();
   }
 });
