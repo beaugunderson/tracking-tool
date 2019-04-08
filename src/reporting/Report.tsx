@@ -728,7 +728,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
 
     otherCategoryChart.render();
 
-    const formatTitle = d3.format('.1~f');
+    const formatTitle = d3.format('d');
 
     otherCategoryTimeChart
       .width(windowWidth / 4)
