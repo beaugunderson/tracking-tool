@@ -179,8 +179,12 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
       return moment(date, 'YYYY-MM-DD').startOf('month');
     }
 
-    const min = monthStart(minBy(encounters, 'encounterDate').encounterDate);
-    const max = monthStart(maxBy(encounters, 'encounterDate').encounterDate);
+    // has issues with automatic calculation when people enter the wrong encounter date
+    // const min = monthStart(minBy(encounters, 'encounterDate').encounterDate);
+    // const max = monthStart(maxBy(encounters, 'encounterDate').encounterDate);
+
+    const min = monthStart('2018-12-01');
+    const max = monthStart(moment().format('YYYY-MM-DD'));
 
     const months = Array.from(moment.range(min, max).by('month'));
 
