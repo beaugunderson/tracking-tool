@@ -14,7 +14,7 @@ type InterventionOption = {
 
 type UnprocessedIntervention = {
   community?: true;
-  description: string;
+  description: React.ReactNode;
   fieldName?: string;
   name: string;
   scored?: true;
@@ -125,8 +125,15 @@ const SOCIAL_PRACTICAL = {
     },
     {
       name: 'Transportation',
-      description:
-        'ACS Road to Recovery, Hopelink, Paratransit, Access, Angel Flight, Disability Placards and Ferry Passes. Excludes SCI Parking Assistance, which should be tracked under SCI Grant Funds',
+      description: (
+        <>
+          ACS Road to Recovery, Hopelink, Paratransit, Access, Angel Flight, Disability Placards
+          and Ferry Passes.{' '}
+          <strong>
+            Excludes SCI Parking Assistance, which should be tracked under SCI Grant Funds
+          </strong>
+        </>
+      ),
       community: true
     },
     {
@@ -209,8 +216,12 @@ const PSYCHOLOGICAL = {
     },
     {
       name: 'Patient: Supportive Counseling, Education',
-      description:
-        'Interactions involving supportive listening, validation, encouragement, other therapeutic interventions. Excludes survivorship, caregiver support'
+      description: (
+        <>
+          Interactions involving supportive listening, validation, encouragement, other therapeutic
+          interventions. <strong>Excludes survivorship, caregiver support</strong>
+        </>
+      )
     },
     {
       name: 'Sexuality, Intimacy, Fertility',
@@ -263,8 +274,18 @@ const CARE_COORDINATION = {
     },
     {
       name: 'Care Coordination',
-      description:
-        'Can include chart review on a single case, coordination or communication with patient, internal or external care team members (SW/CM, MD, PA/NP, RN, MA, PSC), etc. Excludes Home Care, Facility; Palliative Care, Hospice; Psychiatry, Psychotherapy (including case presentations) - these should be tracked using the more specific categories. Chart review for multiple cases should be tracked under the Other-encounter type using Rounding/Tumor Board',
+      description: (
+        <>
+          Can include chart review on a single case, coordination or communication with patient,
+          internal or external care team members (SW/CM, MD, PA/NP, RN, MA, PSC), etc.{' '}
+          <strong>
+            Excludes Home Care, Facility; Palliative Care, Hospice; Psychiatry, Psychotherapy
+            (including case presentations) - these should be tracked using the more specific
+            categories. Chart review for multiple cases should be tracked under the Other-encounter
+            type using Rounding/Tumor Board
+          </strong>
+        </>
+      ),
       community: true
     },
     {
@@ -281,13 +302,24 @@ const CARE_COORDINATION = {
     },
     {
       name: 'Neuro-Cognitive Testing',
-      description:
-        'Referral, coordination for neurological/cognitive assessment, treatment; excludes completion of MoCA, which should be tracked using the more specific category'
+      description: (
+        <>
+          Referral, coordination for neurological/cognitive assessment, treatment.
+          <strong>
+            Excludes completion of MoCA, which should be tracked using the more specific category
+          </strong>
+        </>
+      )
     },
     {
       name: 'Psychiatry, Psychotherapy',
-      description:
-        'Research, referrals, coordination with psychiatry/psychotherapy resources, including preparation for case presentations given in Psych Rounds or Team Meeting (excludes quick resource/patient questions)'
+      description: (
+        <>
+          Research, referrals, coordination with psychiatry/psychotherapy resources, including
+          preparation for case presentations given in Psych Rounds or Team Meeting.
+          <strong>Excludes quick resource/patient questions</strong>
+        </>
+      )
     },
     {
       name: 'Behavioral, Safety Plan',

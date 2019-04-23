@@ -2,7 +2,7 @@ import React from 'react';
 import { InfoButton } from './InfoButton';
 
 type InfoButtonLabelProps = {
-  description: string;
+  description: React.ReactNode;
   name: string;
   show: boolean;
 };

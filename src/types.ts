@@ -6,7 +6,7 @@ export type EncounterFormProps = {
 
 export type Intervention = {
   name: string;
-  description: string;
+  description: React.ReactNode;
 
   fieldName: string;
   community?: boolean;
