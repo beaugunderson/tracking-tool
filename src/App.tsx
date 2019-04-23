@@ -481,9 +481,12 @@ export class App extends React.Component<{}, AppState> {
                     <Table.Cell>{moment(doc.encounterDate).format('M/D/YYYY')}</Table.Cell>
                     <Table.Cell>
                       {ENCOUNTER_TYPE_NAMES[doc.encounterType] || 'Patient'}
-                      &nbsp;
+                      &nbsp;&nbsp;&nbsp;
                       {(doc.encounterType === 'patient' || doc.encounterType === 'community') &&
-                        !transformed.numberOfInterventions && <Icon name="warning sign" />}
+                        !transformed.numberOfInterventions && (
+                          <Icon color="orange" name="warning sign" />
+                        )}
+                      {(doc.gad || doc.phq || doc.moca) && <Icon name="clipboard check" />}
                     </Table.Cell>
                     <Table.Cell>{doc.patientName}</Table.Cell>
                     <Table.Cell>{doc.clinic || fieldNameToName(doc.activity)}</Table.Cell>
