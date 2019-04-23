@@ -12,6 +12,10 @@ export class InfoButton extends React.Component<InfoButtonProps> {
   render() {
     const { content, ...rest } = this.props;
 
+    if (!content) {
+      return null;
+    }
+
     return (
       <Popup {...rest} content={content} horizontalOffset={12} on="hover" trigger={HELP_ICON} />
     );

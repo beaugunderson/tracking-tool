@@ -417,10 +417,24 @@ const HEALTH_LITERACY = {
   ])
 };
 
+const MENTAL_HEALTH = {
+  label: 'Interventions',
+  interventions: withFieldNames([
+    { name: 'ACT', description: '' },
+    { name: 'CBT', description: '' },
+    { name: 'Grief', description: '' },
+    { name: 'Mindfulness', description: '' },
+    { name: 'Motivational Interviewing', description: '' },
+    { name: 'Narrative', description: '' },
+    { name: 'Solution-Focused', description: '' },
+    { name: 'Other', description: '', fieldName: 'otherMentalHealthIntervention' }
+  ])
+};
+
 export const interventionGroups: Array<Array<InterventionGroup>> = [
   [ENCOUNTER_TYPE, CRISIS, SUPPORT_GROUP, SOCIAL_PRACTICAL],
 
-  [ADVANCED_CARE_PLANNING, FAMILY, PSYCHOLOGICAL],
+  [ADVANCED_CARE_PLANNING, FAMILY, PSYCHOLOGICAL, MENTAL_HEALTH],
 
   [CARE_COORDINATION, FINANCIAL, HEALTH_LITERACY]
 ];
@@ -479,6 +493,7 @@ export const COMMUNITY_INTERVENTIONS = sortBy(_communityInterventions, ['name'])
 
 export type InitialInterventionValues = {
   accessingAccurateMedicalInformation: boolean;
+  act: boolean;
   adultProtection: boolean;
   assessmentReferral: boolean;
   assessmentUnderstandingTreatmentOptionsDiagnosis: boolean;
@@ -486,6 +501,7 @@ export type InitialInterventionValues = {
   behavioralSafetyPlan: boolean;
   careCoordination: boolean;
   caregiverSupportiveCounselingEducation: boolean;
+  cbt: boolean;
   childProtection: boolean;
   communityGrantFunds: boolean;
   customerService: boolean;
@@ -499,6 +515,7 @@ export type InitialInterventionValues = {
   gad: boolean;
   gadScore: string;
   goalsOfCare: boolean;
+  grief: boolean;
   holidayFamilies: boolean;
   homeCareFacility: boolean;
   homelessness: boolean;
@@ -507,12 +524,16 @@ export type InitialInterventionValues = {
   lodgingHousingShelter: boolean;
   managingWorkHomeLifeIllness: boolean;
   mandmMortalityAndMorbidity: boolean;
+  mindfullness: boolean;
   moca: boolean;
   mocaScore: string;
+  motivationalInterviewing: boolean;
+  narrative: boolean;
   neuroCognitiveTesting: boolean;
   newDiagnosis: boolean;
   otherCommunityResources: boolean;
   otherMedicalBills: boolean;
+  otherMentalHealthIntervention: boolean;
   palliativeCareHospice: boolean;
   patientSupportiveCounselingEducation: boolean;
   phq: boolean;
@@ -524,6 +545,7 @@ export type InitialInterventionValues = {
   sciSupportiveCare: boolean;
   severeMentalIllness: boolean;
   sexualityIntimacyFertility: boolean;
+  solutionFocused: boolean;
   spiritualExistential: boolean;
   statefederalIncome: boolean;
   substanceUse: boolean;
