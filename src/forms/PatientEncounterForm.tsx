@@ -233,7 +233,11 @@ class UnwrappedPatientEncounterForm extends React.Component<
     this.props.encounters
       .find({ encounterType: 'patient', patientName: new RegExp(escapeRegExp(searchQuery), 'i') })
       .sort({ patientName: 1 })
-      .exec((err, docs) => {
+      .exec((err, docs: PatientEncounter[]) => {
+        // for (const doc of docs) {
+        //   debug('%s %s %s %s', doc.patientName, doc.encounterDate, doc.clinic, doc.location);
+        // }
+
         // get the most recent encounter for each patient matching the query,
         // sorted by patient name
         const patientOptions = chain(docs)
@@ -243,6 +247,16 @@ class UnwrappedPatientEncounterForm extends React.Component<
           .sortBy('patientName')
           .map(docToOption)
           .value();
+
+        // for (const patientOption of patientOptions) {
+        //   debug(
+        //     '%s %s %s %s',
+        //     patientOption['data-encounter'].patientName,
+        //     patientOption['data-encounter'].encounterDate,
+        //     patientOption['data-encounter'].clinic,
+        //     patientOption['data-encounter'].location
+        //   );
+        // }
 
         this.setState({ patientOptions: indexValues(patientOptions) });
       });
