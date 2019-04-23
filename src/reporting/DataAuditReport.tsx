@@ -46,11 +46,11 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
     }
 
     function abnormalNumberOfTasks(encounter: TransformedEncounter) {
-      return encounter.parsedNumberOfTasks >= 6;
+      return encounter.parsedNumberOfTasks >= 7;
     }
 
     function abnormalTimeSpent(encounter: TransformedEncounter) {
-      return encounter.timeSpentHours >= 100 / 60;
+      return encounter.timeSpentHours > 120 / 60;
     }
 
     const abnormalEncounters = sortBy(
