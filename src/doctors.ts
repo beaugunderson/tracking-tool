@@ -46,6 +46,7 @@ export const DOCTORS: string[] = [
   'Kim, Namou',
   'Kratz, Rodney',
   'Landis, Daniel',
+  'Lazarus, Laura',
   'Lee, Christine',
   'Lee, Douglas',
   'Lee, Ellyn',
