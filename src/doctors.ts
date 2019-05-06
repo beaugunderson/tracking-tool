@@ -22,6 +22,7 @@ export const DOCTORS: string[] = [
   'Dong, David',
   'Douglas, Robert',
   'Drescher, Charles',
+  'Eden, Michelle',
   'Ellis, Erin',
   'Eulau, Stephen',
   'Farivar, Alexander',
