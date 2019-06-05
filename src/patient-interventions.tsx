@@ -426,6 +426,7 @@ const MENTAL_HEALTH = {
     { name: 'Mindfulness', description: '' },
     { name: 'Motivational Interviewing', description: '' },
     { name: 'Narrative', description: '' },
+    { name: 'Psycho-Education', description: '' },
     { name: 'Solution-Focused', description: '' },
     { name: 'Other', description: '', fieldName: 'otherMentalHealthIntervention' }
   ])
