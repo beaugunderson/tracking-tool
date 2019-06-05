@@ -85,6 +85,7 @@ export const DOCTORS: string[] = [
   'Ryu, Lio',
   'Shah, Chirag',
   'Shango, Maryann',
+  'Sharma, Nancy',
   'Simmons, Forrest',
   'Sniezek, Joseph',
   'Spiegel, James',
