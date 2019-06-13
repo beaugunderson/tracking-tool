@@ -1,7 +1,7 @@
 import moment from 'moment';
 import path from 'path';
+import { clone, isEqual, isNaN, isNumber } from 'lodash';
 import { INTERVENTIONS } from '../patient-interventions';
-import { isNaN, isNumber } from 'lodash';
 import { PatientEncounter } from '../forms/PatientEncounterForm';
 import { rootPath } from '../store';
 
@@ -81,6 +81,8 @@ export interface TransformedEncounter extends PatientEncounter {
   gadScoreLabel?: string;
   mocaScoreLabel?: string;
   phqScoreLabel?: string;
+
+  providenceOrSwedishMrn: string;
 
   tests: string[];
 
@@ -237,7 +239,11 @@ function scorePhq(scoreString: string) {
   return SCORE_MILD_MINIMAL_OR_NONE;
 }
 
-export function transformEncounter(encounter: PatientEncounter): TransformedEncounter {
+export function transformEncounter(
+  encounter: PatientEncounter,
+  providenceMapping = null,
+  swedishMapping = null
+): TransformedEncounter {
   let age: number | undefined;
   let ageBucket: AgeBucket | undefined;
 
@@ -282,6 +288,17 @@ export function transformEncounter(encounter: PatientEncounter): TransformedEnco
     phqScoreLabel = scorePhq(encounter.phqScore);
   }
 
+  let { providenceMrn } = encounter;
+  let swedishMrn: string = encounter.mrn;
+
+  if (swedishMapping && swedishMrn && !providenceMrn && swedishMapping[swedishMrn]) {
+    providenceMrn = swedishMapping[swedishMrn];
+  }
+
+  if (providenceMapping && providenceMrn && !swedishMrn && providenceMapping[providenceMrn]) {
+    swedishMrn = providenceMapping[providenceMrn];
+  }
+
   return {
     ...encounter,
 
@@ -303,7 +320,10 @@ export function transformEncounter(encounter: PatientEncounter): TransformedEnco
       []
     ),
 
-    mrn: encounter.mrn || EXCLUDE_STRING_VALUE,
+    mrn: swedishMrn || EXCLUDE_STRING_VALUE,
+    providenceMrn: providenceMrn || EXCLUDE_STRING_VALUE,
+
+    providenceOrSwedishMrn: providenceMrn || swedishMrn || EXCLUDE_STRING_VALUE,
 
     parsedNumberOfTasks,
 
@@ -327,11 +347,43 @@ export function transformEncounter(encounter: PatientEncounter): TransformedEnco
 export function transformEncounters(encounters: PatientEncounter[]) {
   log.debug(`transformEncounters: transforming ${encounters.length} encounters`);
 
+  const providenceMapping = {};
+  const swedishMapping = {};
+
+  let lastProvidenceMapping: {};
+  let lastSwedishMapping: {};
+
+  let counter = 0;
+
+  while (
+    !isEqual(lastProvidenceMapping, providenceMapping) ||
+    !isEqual(lastSwedishMapping, swedishMapping)
+  ) {
+    lastProvidenceMapping = clone(providenceMapping);
+    lastSwedishMapping = clone(swedishMapping);
+
+    for (const encounter of encounters) {
+      if (
+        encounter.mrn &&
+        encounter.providenceMrn &&
+        !providenceMapping[encounter.providenceMrn] &&
+        !swedishMapping[encounter.mrn]
+      ) {
+        providenceMapping[encounter.providenceMrn] = encounter.mrn;
+        swedishMapping[encounter.mrn] = encounter.providenceMrn;
+      }
+    }
+
+    counter++;
+  }
+
+  log.debug('resolved MRNs in %d cycles', counter);
+
   return encounters
     .filter(encounter =>
       ['community', 'patient', 'other', 'staff'].includes(encounter.encounterType)
     )
-    .map(transformEncounter);
+    .map(encounter => transformEncounter(encounter, providenceMapping, swedishMapping));
 }
 
 export async function transform(): Promise<TransformedEncounter[]> {

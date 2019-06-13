@@ -46,6 +46,7 @@ export type PatientEncounter = InitialInterventionValues & {
   mrn: string;
   numberOfTasks: string;
   patientName: string;
+  providenceMrn: string;
   research: boolean;
   timeSpent: string;
 };
@@ -64,6 +65,7 @@ export const INITIAL_VALUES = (): PatientEncounter => ({
   mrn: '',
   numberOfTasks: '',
   patientName: '',
+  providenceMrn: '',
   research: false,
   timeSpent: '',
 
@@ -119,7 +121,7 @@ const docToOption = (doc: PatientEncounter) => {
     'data-patient-name': doc.patientName,
 
     // specify a key since Semantic uses the value otherwise and it may not be unique
-    key: `${doc.patientName}-${doc.mrn}-${doc.dateOfBirth}`,
+    key: `${doc.patientName}-${doc.mrn || doc.providenceMrn}-${doc.dateOfBirth}`,
 
     // the text that's searched by the Dropdown as we type; we add DOB so we can add patients with
     // duplicate names; this is also what's displayed in the Dropdown on change
@@ -365,6 +367,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
       ...values,
       patientName,
       mrn: encounter.mrn,
+      providenceMrn: encounter.providenceMrn,
       dateOfBirth: encounter.dateOfBirth,
       clinic: encounter.clinic,
       limitedEnglishProficiency: !!encounter.limitedEnglishProficiency,
@@ -575,6 +578,18 @@ class UnwrappedPatientEncounterForm extends React.Component<
               />
             </Ref>
           )}
+
+          <Form.Field
+            control={Input}
+            disabled={!values.patientName}
+            error={!!(touched.providenceMrn && errors.providenceMrn)}
+            id="input-providence-mrn"
+            label="Providence MRN"
+            name="providenceMrn"
+            onBlur={this.handleBlur}
+            onChange={this.handleChangeTrimmed}
+            value={values.providenceMrn}
+          />
 
           <Form.Field
             control={Input}
@@ -810,8 +825,13 @@ export const PatientEncounterForm = withFormik<PatientEncounterFormProps, Patien
       }
     });
 
-    if (!/^100\d{7}$/.test(values.mrn)) {
-      errors.mrn = 'MRN is required and must start with 100 followed by 7 digits';
+    if (values.mrn && !/^100\d{7}$/.test(values.mrn)) {
+      errors.mrn = 'If Swedish MRN is provided it must start with 100 followed by 7 digits';
+    }
+
+    if (!/^600\d{8}$/.test(values.providenceMrn)) {
+      errors.providenceMrn =
+        'Providence MRN is required and must start with 600 followed by 8 digits';
     }
 
     NUMERIC_FIELDS.forEach(field => {

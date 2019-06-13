@@ -2,8 +2,8 @@ import Moment from 'moment';
 import React from 'react';
 import { Button, Icon, Table } from 'semantic-ui-react';
 import { ENCOUNTER_TYPE_NAMES } from '../options';
+import { EXCLUDE_STRING_VALUE, transform, TransformedEncounter } from './data';
 import { sortBy } from 'lodash';
-import { transform, TransformedEncounter } from './data';
 import { usernameToName } from '../usernames';
 
 const { clipboard } = window.require('electron');
@@ -81,6 +81,7 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
               <Table.HeaderCell>Type</Table.HeaderCell>
               <Table.HeaderCell>Social Worker</Table.HeaderCell>
               <Table.HeaderCell>Date</Table.HeaderCell>
+              <Table.HeaderCell>Providence MRN</Table.HeaderCell>
               <Table.HeaderCell>MRN</Table.HeaderCell>
               <Table.HeaderCell>Location</Table.HeaderCell>
               <Table.HeaderCell>Clinic</Table.HeaderCell>
@@ -100,8 +101,19 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
                 </Table.Cell>
                 <Table.Cell>
                   {encounter.encounterType === 'patient' && (
+                    <a onClick={() => clipboard.writeText(encounter.providenceMrn)}>
+                      {encounter.providenceMrn === EXCLUDE_STRING_VALUE
+                        ? ''
+                        : encounter.providenceMrn}{' '}
+                      <Icon name="copy" />
+                    </a>
+                  )}
+                </Table.Cell>
+                <Table.Cell>
+                  {encounter.encounterType === 'patient' && (
                     <a onClick={() => clipboard.writeText(encounter.mrn)}>
-                      {encounter.mrn} <Icon name="copy" />
+                      {encounter.mrn === EXCLUDE_STRING_VALUE ? '' : encounter.mrn}{' '}
+                      <Icon name="copy" />
                     </a>
                   )}
                 </Table.Cell>

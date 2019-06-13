@@ -83,7 +83,7 @@ function removeExcludedData(group) {
 }
 
 const uniqueMrn = reductio()
-  .exception((d: TransformedEncounter) => d.mrn)
+  .exception((d: TransformedEncounter) => d.providenceOrSwedishMrn)
   .exceptionCount(true);
 
 interface ReportProps {
@@ -215,7 +215,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
         let entryCount = 0;
 
         entries.forEach(entry => {
-          if (entry.mrn === EXCLUDE_STRING_VALUE) {
+          if (entry.providenceOrSwedishMrn === EXCLUDE_STRING_VALUE) {
             return;
           }
 
@@ -237,7 +237,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
         let entryCount = 0;
 
         entries.forEach(entry => {
-          if (entry.mrn === EXCLUDE_STRING_VALUE) {
+          if (entry.providenceOrSwedishMrn === EXCLUDE_STRING_VALUE) {
             return;
           }
 
@@ -258,15 +258,15 @@ export class Report extends React.Component<ReportProps, ReportState> {
         const byMrn = {};
 
         entries.forEach(entry => {
-          if (entry.mrn === EXCLUDE_STRING_VALUE) {
+          if (entry.providenceOrSwedishMrn === EXCLUDE_STRING_VALUE) {
             return;
           }
 
-          if (!byMrn[entry.mrn]) {
-            byMrn[entry.mrn] = 0;
+          if (!byMrn[entry.providenceOrSwedishMrn]) {
+            byMrn[entry.providenceOrSwedishMrn] = 0;
           }
 
-          byMrn[entry.mrn] += entry.parsedNumberOfTasks;
+          byMrn[entry.providenceOrSwedishMrn] += entry.parsedNumberOfTasks;
         });
 
         const value = sum(values(byMrn)) / keys(byMrn).length;
@@ -282,15 +282,15 @@ export class Report extends React.Component<ReportProps, ReportState> {
         const byMrn = {};
 
         entries.forEach(entry => {
-          if (entry.mrn === EXCLUDE_STRING_VALUE) {
+          if (entry.providenceOrSwedishMrn === EXCLUDE_STRING_VALUE) {
             return;
           }
 
-          if (!byMrn[entry.mrn]) {
-            byMrn[entry.mrn] = 0;
+          if (!byMrn[entry.providenceOrSwedishMrn]) {
+            byMrn[entry.providenceOrSwedishMrn] = 0;
           }
 
-          byMrn[entry.mrn] += parseInt(entry.timeSpent, 10);
+          byMrn[entry.providenceOrSwedishMrn] += parseInt(entry.timeSpent, 10);
         });
 
         const value = sum(values(byMrn)) / keys(byMrn).length;
@@ -306,11 +306,11 @@ export class Report extends React.Component<ReportProps, ReportState> {
         const mrns = new Set();
 
         entries.forEach(entry => {
-          if (entry.mrn === EXCLUDE_STRING_VALUE) {
+          if (entry.providenceOrSwedishMrn === EXCLUDE_STRING_VALUE) {
             return;
           }
 
-          mrns.add(entry.mrn);
+          mrns.add(entry.providenceOrSwedishMrn);
         });
 
         return mrns.size;

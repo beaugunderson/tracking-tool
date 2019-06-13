@@ -1,8 +1,8 @@
 import './CrisisReport.css';
 import React from 'react';
 import { Button, Icon, Table } from 'semantic-ui-react';
+import { EXCLUDE_STRING_VALUE, transform, TransformedEncounter } from './data';
 import { sortBy } from 'lodash';
-import { transform, TransformedEncounter } from './data';
 import { usernameToName } from '../usernames';
 
 const { clipboard } = window.require('electron');
@@ -67,6 +67,7 @@ export class CrisisReport extends React.Component<CrisisReportProps, CrisisRepor
             <Table.Row>
               <Table.HeaderCell>Date</Table.HeaderCell>
               <Table.HeaderCell>Social Worker</Table.HeaderCell>
+              <Table.HeaderCell>Providence MRN</Table.HeaderCell>
               <Table.HeaderCell>MRN</Table.HeaderCell>
               <Table.HeaderCell>Crises</Table.HeaderCell>
               <Table.HeaderCell>Location</Table.HeaderCell>
@@ -80,8 +81,17 @@ export class CrisisReport extends React.Component<CrisisReportProps, CrisisRepor
                 <Table.Cell>{encounter.parsedEncounterDate.format('MM/DD/YYYY')}</Table.Cell>
                 <Table.Cell>{usernameToName(encounter.username)}</Table.Cell>
                 <Table.Cell>
+                  <a onClick={() => clipboard.writeText(encounter.providenceMrn)}>
+                    {encounter.providenceMrn === EXCLUDE_STRING_VALUE
+                      ? ''
+                      : encounter.providenceMrn}{' '}
+                    <Icon name="copy" />
+                  </a>
+                </Table.Cell>
+                <Table.Cell>
                   <a onClick={() => clipboard.writeText(encounter.mrn)}>
-                    {encounter.mrn} <Icon name="copy" />
+                    {encounter.mrn === EXCLUDE_STRING_VALUE ? '' : encounter.mrn}{' '}
+                    <Icon name="copy" />
                   </a>
                 </Table.Cell>
                 <Table.Cell>{crises(encounter)}</Table.Cell>

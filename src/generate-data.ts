@@ -59,6 +59,10 @@ function fakePatient() {
       .toString()
       .slice(2, 9)}`,
 
+    providenceMrn: `600${Math.random()
+      .toString()
+      .slice(2, 10)}`,
+
     limitedEnglishProficiency: sample([false, true]),
     research: sample([false, true])
   };

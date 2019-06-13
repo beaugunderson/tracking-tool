@@ -1,10 +1,10 @@
+import { mapValues } from 'lodash';
+import { DOCTORS as RAW_DOCTORS } from './doctors';
+
 export type option = {
   value: string;
   text: string;
 };
-
-import { mapValues } from 'lodash';
-import { DOCTORS as RAW_DOCTORS } from './doctors';
 
 function makeOptions(options: string[]): option[] {
   return options.map(option => ({ value: option, text: option }));
