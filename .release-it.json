@@ -1,7 +1,4 @@
 {
-  "scripts": {
-    "beforeStage": "yarn dist"
-  },
   "github": {
     "release": true,
     "assets": [
@@ -9,5 +6,8 @@
       "dist/*-mac.zip"
     ],
     "tokenRef": "RELEASE_IT_TOKEN"
+  },
+  "hooks": {
+    "before:release": "yarn dist"
   }
 }
