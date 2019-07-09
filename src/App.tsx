@@ -25,6 +25,7 @@ import { fieldNameToName, OtherEncounterForm } from './forms/OtherEncounterForm'
 import { FirstTimeSetup } from './FirstTimeSetup';
 import { GridReport } from './reporting/GridReport';
 import { insertExamples } from './generate-data';
+import { LinkMrnReport } from './reporting/LinkMrnReport';
 import { openEncounters } from './data';
 import { PatientEncounter, PatientEncounterForm } from './forms/PatientEncounterForm';
 import { Report } from './reporting/Report';
@@ -58,6 +59,7 @@ type AppState = {
   firstTimeSetup: boolean;
   gads: number;
   gridReporting: boolean;
+  linkMrnReporting: boolean;
   mocas: number;
   phqs: number;
   reporting: boolean;
@@ -78,6 +80,7 @@ export class App extends React.Component<{}, AppState> {
     encounterSearchType: 'All',
     firstTimeSetup: !rootPathExists(),
     gridReporting: false,
+    linkMrnReporting: false,
     gads: 0,
     mocas: 0,
     phqs: 0,
@@ -222,6 +225,7 @@ export class App extends React.Component<{}, AppState> {
       firstTimeSetup,
       gads,
       gridReporting,
+      linkMrnReporting,
       mocas,
       phqs,
       reporting
@@ -254,6 +258,14 @@ export class App extends React.Component<{}, AppState> {
     if (gridReporting) {
       return (
         <GridReport onComplete={err => this.setState({ error: err, gridReporting: false })} />
+      );
+    }
+
+    if (linkMrnReporting) {
+      return (
+        <LinkMrnReport
+          onComplete={err => this.setState({ error: err, linkMrnReporting: false })}
+        />
       );
     }
 
@@ -372,6 +384,10 @@ export class App extends React.Component<{}, AppState> {
 
               <Button onClick={() => this.setState({ gridReporting: true })} size="big">
                 Monthly Report
+              </Button>
+
+              <Button onClick={() => this.setState({ linkMrnReporting: true })} size="big">
+                Link MRN Report
               </Button>
 
               {canSeeFakeEncounters() && (
