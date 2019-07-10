@@ -88,8 +88,14 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
   };
 
   async componentDidMount() {
+    const encounters = await transform();
+
+    const patientEncounters = encounters.filter(
+      encounter => encounter.encounterType === 'patient'
+    );
+
     try {
-      this.setState({ encounters: await transform(), loading: false });
+      this.setState({ encounters: patientEncounters, loading: false });
     } catch (e) {
       this.props.onComplete(e);
     }
