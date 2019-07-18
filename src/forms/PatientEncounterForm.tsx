@@ -366,8 +366,8 @@ class UnwrappedPatientEncounterForm extends React.Component<
     setValues({
       ...values,
       patientName,
-      mrn: encounter.mrn,
-      providenceMrn: encounter.providenceMrn,
+      mrn: encounter.mrn || '',
+      providenceMrn: encounter.providenceMrn || '',
       dateOfBirth: encounter.dateOfBirth,
       clinic: encounter.clinic,
       limitedEnglishProficiency: !!encounter.limitedEnglishProficiency,
