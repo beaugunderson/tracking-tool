@@ -15,6 +15,8 @@ export const USERNAMES = {
   maysam1: 'Ariel Mays-Lewis',
   mednnb1: 'Nancy Mednick',
   montme1: 'Maya Montemayor',
+  n6335348: 'Caitlin Minniear',
+  n7867222: 'Katherine Smith',
   nordje1: 'Jennifer Nordstrom-Lozano',
   philcm1: 'Courtney Phillips-Youman',
   pughat1: 'Alan Pugh',
@@ -22,8 +24,8 @@ export const USERNAMES = {
   semasl1: 'Sharla Semana',
   stracp1: 'Carolyn Maret',
   stramr3: 'Meg Strader',
-  torrdc1: 'Danielle McLaughlin',
   tennta1: 'Tyne Tennyson-Ray',
+  torrdc1: 'Danielle McLaughlin',
   yangge1: 'Grace Yang',
 
   // development users
@@ -31,7 +33,16 @@ export const USERNAMES = {
   carynstewart: 'Caryn Stewart'
 };
 
-export const INTERNS = ['goodmx1', 'jonasa1', 'kanedp2', 'maysam1', 'montme1', 'pughat1'];
+export const INTERNS = [
+  'goodmx1',
+  'jonasa1',
+  'kanedp2',
+  'maysam1',
+  'montme1',
+  'n6335348',
+  'n7867222',
+  'pughat1'
+];
 
 export function usernameToName(username: string) {
   return USERNAMES[username.toLowerCase()] || username.toLowerCase();
