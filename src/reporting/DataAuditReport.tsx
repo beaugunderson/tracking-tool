@@ -46,11 +46,11 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
     }
 
     function abnormalNumberOfTasks(encounter: TransformedEncounter) {
-      return encounter.parsedNumberOfTasks >= 7;
+      return encounter.parsedNumberOfTasks >= 10;
     }
 
     function abnormalTimeSpent(encounter: TransformedEncounter) {
-      return encounter.timeSpentHours > 120 / 60;
+      return encounter.timeSpentHours > 200 / 60;
     }
 
     const abnormalEncounters = sortBy(
@@ -70,7 +70,7 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
     ).reverse();
 
     return (
-      <React.Fragment>
+      <>
         <div>
           <Button onClick={() => this.props.onComplete()}>Back</Button>
         </div>
@@ -132,7 +132,7 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
             ))}
           </Table.Body>
         </Table>
-      </React.Fragment>
+      </>
     );
   }
 }
