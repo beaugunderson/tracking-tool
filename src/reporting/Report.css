@@ -1,3 +1,7 @@
+div.dc-chart {
+  float: left;
+}
+
 .dc-chart g.row text {
   fill: #000 !important;
 }
