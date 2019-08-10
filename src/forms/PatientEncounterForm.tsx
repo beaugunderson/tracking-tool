@@ -107,11 +107,11 @@ const docToOption = (doc: PatientEncounter) => {
   return {
     // displayed in the search results as a row
     content: (
-      <React.Fragment>
+      <>
         <strong>{doc.patientName}</strong>{' '}
         <span className="date-of-birth">{formattedDateOfBirth}</span>{' '}
         <span className="relative-time">{relativeTime}</span>
-      </React.Fragment>
+      </>
     ),
 
     // the doc itself, so we can auto-fill
@@ -126,9 +126,9 @@ const docToOption = (doc: PatientEncounter) => {
     // the text that's searched by the Dropdown as we type; we add DOB so we can add patients with
     // duplicate names; this is also what's displayed in the Dropdown on change
     text: (
-      <React.Fragment>
+      <>
         {doc.patientName} <input type="hidden" value={doc.dateOfBirth} />
-      </React.Fragment>
+      </>
     )
 
     // note: the value is handled by indexValues and becomes the array index of the option
@@ -136,14 +136,13 @@ const docToOption = (doc: PatientEncounter) => {
 };
 
 const STAGE_LABEL_CONTENT = (
-  // eslint-disable-next-line react-perf/jsx-no-jsx-as-prop
-  <React.Fragment>
+  <>
     Select <strong>Unknown</strong> if cancer has not yet been staged, then change your selection
     on the next encounter after staging is complete. Select <strong>Early</strong> if cancer is
     Stage 0-2. Select <strong>Advanced</strong> if cancer is Stage 3-4, has metastases, is
     described as locally advanced or end-stage, or if the cancer remains of unknown primary after
     staging is complete
-  </React.Fragment>
+  </>
 );
 
 const STAGE_LABEL = (
