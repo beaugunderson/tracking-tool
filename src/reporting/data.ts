@@ -355,40 +355,45 @@ export function transformEncounter(
   };
 }
 
-export function transformEncounters(encounters: PatientEncounter[]) {
+export function transformEncounters(encounters: PatientEncounter[], mapMrns = true) {
   log.debug(`transformEncounters: transforming ${encounters.length} encounters`);
 
-  const providenceMapping = {};
-  const swedishMapping = {};
+  let providenceMapping: { [mrn: string]: string } | undefined;
+  let swedishMapping: { [mrn: string]: string } | undefined;
 
-  let lastProvidenceMapping: {};
-  let lastSwedishMapping: {};
+  if (mapMrns) {
+    providenceMapping = {};
+    swedishMapping = {};
 
-  let counter = 0;
+    let lastProvidenceMapping: { [mrn: string]: string };
+    let lastSwedishMapping: { [mrn: string]: string };
 
-  while (
-    !isEqual(lastProvidenceMapping, providenceMapping) ||
-    !isEqual(lastSwedishMapping, swedishMapping)
-  ) {
-    lastProvidenceMapping = clone(providenceMapping);
-    lastSwedishMapping = clone(swedishMapping);
+    let counter = 0;
 
-    for (const encounter of encounters) {
-      if (
-        encounter.mrn &&
-        encounter.providenceMrn &&
-        !providenceMapping[encounter.providenceMrn] &&
-        !swedishMapping[encounter.mrn]
-      ) {
-        providenceMapping[encounter.providenceMrn] = encounter.mrn;
-        swedishMapping[encounter.mrn] = encounter.providenceMrn;
+    while (
+      !isEqual(lastProvidenceMapping, providenceMapping) ||
+      !isEqual(lastSwedishMapping, swedishMapping)
+    ) {
+      lastProvidenceMapping = clone(providenceMapping);
+      lastSwedishMapping = clone(swedishMapping);
+
+      for (const encounter of encounters) {
+        if (
+          encounter.mrn &&
+          encounter.providenceMrn &&
+          !providenceMapping[encounter.providenceMrn] &&
+          !swedishMapping[encounter.mrn]
+        ) {
+          providenceMapping[encounter.providenceMrn] = encounter.mrn;
+          swedishMapping[encounter.mrn] = encounter.providenceMrn;
+        }
       }
+
+      counter++;
     }
 
-    counter++;
+    log.debug('resolved MRNs in %d cycles', counter);
   }
-
-  log.debug('resolved MRNs in %d cycles', counter);
 
   return encounters
     .filter(encounter =>
@@ -397,7 +402,7 @@ export function transformEncounters(encounters: PatientEncounter[]) {
     .map(encounter => transformEncounter(encounter, providenceMapping, swedishMapping));
 }
 
-export async function transform(): Promise<TransformedEncounter[]> {
+export async function transform(mapMrns: boolean = true): Promise<TransformedEncounter[]> {
   log.debug('transform: copying encounter files');
   const userEncounters = await copyEncounterFiles();
 
@@ -423,5 +428,5 @@ export async function transform(): Promise<TransformedEncounter[]> {
   rimraf.sync(userEncounters.temporaryDirectory, { glob: false });
 
   log.debug(`transform: running transformEncounters on ${allEncounters.length} encounters`);
-  return transformEncounters(allEncounters);
+  return transformEncounters(allEncounters, mapMrns);
 }

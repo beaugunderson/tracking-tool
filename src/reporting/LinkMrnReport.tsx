@@ -1,103 +1,17 @@
 import './GridReport.css';
-import moment from 'moment';
 import React from 'react';
-import { arraySimilarity, metaphones } from '../utilities';
+import {
+  arraySimilarity,
+  metaphones,
+  obfuscateDate,
+  obfuscateNumber,
+  obfuscateString
+} from '../utilities';
 import { Button, Checkbox, Input, Table } from 'semantic-ui-react';
 import { DATE_FORMAT_DISPLAY } from '../constants';
-import { each } from 'lodash';
+import { each, sortBy } from 'lodash';
 import { EXCLUDE_STRING_VALUE, transform, TransformedEncounter } from './data';
 import { usernameToName } from '../usernames';
-
-/*
-  - find all duplicate dates of birth, then filter based on levenshtein distance on name
-  - find all duplicate names, then filter based on difference in birth date
-
-  for names: compareStrings() >= 0.6
-*/
-
-// TODO this doesn't seem to be using the Swedish/Providence linkage already???
-// TODO make automatic linkage toggle-able for this report?
-// TODO figure out why multiple groupings are happening
-
-function randomInRange(min: number, max: number): number {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-const CONSONANTS = 'bcdfghjklmnpqrstvwxyz'.split('');
-const NUMBERS = '0123456789'.split('');
-const VOWELS = 'aeiou'.split('');
-
-const CONSONANT_OFFSET = randomInRange(1, CONSONANTS.length - 1);
-const DATE_OFFSET = randomInRange(1, 364);
-const NUMBER_OFFSET = randomInRange(1, NUMBERS.length - 1);
-const VOWEL_OFFSET = randomInRange(1, VOWELS.length - 1);
-
-function isConsonant(string: string): boolean {
-  return CONSONANTS.includes(string);
-}
-
-function isDigit(string: string): boolean {
-  return NUMBERS.includes(string);
-}
-
-function isVowel(string: string): boolean {
-  return VOWELS.includes(string);
-}
-
-function obfuscateString(string: string): string {
-  let obfuscated = '';
-
-  for (const letter of string) {
-    const isCapital = letter.toUpperCase() === letter;
-    const capitalizationFunction = isCapital ? 'toUpperCase' : 'toLowerCase';
-    const lowercaseLetter = letter.toLowerCase();
-
-    if (isVowel(lowercaseLetter)) {
-      obfuscated += VOWELS[(VOWELS.indexOf(lowercaseLetter) + VOWEL_OFFSET) % VOWELS.length][
-        capitalizationFunction
-      ]();
-    } else if (isConsonant(lowercaseLetter)) {
-      obfuscated += CONSONANTS[
-        (CONSONANTS.indexOf(lowercaseLetter) + CONSONANT_OFFSET) % CONSONANTS.length
-      ][capitalizationFunction]();
-    } else {
-      obfuscated += letter;
-    }
-  }
-
-  return obfuscated;
-}
-
-function obfuscateNumber(number: number | string): string {
-  let obfuscated = '';
-
-  for (const digit of number.toString()) {
-    if (isDigit(digit)) {
-      obfuscated += NUMBERS[(NUMBERS.indexOf(digit) + NUMBER_OFFSET) % NUMBERS.length];
-    } else {
-      obfuscated += digit;
-    }
-  }
-
-  return obfuscated;
-}
-
-function obfuscateDate(date: string): string {
-  return moment(date)
-    .subtract(DATE_OFFSET, 'days')
-    .format(DATE_FORMAT_DISPLAY);
-}
-
-interface LinkMrnReportProps {
-  onComplete: (err?: Error) => void;
-}
-
-interface LinkMrnReportState {
-  changedRows: {};
-  encounters: TransformedEncounter[] | null;
-  loading: boolean;
-  obfuscated: boolean;
-}
 
 function needsMatching(encounters: TransformedEncounter[]) {
   if (encounters.length < 2) {
@@ -138,30 +52,44 @@ function needsMatching(encounters: TransformedEncounter[]) {
   return false;
 }
 
+interface LinkMrnReportProps {
+  onComplete: (err?: Error) => void;
+}
+
+interface LinkMrnReportState {
+  changedRows: {};
+  encounters: TransformedEncounter[] | null;
+  mrnInferenceEnabled: boolean;
+  loading: boolean;
+  obfuscated: boolean;
+}
+
 export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnReportState> {
   state: LinkMrnReportState = {
     changedRows: {},
     encounters: null,
+    mrnInferenceEnabled: true,
     loading: true,
     obfuscated: false
   };
 
-  async componentDidMount() {
-    const encounters = await transform();
-
-    const patientEncounters = encounters.filter(
-      encounter => encounter.encounterType === 'patient'
-    );
+  async loadEncounters(mapMrns: boolean) {
+    const allEncounters = await transform(mapMrns);
+    const encounters = allEncounters.filter(encounter => encounter.encounterType === 'patient');
 
     try {
-      this.setState({ encounters: patientEncounters, loading: false });
+      this.setState({ encounters, loading: false });
     } catch (e) {
       this.props.onComplete(e);
     }
   }
 
+  async componentDidMount() {
+    await this.loadEncounters(this.state.mrnInferenceEnabled);
+  }
+
   render() {
-    const { changedRows, encounters, loading, obfuscated } = this.state;
+    const { changedRows, encounters, loading, mrnInferenceEnabled, obfuscated } = this.state;
 
     if (loading) {
       return <h1>Loading encounters...</h1>;
@@ -172,8 +100,25 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
         <Button onClick={() => this.props.onComplete()}>Back</Button>
         &nbsp;&nbsp;&nbsp;
         <Checkbox
+          checked={obfuscated}
           label="Obfuscate results"
           onChange={(e, data) => this.setState({ obfuscated: data.checked })}
+        />
+        &nbsp;&nbsp;&nbsp;
+        <Checkbox
+          checked={mrnInferenceEnabled}
+          label="Enable MRN inference"
+          onClick={(e, data) => {
+            this.setState(
+              state => ({
+                mrnInferenceEnabled: !state.mrnInferenceEnabled,
+                loading: true
+              }),
+              async () => {
+                await this.loadEncounters(data.checked);
+              }
+            );
+          }}
         />
       </div>
     );
@@ -190,13 +135,13 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
 
     const byDOB: { [dob: string]: TransformedEncounter[] } = {};
 
-    encounters.forEach(encounter => {
+    for (const encounter of encounters) {
       if (!byDOB[encounter.formattedDateOfBirth]) {
-        byDOB[encounter.formattedDateOfBirth] = [encounter];
-      } else {
-        byDOB[encounter.formattedDateOfBirth].push(encounter);
+        byDOB[encounter.formattedDateOfBirth] = [];
       }
-    });
+
+      byDOB[encounter.formattedDateOfBirth].push(encounter);
+    }
 
     const pendingMatches: TransformedEncounter[][] = [];
 
@@ -206,15 +151,15 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
       while (dobEncounters.length) {
         const currentSet = [dobEncounters.shift()];
 
-        dobEncounters.slice().forEach((encounter, index) => {
-          if (
-            arraySimilarity(
-              metaphones(currentSet[0].patientName),
-              metaphones(encounter.patientName)
-            ) >= 0.6
-          ) {
+        dobEncounters.slice().forEach(encounter => {
+          const similarity = arraySimilarity(
+            metaphones(currentSet[0].patientName),
+            metaphones(encounter.patientName)
+          );
+
+          if (similarity >= 0.6) {
             currentSet.push(encounter);
-            dobEncounters.splice(index, 1);
+            dobEncounters.shift();
           }
         });
 
@@ -250,7 +195,7 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
               </Table.Header>
 
               <Table.Body>
-                {matches.map((match, j) => {
+                {sortBy(matches, 'encounterDate').map((match, j) => {
                   const providenceMrn =
                     match.providenceMrn === EXCLUDE_STRING_VALUE ? '' : match.providenceMrn;
                   const mrn = match.mrn === EXCLUDE_STRING_VALUE ? '' : match.mrn;
@@ -313,6 +258,7 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
                         {!obfuscated && (
                           <Button
                             disabled={
+                              mrnInferenceEnabled ||
                               !(match.uniqueId in changedRows) ||
                               ((!('mrn' in changedRows[match.uniqueId]) ||
                                 changedRows[match.uniqueId].mrn === match.mrn) &&
