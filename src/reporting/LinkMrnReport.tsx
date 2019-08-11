@@ -1,19 +1,80 @@
 import './GridReport.css';
 import * as doubleMetaphone from 'double-metaphone';
+import moment from 'moment';
 import React from 'react';
-import { Button, Input, Table } from 'semantic-ui-react';
+import { Button, Checkbox, Input, Table } from 'semantic-ui-react';
 import { DATE_FORMAT_DISPLAY } from '../constants';
 import { each } from 'lodash';
 import { EXCLUDE_STRING_VALUE, transform, TransformedEncounter } from './data';
 import { usernameToName } from '../usernames';
 
 /*
-
   - find all duplicate dates of birth, then filter based on levenshtein distance on name
   - find all duplicate names, then filter based on difference in birth date
 
   for names: compareStrings() >= 0.6
 */
+
+const RANDOM_SEED = Math.floor(Math.random() * 1000);
+
+const CONSONANTS = 'bcdfghjklmnpqrstvwxyz'.split('');
+const NUMBERS = '0123456789'.split('');
+const VOWELS = 'aeiou'.split('');
+
+function isConsonant(string: string): boolean {
+  return CONSONANTS.includes(string.toLowerCase());
+}
+
+function isDigit(string: string): boolean {
+  return NUMBERS.includes(string);
+}
+
+function isVowel(string: string): boolean {
+  return VOWELS.includes(string.toLowerCase());
+}
+
+function obfuscateString(string: string): string {
+  let obfuscated = '';
+
+  for (const letter of string) {
+    const isCapital = letter.toUpperCase() === letter;
+    const capitalizationFunction = isCapital ? 'toUpperCase' : 'toLowerCase';
+
+    if (isVowel(letter)) {
+      obfuscated += VOWELS[(VOWELS.indexOf(letter) + RANDOM_SEED) % VOWELS.length][
+        capitalizationFunction
+      ]();
+    } else if (isConsonant(letter)) {
+      obfuscated += CONSONANTS[(CONSONANTS.indexOf(letter) + RANDOM_SEED) % CONSONANTS.length][
+        capitalizationFunction
+      ]();
+    } else {
+      obfuscated += letter;
+    }
+  }
+
+  return obfuscated;
+}
+
+function obfuscateNumber(number: number | string): string {
+  let obfuscated = '';
+
+  for (const digit of number.toString()) {
+    if (isDigit(digit)) {
+      obfuscated += NUMBERS[(NUMBERS.indexOf(digit) + RANDOM_SEED) % NUMBERS.length];
+    } else {
+      obfuscated += digit;
+    }
+  }
+
+  return obfuscated;
+}
+
+function obfuscateDate(date: string): string {
+  return moment(date)
+    .subtract(RANDOM_SEED, 'days')
+    .format(DATE_FORMAT_DISPLAY);
+}
 
 function metaphones(name: string): string[] {
   return name
@@ -42,6 +103,7 @@ interface LinkMrnReportState {
   changedRows: {};
   encounters: TransformedEncounter[] | null;
   loading: boolean;
+  obfuscated: boolean;
 }
 
 function needsMatching(encounters: TransformedEncounter[]) {
@@ -87,7 +149,8 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
   state: LinkMrnReportState = {
     changedRows: {},
     encounters: null,
-    loading: true
+    loading: true,
+    obfuscated: false
   };
 
   async componentDidMount() {
@@ -105,7 +168,7 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
   }
 
   render() {
-    const { changedRows, encounters, loading } = this.state;
+    const { changedRows, encounters, loading, obfuscated } = this.state;
 
     if (loading) {
       return <h1>Loading encounters...</h1>;
@@ -114,6 +177,11 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
     const header = (
       <div>
         <Button onClick={() => this.props.onComplete()}>Back</Button>
+        &nbsp;&nbsp;&nbsp;
+        <Checkbox
+          label="Obfuscate results"
+          onChange={(e, data) => this.setState({ obfuscated: data.checked })}
+        />
       </div>
     );
 
@@ -171,6 +239,8 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
       <>
         {header}
 
+        <h2>{pendingMatches.length} groups to match</h2>
+
         {pendingMatches.map((matches, i) => {
           return (
             <Table key={i}>
@@ -195,62 +265,81 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
                   return (
                     <Table.Row key={j}>
                       <Table.Cell>{usernameToName(match.username)}</Table.Cell>
-                      <Table.Cell>{match.patientName}</Table.Cell>
                       <Table.Cell>
-                        {match.parsedEncounterDate.format(DATE_FORMAT_DISPLAY)}
+                        {obfuscated ? obfuscateString(match.patientName) : match.patientName}
                       </Table.Cell>
-                      <Table.Cell>{match.formattedDateOfBirth}</Table.Cell>
                       <Table.Cell>
-                        <Input
-                          defaultValue={providenceMrn}
-                          onChange={(e, data) =>
-                            this.setState({
-                              changedRows: {
-                                ...changedRows,
-                                [match.uniqueId]: {
-                                  ...changedRows[match.uniqueId],
-                                  providenceMrn: data.value
+                        {obfuscated
+                          ? obfuscateDate(match.encounterDate)
+                          : match.parsedEncounterDate.format(DATE_FORMAT_DISPLAY)}
+                      </Table.Cell>
+                      <Table.Cell>
+                        {obfuscated
+                          ? obfuscateDate(match.formattedDateOfBirth)
+                          : match.formattedDateOfBirth}
+                      </Table.Cell>
+                      <Table.Cell>
+                        {obfuscated ? (
+                          obfuscateNumber(providenceMrn)
+                        ) : (
+                          <Input
+                            defaultValue={providenceMrn}
+                            onChange={(e, data) =>
+                              this.setState({
+                                changedRows: {
+                                  ...changedRows,
+                                  [match.uniqueId]: {
+                                    ...changedRows[match.uniqueId],
+                                    providenceMrn: data.value
+                                  }
                                 }
-                              }
-                            })
-                          }
-                        />
+                              })
+                            }
+                          />
+                        )}
                       </Table.Cell>
                       <Table.Cell>
-                        <Input
-                          defaultValue={mrn}
-                          onChange={(e, data) =>
-                            this.setState({
-                              changedRows: {
-                                ...changedRows,
-                                [match.uniqueId]: {
-                                  ...changedRows[match.uniqueId],
-                                  mrn: data.value
+                        {obfuscated ? (
+                          obfuscateNumber(mrn)
+                        ) : (
+                          <Input
+                            defaultValue={mrn}
+                            onChange={(e, data) =>
+                              this.setState({
+                                changedRows: {
+                                  ...changedRows,
+                                  [match.uniqueId]: {
+                                    ...changedRows[match.uniqueId],
+                                    mrn: data.value
+                                  }
                                 }
-                              }
-                            })
-                          }
-                        />
+                              })
+                            }
+                          />
+                        )}
                       </Table.Cell>
                       <Table.Cell>
-                        <Button
-                          disabled={
-                            !(match.uniqueId in changedRows) ||
-                            ((!('mrn' in changedRows[match.uniqueId]) ||
-                              changedRows[match.uniqueId].mrn === match.mrn) &&
-                              (!('providenceMrn' in changedRows[match.uniqueId]) ||
-                                changedRows[match.uniqueId].providenceMrn === match.providenceMrn))
-                          }
-                          onClick={() =>
-                            console.log({
-                              uniqueId: match.uniqueId,
-                              value: changedRows[match.uniqueId]
-                            })
-                          }
-                          primary
-                        >
-                          Save
-                        </Button>
+                        {!obfuscated && (
+                          <Button
+                            disabled={
+                              !(match.uniqueId in changedRows) ||
+                              ((!('mrn' in changedRows[match.uniqueId]) ||
+                                changedRows[match.uniqueId].mrn === match.mrn) &&
+                                (!('providenceMrn' in changedRows[match.uniqueId]) ||
+                                  changedRows[match.uniqueId].providenceMrn ===
+                                    match.providenceMrn))
+                            }
+                            onClick={() =>
+                              console.log({
+                                uniqueId: match.uniqueId,
+                                value: changedRows[match.uniqueId]
+                              })
+                            }
+                            primary
+                          >
+                            Save
+                          </Button>
+                        )}
                       </Table.Cell>
                     </Table.Row>
                   );
