@@ -6,6 +6,7 @@ import {
   LOCATION_OPTIONS,
   option
 } from './options';
+import { DATE_FORMAT_DATABASE } from './constants';
 import { Dropdown, Form, Input, Popup } from 'semantic-ui-react';
 import { InfoButton } from './InfoButton';
 
@@ -19,7 +20,7 @@ type FieldProps = {
   onChange: any;
 };
 
-export const today = () => moment().format('YYYY-MM-DD');
+export const today = () => moment().format(DATE_FORMAT_DATABASE);
 
 export class EncounterDateField extends React.Component<FieldProps> {
   render() {

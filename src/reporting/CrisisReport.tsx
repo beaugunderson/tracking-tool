@@ -1,6 +1,7 @@
 import './CrisisReport.css';
 import React from 'react';
 import { Button, Icon, Table } from 'semantic-ui-react';
+import { DATE_FORMAT_DISPLAY } from '../constants';
 import { EXCLUDE_STRING_VALUE, transform, TransformedEncounter } from './data';
 import { sortBy } from 'lodash';
 import { usernameToName } from '../usernames';
@@ -78,7 +79,9 @@ export class CrisisReport extends React.Component<CrisisReportProps, CrisisRepor
           <Table.Body>
             {crisisEncounters.map(encounter => (
               <Table.Row>
-                <Table.Cell>{encounter.parsedEncounterDate.format('MM/DD/YYYY')}</Table.Cell>
+                <Table.Cell>
+                  {encounter.parsedEncounterDate.format(DATE_FORMAT_DISPLAY)}
+                </Table.Cell>
                 <Table.Cell>{usernameToName(encounter.username)}</Table.Cell>
                 <Table.Cell>
                   <a onClick={() => clipboard.writeText(encounter.providenceMrn)}>

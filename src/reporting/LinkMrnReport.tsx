@@ -2,7 +2,7 @@ import './GridReport.css';
 import * as doubleMetaphone from 'double-metaphone';
 import React from 'react';
 import { Button, Input, Table } from 'semantic-ui-react';
-import { CANONICAL_DATE_FORMAT } from '../constants';
+import { DATE_FORMAT_DISPLAY } from '../constants';
 import { each } from 'lodash';
 import { EXCLUDE_STRING_VALUE, transform, TransformedEncounter } from './data';
 import { usernameToName } from '../usernames';
@@ -197,7 +197,7 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
                       <Table.Cell>{usernameToName(match.username)}</Table.Cell>
                       <Table.Cell>{match.patientName}</Table.Cell>
                       <Table.Cell>
-                        {match.parsedEncounterDate.format(CANONICAL_DATE_FORMAT)}
+                        {match.parsedEncounterDate.format(DATE_FORMAT_DISPLAY)}
                       </Table.Cell>
                       <Table.Cell>{match.formattedDateOfBirth}</Table.Cell>
                       <Table.Cell>

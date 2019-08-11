@@ -18,6 +18,7 @@ import { chain, escapeRegExp } from 'lodash';
 import { CommunityEncounterForm } from './forms/CommunityEncounterForm';
 import { CrisisReport } from './reporting/CrisisReport';
 import { DataAuditReport } from './reporting/DataAuditReport';
+import { DATE_FORMAT_DATABASE, DATE_FORMAT_DISPLAY } from './constants';
 import { ENCOUNTER_TYPE_NAMES, ENCOUNTER_TYPES } from './options';
 import { ensureUserDirectoryExists, rootPathExists } from './store';
 import { ErrorMessage } from './ErrorMessage';
@@ -115,7 +116,7 @@ export class App extends React.Component<{}, AppState> {
     const encounterSearchMoment = moment(encounterSearchDate);
 
     if (encounterSearchMoment.isValid()) {
-      criteria.encounterDate = encounterSearchMoment.format('YYYY-MM-DD');
+      criteria.encounterDate = encounterSearchMoment.format(DATE_FORMAT_DATABASE);
     }
 
     this.encounters.find(criteria).exec((err, docs) => {
@@ -141,12 +142,7 @@ export class App extends React.Component<{}, AppState> {
       const monthEnd = moment().endOf('month');
 
       const monthEncounters = transformEncounters(results).filter(encounter => {
-        return moment(encounter.encounterDate, 'YYYY-MM-DD').isBetween(
-          monthStart,
-          monthEnd,
-          undefined,
-          '[]'
-        );
+        return encounter.parsedEncounterDate.isBetween(monthStart, monthEnd, undefined, '[]');
       });
 
       const gads = monthEncounters.filter(encounter => !!encounter.gad).length;
@@ -494,7 +490,9 @@ export class App extends React.Component<{}, AppState> {
                         Delete
                       </Button>
                     </Table.Cell>
-                    <Table.Cell>{moment(doc.encounterDate).format('M/D/YYYY')}</Table.Cell>
+                    <Table.Cell>
+                      {transformed.parsedEncounterDate.format(DATE_FORMAT_DISPLAY)}
+                    </Table.Cell>
                     <Table.Cell>
                       {ENCOUNTER_TYPE_NAMES[doc.encounterType] || 'Patient'}
                       &nbsp;&nbsp;&nbsp;

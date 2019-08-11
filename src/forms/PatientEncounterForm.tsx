@@ -6,6 +6,12 @@ import React from 'react';
 import { ageYears, parseDate } from '../reporting/data';
 import { chain, deburr, escapeRegExp, isEmpty, isNaN } from 'lodash';
 import { Checkbox, Divider, Dropdown, Form, Grid, Header, Input, Ref } from 'semantic-ui-react';
+import {
+  DATE_FORMAT_DATABASE,
+  DATE_FORMAT_DISPLAY,
+  FIRST_TRACKING_DATE,
+  OLDEST_POSSIBLE_AGE
+} from '../constants';
 import { DIAGNOSES, DOCTORS, STAGES } from '../options';
 import {
   EncounterClinicField,
@@ -17,7 +23,6 @@ import {
   today
 } from '../shared-fields';
 import { EncounterFormProps, Intervention } from '../types';
-import { FIRST_TRACKING_DATE, OLDEST_POSSIBLE_AGE } from '../constants';
 import { FormikErrors, FormikProps, withFormik } from 'formik';
 import { InfoButton } from '../InfoButton';
 import { InfoButtonLabel } from '../InfoButtonLabel';
@@ -96,9 +101,9 @@ const docToOption = (doc: PatientEncounter) => {
 
   let relativeTime = moment(doc.encounterDate).from(_today);
 
-  if (doc.encounterDate === _today.format('YYYY-MM-DD')) {
+  if (doc.encounterDate === _today.format(DATE_FORMAT_DATABASE)) {
     relativeTime = 'today';
-  } else if (doc.encounterDate === _today.subtract(1, 'day').format('YYYY-MM-DD')) {
+  } else if (doc.encounterDate === _today.subtract(1, 'day').format(DATE_FORMAT_DATABASE)) {
     relativeTime = 'yesterday';
   }
 
@@ -309,7 +314,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
           return;
         }
 
-        this.props.setFieldValue('dateOfBirth', date.format('MM/DD/YYYY'));
+        this.props.setFieldValue('dateOfBirth', date.format(DATE_FORMAT_DISPLAY));
       });
     }
   }
@@ -793,7 +798,7 @@ export const PatientEncounterForm = withFormik<PatientEncounterFormProps, Patien
       return {
         ...props.encounter,
 
-        dateOfBirth: parseDate(props.encounter.dateOfBirth).format('MM/DD/YYYY')
+        dateOfBirth: parseDate(props.encounter.dateOfBirth).format(DATE_FORMAT_DISPLAY)
       };
     }
 
@@ -898,7 +903,7 @@ export const PatientEncounterForm = withFormik<PatientEncounterFormProps, Patien
       {
         ...values,
 
-        dateOfBirth: parseDate(values.dateOfBirth).format('YYYY-MM-DD'),
+        dateOfBirth: parseDate(values.dateOfBirth).format(DATE_FORMAT_DATABASE),
         patientName: values.patientName.trim()
       },
 

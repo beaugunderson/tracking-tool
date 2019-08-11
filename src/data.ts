@@ -1,6 +1,7 @@
 import async from 'async';
 import Debug from 'debug';
 import moment from 'moment';
+import { DATE_FORMAT_DATABASE } from './constants';
 import { isEqual } from 'lodash';
 import { parseDate } from './reporting/data';
 import { PatientEncounter } from './forms/PatientEncounterForm';
@@ -45,7 +46,7 @@ const migrations: Migration[] = [
           ...encounter,
 
           // then subtract 100 years, as it was likely specified in ambiguous two-digit format
-          dateOfBirth: dateOfBirth.subtract(100, 'years').format('YYYY-MM-DD')
+          dateOfBirth: dateOfBirth.subtract(100, 'years').format(DATE_FORMAT_DATABASE)
         };
       }
 

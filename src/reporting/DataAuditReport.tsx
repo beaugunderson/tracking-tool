@@ -1,9 +1,9 @@
 import moment from 'moment';
 import React from 'react';
 import { Button, Icon, Table } from 'semantic-ui-react';
+import { DATE_FORMAT_DISPLAY, FIRST_TRACKING_DATE, OLDEST_POSSIBLE_AGE } from '../constants';
 import { ENCOUNTER_TYPE_NAMES } from '../options';
 import { EXCLUDE_STRING_VALUE, transform, TransformedEncounter } from './data';
-import { FIRST_TRACKING_DATE, OLDEST_POSSIBLE_AGE } from '../constants';
 import { sortBy } from 'lodash';
 import { usernameToName } from '../usernames';
 
@@ -106,10 +106,10 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
                 <Table.Cell>{ENCOUNTER_TYPE_NAMES[encounter.encounterType]}</Table.Cell>
                 <Table.Cell>{usernameToName(encounter.username)}</Table.Cell>
                 <Table.Cell negative={abnormalEncounterDate(encounter)}>
-                  {encounter.parsedEncounterDate.format('MM/DD/YYYY')}
+                  {encounter.parsedEncounterDate.format(DATE_FORMAT_DISPLAY)}
                 </Table.Cell>
                 <Table.Cell negative={abnormalDateOfBirth(encounter)}>
-                  {moment(encounter.dateOfBirth).format('MM/DD/YYYY')}
+                  {encounter.formattedDateOfBirth}
                 </Table.Cell>
                 <Table.Cell>
                   {encounter.encounterType === 'patient' && (

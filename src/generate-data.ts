@@ -1,6 +1,7 @@
 import faker from 'faker';
 import moment from 'moment';
 import { CLINICS, LOCATIONS } from './options';
+import { DATE_FORMAT_DATABASE } from './constants';
 import { DOCTORS } from './doctors';
 import { INITIAL_VALUES, PatientEncounter } from './forms/PatientEncounterForm';
 import { INTERVENTIONS } from './patient-interventions';
@@ -45,7 +46,7 @@ function fakePatient() {
   return {
     patientName: faker.fake('{{name.lastName}}, {{name.firstName}} {{name.firstName}}'),
 
-    dateOfBirth: moment(faker.date.past(115)).format('YYYY-MM-DD'),
+    dateOfBirth: moment(faker.date.past(115)).format(DATE_FORMAT_DATABASE),
 
     diagnosis: diagnosis(),
 
@@ -108,7 +109,7 @@ export function insertExamples(encounters: Nedb) {
 
       ...patientDiagnosis,
 
-      encounterDate: moment(faker.date.recent(30)).format('YYYY-MM-DD'),
+      encounterDate: moment(faker.date.recent(30)).format(DATE_FORMAT_DATABASE),
       encounterType: 'patient',
 
       // 20% of the time generate new location for a given patient

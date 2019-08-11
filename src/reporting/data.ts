@@ -1,7 +1,7 @@
 import moment from 'moment';
 import path from 'path';
-import { CANONICAL_DATE_FORMAT } from '../constants';
 import { clone, isEqual, isNaN, isNumber } from 'lodash';
+import { DATE_FORMAT_DATABASE, DATE_FORMAT_DISPLAY } from '../constants';
 import { INTERVENTIONS } from '../patient-interventions';
 import { PatientEncounter } from '../forms/PatientEncounterForm';
 import { rootPath } from '../store';
@@ -37,16 +37,17 @@ export function parseDate(date: string) {
   return moment(
     date.trim(),
     [
+      // slashes
       'MM/DD/YYYY',
       'M/D/YYYY',
-      'MM/DD/YYYY',
       'M/D/YY',
 
+      // dashes
       'MM-DD-YYYY',
       'M-D-YYYY',
-      'MM-DD-YYYY',
       'M-D-YY',
 
+      // database format
       'YYYY-MM-DD'
     ],
     // strict mode
@@ -250,9 +251,9 @@ export function transformEncounter(
   swedishMapping = null
 ): TransformedEncounter {
   let ageBucket: AgeBucket | undefined;
-  let parsedDateOfBirth: moment.Moment;
+  let parsedDateOfBirth: moment.Moment | undefined;
 
-  const parsedEncounterDate = moment(encounter.encounterDate, 'YYYY-MM-DD');
+  const parsedEncounterDate = moment(encounter.encounterDate, DATE_FORMAT_DATABASE);
 
   if (encounter.encounterType === 'patient') {
     parsedDateOfBirth = parseDate(encounter.dateOfBirth);
@@ -310,7 +311,7 @@ export function transformEncounter(
     ...encounter,
 
     ageBucket,
-    formattedDateOfBirth: parsedDateOfBirth.format(CANONICAL_DATE_FORMAT),
+    formattedDateOfBirth: parsedDateOfBirth && parsedDateOfBirth.format(DATE_FORMAT_DISPLAY),
     parsedDateOfBirth,
 
     parsedEncounterDate,

@@ -6,7 +6,6 @@ import * as d3 from 'd3';
 import crossfilter from 'crossfilter2';
 import dc from 'dc';
 // import mergeImg from 'merge-img';
-import moment from 'moment';
 import React from 'react';
 import reductio from 'reductio';
 // import typedArrayToBuffer from 'typedarray-to-buffer';
@@ -319,7 +318,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
     // #endregion
 
     // #region encounters by day
-    const encounterDateDimension = ndx.dimension(d => moment(d.encounterDate).format('YYYY-MM'));
+    const encounterDateDimension = ndx.dimension(d => d.parsedEncounterDate.format('YYYY-MM'));
     const encounterDateGroup = encounterDateDimension
       .group()
       .reduceSum(d => d.parsedNumberOfTasks);
