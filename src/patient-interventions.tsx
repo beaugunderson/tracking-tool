@@ -420,14 +420,46 @@ const HEALTH_LITERACY = {
 const MENTAL_HEALTH = {
   label: 'Interventions',
   interventions: withFieldNames([
-    { name: 'ACT', description: '' },
-    { name: 'CBT', description: '' },
-    { name: 'Grief', description: '' },
-    { name: 'Mindfulness', description: '' },
-    { name: 'Motivational Interviewing', description: '' },
-    { name: 'Narrative', description: '' },
-    { name: 'Psycho-Education', description: '' },
-    { name: 'Solution-Focused', description: '' },
+    {
+      name: 'ACT',
+      description:
+        'Metaphors, reflective listening, identifying feelings and feelings are not defining, "and" not "but," mindfulness techniques for noticing feelings'
+    },
+    {
+      name: 'CBT',
+      description:
+        'Worksheets, behavioral activation, connecting thought/emotion and behaviors, education regarding cognitive distortions, insomnia/pain/relaxation techniques, cognitive reframing'
+    },
+    {
+      name: 'Grief',
+      description:
+        'Validation of feelings/loss, reflective listening, coping/adapting, rituals, narrative, many types of loss, can be anticipatory, legacy work, meaning making, remembering, holding space'
+    },
+    {
+      name: 'Mindfulness',
+      description:
+        'Skill building, guided imagery, relaxation response, body scan, breathing techniques, meditation, noticing/acknowledging, non-judgmental awareness, present-based, anxiety reduction'
+    },
+    {
+      name: 'Motivational Interviewing',
+      description:
+        'Reflections, scaling, change, SMART goals, patient-led, Listening for Change: Desire for change, Ability to change, Reasons to change, Needing to change, Commitment to change, Activation re willingness to change, Taking steps toward change, identifying barriers and strengths'
+    },
+    {
+      name: 'Narrative',
+      description:
+        'Meaning/value/purpose, life review, acknowledge rich history, telling cancer story, understanding of illness, palliative, goals of care, exploration of values, cultural context, reframing the story and offering alternative narrative via externalizing'
+    },
+    {
+      name: 'Psycho-Education',
+      description:
+        'Educational information, grief versus depression, inflammatory process, parenting and aging developmental stages, sleep hygiene, practical, pain, normalizing, support groups/counseling, social work intro, suicide awareness, PHQ/GAD review, evaluating understanding'
+    },
+    {
+      name: 'Solution-Focused',
+      description:
+        'Present/future focused, goal oriented, identifying strengths/barriers to goals, scaling, miracle question, brief, prioritizing, problem-solving, specific to identified problem, measurable outcomes'
+    },
     { name: 'Other', description: '', fieldName: 'otherMentalHealthIntervention' }
   ])
 };
@@ -468,10 +500,10 @@ interventionGroups.forEach(column => {
     group.interventions.forEach(intervention => {
       const option = {
         content: (
-          <React.Fragment>
+          <>
             <Header as="h4" content={intervention.name} subheader={group.label} />
             {intervention.description}
-          </React.Fragment>
+          </>
         ),
         text: `${intervention.name} ${intervention.description}`,
         value: intervention.fieldName
