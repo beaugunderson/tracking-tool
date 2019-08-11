@@ -1,8 +1,9 @@
-import Moment from 'moment';
+import moment from 'moment';
 import React from 'react';
 import { Button, Icon, Table } from 'semantic-ui-react';
 import { ENCOUNTER_TYPE_NAMES } from '../options';
 import { EXCLUDE_STRING_VALUE, transform, TransformedEncounter } from './data';
+import { FIRST_TRACKING_DATE, OLDEST_POSSIBLE_AGE } from '../constants';
 import { sortBy } from 'lodash';
 import { usernameToName } from '../usernames';
 
@@ -32,12 +33,18 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
       return null;
     }
 
-    const start = Moment('2018-11-01');
-    const now = Moment();
+    const now = moment();
 
-    function abnormalDate(encounter: TransformedEncounter) {
+    function abnormalDateOfBirth(encounter: TransformedEncounter) {
+      return encounter.parsedEncounterDate
+        .subtract(OLDEST_POSSIBLE_AGE)
+        .isBefore(moment(encounter.dateOfBirth));
+    }
+
+    function abnormalEncounterDate(encounter: TransformedEncounter) {
       return (
-        encounter.parsedEncounterDate.isAfter(now) || encounter.parsedEncounterDate.isBefore(start)
+        encounter.parsedEncounterDate.isAfter(now) ||
+        encounter.parsedEncounterDate.isBefore(FIRST_TRACKING_DATE)
       );
     }
 
@@ -60,7 +67,8 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
         }
 
         return (
-          abnormalDate(encounter) ||
+          abnormalDateOfBirth(encounter) ||
+          abnormalEncounterDate(encounter) ||
           abnormalInterventions(encounter) ||
           abnormalNumberOfTasks(encounter) ||
           abnormalTimeSpent(encounter)
@@ -80,7 +88,8 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
             <Table.Row>
               <Table.HeaderCell>Type</Table.HeaderCell>
               <Table.HeaderCell>Social Worker</Table.HeaderCell>
-              <Table.HeaderCell>Date</Table.HeaderCell>
+              <Table.HeaderCell>Encounter Date</Table.HeaderCell>
+              <Table.HeaderCell>Date of Birth</Table.HeaderCell>
               <Table.HeaderCell>Providence MRN</Table.HeaderCell>
               <Table.HeaderCell>MRN</Table.HeaderCell>
               <Table.HeaderCell>Location</Table.HeaderCell>
@@ -96,8 +105,11 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
               <Table.Row>
                 <Table.Cell>{ENCOUNTER_TYPE_NAMES[encounter.encounterType]}</Table.Cell>
                 <Table.Cell>{usernameToName(encounter.username)}</Table.Cell>
-                <Table.Cell negative={abnormalDate(encounter)}>
+                <Table.Cell negative={abnormalEncounterDate(encounter)}>
                   {encounter.parsedEncounterDate.format('MM/DD/YYYY')}
+                </Table.Cell>
+                <Table.Cell negative={abnormalDateOfBirth(encounter)}>
+                  {moment(encounter.dateOfBirth).format('MM/DD/YYYY')}
                 </Table.Cell>
                 <Table.Cell>
                   {encounter.encounterType === 'patient' && (

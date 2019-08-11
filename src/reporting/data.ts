@@ -1,5 +1,6 @@
 import moment from 'moment';
 import path from 'path';
+import { CANONICAL_DATE_FORMAT } from '../constants';
 import { clone, isEqual, isNaN, isNumber } from 'lodash';
 import { INTERVENTIONS } from '../patient-interventions';
 import { PatientEncounter } from '../forms/PatientEncounterForm';
@@ -53,8 +54,8 @@ export function parseDate(date: string) {
   );
 }
 
-export function ageYears(dateString: string): number {
-  return moment().diff(parseDate(dateString), 'years');
+export function ageYears(encounterDate: moment.Moment, dateOfBirth: moment.Moment): number {
+  return dateOfBirth.diff(encounterDate, 'years');
 }
 
 // TODO update this to not extend PatientEncounter and encompass all optional fields correctly
@@ -62,8 +63,10 @@ export interface TransformedEncounter extends PatientEncounter {
   // from Other encounter
   activity?: string;
 
-  age?: number;
   ageBucket?: AgeBucket;
+
+  formattedDateOfBirth?: string;
+  parsedDateOfBirth?: moment.Moment;
 
   encounterDate: string;
   parsedEncounterDate: moment.Moment;
@@ -87,6 +90,8 @@ export interface TransformedEncounter extends PatientEncounter {
   tests: string[];
 
   timeSpentHours: number;
+
+  uniqueId: string;
 }
 
 interface CopiedFile {
@@ -244,12 +249,14 @@ export function transformEncounter(
   providenceMapping = null,
   swedishMapping = null
 ): TransformedEncounter {
-  let age: number | undefined;
   let ageBucket: AgeBucket | undefined;
+  let parsedDateOfBirth: moment.Moment;
+
+  const parsedEncounterDate = moment(encounter.encounterDate, 'YYYY-MM-DD');
 
   if (encounter.encounterType === 'patient') {
-    age = ageYears(encounter.dateOfBirth);
-    ageBucket = bucketAge(age);
+    parsedDateOfBirth = parseDate(encounter.dateOfBirth);
+    ageBucket = bucketAge(ageYears(parsedEncounterDate, parsedDateOfBirth));
   }
 
   const tests = [];
@@ -302,10 +309,11 @@ export function transformEncounter(
   return {
     ...encounter,
 
-    age,
     ageBucket,
+    formattedDateOfBirth: parsedDateOfBirth.format(CANONICAL_DATE_FORMAT),
+    parsedDateOfBirth,
 
-    parsedEncounterDate: moment(encounter.encounterDate, 'YYYY-MM-DD'),
+    parsedEncounterDate,
 
     formattedEncounterType:
       encounter.encounterType[0].toUpperCase() + encounter.encounterType.slice(1),
@@ -340,7 +348,9 @@ export function transformEncounter(
         )
       : EXCLUDE_NUMBER_VALUE,
 
-    timeSpentHours: parseInt(encounter.timeSpent, 10) / 60
+    timeSpentHours: parseInt(encounter.timeSpent, 10) / 60,
+
+    uniqueId: `${encounter.username}-${encounter._id}`
   };
 }
 
@@ -401,7 +411,10 @@ export async function transform(): Promise<TransformedEncounter[]> {
     log.debug(`transform: got ${encounters.length} encounters for "${userEncounter.filename}"`);
 
     for (const encounter of encounters) {
-      allEncounters.push({ ...encounter, username: userEncounter.username });
+      allEncounters.push({
+        ...encounter,
+        username: userEncounter.username
+      });
     }
   }
 

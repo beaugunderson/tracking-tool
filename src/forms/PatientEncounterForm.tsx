@@ -17,6 +17,7 @@ import {
   today
 } from '../shared-fields';
 import { EncounterFormProps, Intervention } from '../types';
+import { FIRST_TRACKING_DATE, OLDEST_POSSIBLE_AGE } from '../constants';
 import { FormikErrors, FormikProps, withFormik } from 'formik';
 import { InfoButton } from '../InfoButton';
 import { InfoButtonLabel } from '../InfoButtonLabel';
@@ -521,7 +522,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
     let dateOfBirthLabel = 'Date of Birth';
 
     if (values.dateOfBirth) {
-      const age = ageYears(values.dateOfBirth);
+      const age = ageYears(parseDate(values.encounterDate), parseDate(values.dateOfBirth));
 
       if (!isNaN(age)) {
         dateOfBirthLabel = `Date of Birth (${age} years old)`;
@@ -845,12 +846,27 @@ export const PatientEncounterForm = withFormik<PatientEncounterFormProps, Patien
       }
     });
 
-    const parsedDate = parseDate(values.dateOfBirth);
+    const parsedEncounterDate = parseDate(values.encounterDate);
 
-    if (!parsedDate.isValid()) {
+    if (!parsedEncounterDate.isValid()) {
+      errors.encounterDate = 'Must be a valid date';
+    } else if (parsedEncounterDate.isAfter(moment())) {
+      errors.encounterDate = 'Must be today or before';
+    } else if (parsedEncounterDate.isBefore(FIRST_TRACKING_DATE)) {
+      errors.encounterDate = 'Must be on or newer than 12/01/2018';
+    }
+
+    const parsedDateOfBirth = parseDate(values.dateOfBirth);
+
+    if (!parsedDateOfBirth.isValid()) {
       errors.dateOfBirth = 'Must be a valid date';
-    } else if (parsedDate.isAfter(moment())) {
+    } else if (parsedDateOfBirth.isAfter(moment())) {
       errors.dateOfBirth = 'Must be in the past';
+    } else if (
+      values.encounterDate &&
+      parsedDateOfBirth.isBefore(parsedEncounterDate.subtract(OLDEST_POSSIBLE_AGE, 'years'))
+    ) {
+      errors.dateOfBirth = 'Must be younger than 117 years old';
     }
 
     if (!/(0|5)$/.test(values.timeSpent)) {

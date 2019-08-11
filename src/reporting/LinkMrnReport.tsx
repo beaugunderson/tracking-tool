@@ -1,7 +1,8 @@
 import './GridReport.css';
 import * as doubleMetaphone from 'double-metaphone';
 import React from 'react';
-import { Button, Table } from 'semantic-ui-react';
+import { Button, Input, Table } from 'semantic-ui-react';
+import { CANONICAL_DATE_FORMAT } from '../constants';
 import { each } from 'lodash';
 import { EXCLUDE_STRING_VALUE, transform, TransformedEncounter } from './data';
 import { usernameToName } from '../usernames';
@@ -24,8 +25,8 @@ function metaphones(name: string): string[] {
 function arraySimilarity(a: string[], b: string[]): number {
   let matches = 0;
 
-  for (const x of a) {
-    if (b.includes(x)) {
+  for (const item of a) {
+    if (b.includes(item)) {
       matches++;
     }
   }
@@ -38,6 +39,7 @@ interface LinkMrnReportProps {
 }
 
 interface LinkMrnReportState {
+  changedRows: {};
   encounters: TransformedEncounter[] | null;
   loading: boolean;
 }
@@ -83,6 +85,7 @@ function needsMatching(encounters: TransformedEncounter[]) {
 
 export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnReportState> {
   state: LinkMrnReportState = {
+    changedRows: {},
     encounters: null,
     loading: true
   };
@@ -102,7 +105,7 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
   }
 
   render() {
-    const { encounters, loading } = this.state;
+    const { changedRows, encounters, loading } = this.state;
 
     if (loading) {
       return <h1>Loading encounters...</h1>;
@@ -116,21 +119,21 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
 
     if (!encounters || encounters.length === 0) {
       return (
-        <React.Fragment>
+        <>
           {header}
 
           <h1>There are no encounters to display.</h1>
-        </React.Fragment>
+        </>
       );
     }
 
     const byDOB: { [dob: string]: TransformedEncounter[] } = {};
 
     encounters.forEach(encounter => {
-      if (!byDOB[encounter.dateOfBirth]) {
-        byDOB[encounter.dateOfBirth] = [encounter];
+      if (!byDOB[encounter.formattedDateOfBirth]) {
+        byDOB[encounter.formattedDateOfBirth] = [encounter];
       } else {
-        byDOB[encounter.dateOfBirth].push(encounter);
+        byDOB[encounter.formattedDateOfBirth].push(encounter);
       }
     });
 
@@ -140,7 +143,7 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
       const sets = [];
 
       while (dobEncounters.length) {
-        const currentSet = [dobEncounters[0]];
+        const currentSet = [dobEncounters.shift()];
 
         dobEncounters.slice().forEach((encounter, index) => {
           if (
@@ -173,25 +176,82 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
             <Table key={i}>
               <Table.Header>
                 <Table.Row>
-                  <Table.HeaderCell width={1}>Social Worker</Table.HeaderCell>
-                  <Table.HeaderCell width={2}>Name</Table.HeaderCell>
-                  <Table.HeaderCell width={1}>Date of Birth</Table.HeaderCell>
-                  <Table.HeaderCell width={1}>Providence MRN</Table.HeaderCell>
-                  <Table.HeaderCell width={1}>Swedish MRN</Table.HeaderCell>
+                  <Table.HeaderCell width={2}>Social Worker</Table.HeaderCell>
+                  <Table.HeaderCell width={3}>Name</Table.HeaderCell>
+                  <Table.HeaderCell width={2}>Encounter Date</Table.HeaderCell>
+                  <Table.HeaderCell width={2}>Date of Birth</Table.HeaderCell>
+                  <Table.HeaderCell width={2}>Providence MRN</Table.HeaderCell>
+                  <Table.HeaderCell width={2}>Swedish MRN</Table.HeaderCell>
+                  <Table.HeaderCell width={1}></Table.HeaderCell>
                 </Table.Row>
               </Table.Header>
 
               <Table.Body>
                 {matches.map((match, j) => {
+                  const providenceMrn =
+                    match.providenceMrn === EXCLUDE_STRING_VALUE ? '' : match.providenceMrn;
+                  const mrn = match.mrn === EXCLUDE_STRING_VALUE ? '' : match.mrn;
+
                   return (
                     <Table.Row key={j}>
                       <Table.Cell>{usernameToName(match.username)}</Table.Cell>
                       <Table.Cell>{match.patientName}</Table.Cell>
-                      <Table.Cell>{match.dateOfBirth}</Table.Cell>
                       <Table.Cell>
-                        {match.providenceMrn === EXCLUDE_STRING_VALUE ? '' : match.providenceMrn}
+                        {match.parsedEncounterDate.format(CANONICAL_DATE_FORMAT)}
                       </Table.Cell>
-                      <Table.Cell>{match.mrn}</Table.Cell>
+                      <Table.Cell>{match.formattedDateOfBirth}</Table.Cell>
+                      <Table.Cell>
+                        <Input
+                          defaultValue={providenceMrn}
+                          onChange={(e, data) =>
+                            this.setState({
+                              changedRows: {
+                                ...changedRows,
+                                [match.uniqueId]: {
+                                  ...changedRows[match.uniqueId],
+                                  providenceMrn: data.value
+                                }
+                              }
+                            })
+                          }
+                        />
+                      </Table.Cell>
+                      <Table.Cell>
+                        <Input
+                          defaultValue={mrn}
+                          onChange={(e, data) =>
+                            this.setState({
+                              changedRows: {
+                                ...changedRows,
+                                [match.uniqueId]: {
+                                  ...changedRows[match.uniqueId],
+                                  mrn: data.value
+                                }
+                              }
+                            })
+                          }
+                        />
+                      </Table.Cell>
+                      <Table.Cell>
+                        <Button
+                          disabled={
+                            !(match.uniqueId in changedRows) ||
+                            ((!('mrn' in changedRows[match.uniqueId]) ||
+                              changedRows[match.uniqueId].mrn === match.mrn) &&
+                              (!('providenceMrn' in changedRows[match.uniqueId]) ||
+                                changedRows[match.uniqueId].providenceMrn === match.providenceMrn))
+                          }
+                          onClick={() =>
+                            console.log({
+                              uniqueId: match.uniqueId,
+                              value: changedRows[match.uniqueId]
+                            })
+                          }
+                          primary
+                        >
+                          Save
+                        </Button>
+                      </Table.Cell>
                     </Table.Row>
                   );
                 })}
