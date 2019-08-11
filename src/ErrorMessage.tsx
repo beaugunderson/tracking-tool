@@ -25,7 +25,7 @@ export class ErrorMessage extends React.Component<ErrorProps> {
     const message: string = isError(error) ? error.message : error;
 
     return (
-      <React.Fragment>
+      <>
         <Message icon negative size="huge">
           <Icon name="exclamation triangle" />
 
@@ -75,7 +75,7 @@ export class ErrorMessage extends React.Component<ErrorProps> {
             </List.Item>
           </List>
         </Segment>
-      </React.Fragment>
+      </>
     );
   }
 }

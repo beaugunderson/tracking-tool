@@ -57,7 +57,7 @@ export class CrisisReport extends React.Component<CrisisReportProps, CrisisRepor
     }
 
     return (
-      <React.Fragment>
+      <>
         <div>
           <Button onClick={() => this.props.onComplete()}>Back</Button>
         </div>
@@ -101,7 +101,7 @@ export class CrisisReport extends React.Component<CrisisReportProps, CrisisRepor
             ))}
           </Table.Body>
         </Table>
-      </React.Fragment>
+      </>
     );
   }
 }

@@ -165,7 +165,7 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
     });
 
     return (
-      <React.Fragment>
+      <>
         {header}
 
         {pendingMatches.map((matches, i) => {
@@ -199,7 +199,7 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
             </Table>
           );
         })}
-      </React.Fragment>
+      </>
     );
   }
 }

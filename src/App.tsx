@@ -318,7 +318,7 @@ export class App extends React.Component<{}, AppState> {
     }
 
     return (
-      <React.Fragment>
+      <>
         <Segment className="big-section" inverted textAlign="center">
           <Header as="h1">Create an Encounter</Header>
 
@@ -365,7 +365,7 @@ export class App extends React.Component<{}, AppState> {
           </Button>
 
           {canSeeReporting() && (
-            <React.Fragment>
+            <>
               <Divider hidden />
 
               <Button onClick={() => this.setState({ reporting: true })} size="big">
@@ -401,7 +401,7 @@ export class App extends React.Component<{}, AppState> {
                   Add fake encounters
                 </Button>
               )}
-            </React.Fragment>
+            </>
           )}
         </Segment>
 
@@ -535,7 +535,7 @@ export class App extends React.Component<{}, AppState> {
           open={confirmDeletion !== null}
           size="large"
         />
-      </React.Fragment>
+      </>
     );
   }
 }

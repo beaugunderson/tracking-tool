@@ -165,11 +165,11 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
 
     if (!encounters || encounters.length === 0) {
       return (
-        <React.Fragment>
+        <>
           {header}
 
           <h1>There are no encounters to display.</h1>
-        </React.Fragment>
+        </>
       );
     }
 
@@ -191,7 +191,7 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
     log.debug(`GridComponent render: rendering ${months.length} months`);
 
     return (
-      <React.Fragment>
+      <>
         {header}
 
         <Table>
@@ -214,7 +214,7 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
             )}
           </Table.Body>
         </Table>
-      </React.Fragment>
+      </>
     );
   }
 }
