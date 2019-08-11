@@ -418,7 +418,7 @@ const HEALTH_LITERACY = {
 };
 
 const MENTAL_HEALTH = {
-  label: 'Interventions',
+  label: 'Intervention Techniques',
   interventions: withFieldNames([
     {
       name: 'ACT',
