@@ -1,7 +1,7 @@
 import './GridReport.css';
-import * as doubleMetaphone from 'double-metaphone';
 import moment from 'moment';
 import React from 'react';
+import { arraySimilarity, metaphones } from '../utilities';
 import { Button, Checkbox, Input, Table } from 'semantic-ui-react';
 import { DATE_FORMAT_DISPLAY } from '../constants';
 import { each } from 'lodash';
@@ -15,14 +15,25 @@ import { usernameToName } from '../usernames';
   for names: compareStrings() >= 0.6
 */
 
-const RANDOM_SEED = Math.floor(Math.random() * 1000);
+// TODO this doesn't seem to be using the Swedish/Providence linkage already???
+// TODO make automatic linkage toggle-able for this report?
+// TODO figure out why multiple groupings are happening
+
+function randomInRange(min: number, max: number): number {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 
 const CONSONANTS = 'bcdfghjklmnpqrstvwxyz'.split('');
 const NUMBERS = '0123456789'.split('');
 const VOWELS = 'aeiou'.split('');
 
+const CONSONANT_OFFSET = randomInRange(1, CONSONANTS.length - 1);
+const DATE_OFFSET = randomInRange(1, 364);
+const NUMBER_OFFSET = randomInRange(1, NUMBERS.length - 1);
+const VOWEL_OFFSET = randomInRange(1, VOWELS.length - 1);
+
 function isConsonant(string: string): boolean {
-  return CONSONANTS.includes(string.toLowerCase());
+  return CONSONANTS.includes(string);
 }
 
 function isDigit(string: string): boolean {
@@ -30,7 +41,7 @@ function isDigit(string: string): boolean {
 }
 
 function isVowel(string: string): boolean {
-  return VOWELS.includes(string.toLowerCase());
+  return VOWELS.includes(string);
 }
 
 function obfuscateString(string: string): string {
@@ -39,15 +50,16 @@ function obfuscateString(string: string): string {
   for (const letter of string) {
     const isCapital = letter.toUpperCase() === letter;
     const capitalizationFunction = isCapital ? 'toUpperCase' : 'toLowerCase';
+    const lowercaseLetter = letter.toLowerCase();
 
-    if (isVowel(letter)) {
-      obfuscated += VOWELS[(VOWELS.indexOf(letter) + RANDOM_SEED) % VOWELS.length][
+    if (isVowel(lowercaseLetter)) {
+      obfuscated += VOWELS[(VOWELS.indexOf(lowercaseLetter) + VOWEL_OFFSET) % VOWELS.length][
         capitalizationFunction
       ]();
-    } else if (isConsonant(letter)) {
-      obfuscated += CONSONANTS[(CONSONANTS.indexOf(letter) + RANDOM_SEED) % CONSONANTS.length][
-        capitalizationFunction
-      ]();
+    } else if (isConsonant(lowercaseLetter)) {
+      obfuscated += CONSONANTS[
+        (CONSONANTS.indexOf(lowercaseLetter) + CONSONANT_OFFSET) % CONSONANTS.length
+      ][capitalizationFunction]();
     } else {
       obfuscated += letter;
     }
@@ -61,7 +73,7 @@ function obfuscateNumber(number: number | string): string {
 
   for (const digit of number.toString()) {
     if (isDigit(digit)) {
-      obfuscated += NUMBERS[(NUMBERS.indexOf(digit) + RANDOM_SEED) % NUMBERS.length];
+      obfuscated += NUMBERS[(NUMBERS.indexOf(digit) + NUMBER_OFFSET) % NUMBERS.length];
     } else {
       obfuscated += digit;
     }
@@ -72,27 +84,8 @@ function obfuscateNumber(number: number | string): string {
 
 function obfuscateDate(date: string): string {
   return moment(date)
-    .subtract(RANDOM_SEED, 'days')
+    .subtract(DATE_OFFSET, 'days')
     .format(DATE_FORMAT_DISPLAY);
-}
-
-function metaphones(name: string): string[] {
-  return name
-    .replace(/,/g, '')
-    .split(' ')
-    .map(part => doubleMetaphone(part)[0]);
-}
-
-function arraySimilarity(a: string[], b: string[]): number {
-  let matches = 0;
-
-  for (const item of a) {
-    if (b.includes(item)) {
-      matches++;
-    }
-  }
-
-  return matches / Math.max(a.length, b.length);
 }
 
 interface LinkMrnReportProps {
@@ -269,9 +262,7 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
                         {obfuscated ? obfuscateString(match.patientName) : match.patientName}
                       </Table.Cell>
                       <Table.Cell>
-                        {obfuscated
-                          ? obfuscateDate(match.encounterDate)
-                          : match.parsedEncounterDate.format(DATE_FORMAT_DISPLAY)}
+                        {match.parsedEncounterDate.format(DATE_FORMAT_DISPLAY)}
                       </Table.Cell>
                       <Table.Cell>
                         {obfuscated
