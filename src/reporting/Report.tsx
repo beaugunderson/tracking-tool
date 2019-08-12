@@ -28,7 +28,9 @@ import { usernameToName } from '../usernames';
 // const { remote, screen } = window.require('electron');
 
 const DEFAULT_MARGINS = { top: 10, right: 50, bottom: 30, left: 30 };
-const OUR_MARGINS = { ...DEFAULT_MARGINS, left: 55 };
+
+const VERTICAL_CHART_MARGINS = { ...DEFAULT_MARGINS, left: 55 };
+const HORIZONTAL_CHART_MARGINS = { ...DEFAULT_MARGINS, left: 40 };
 
 const OTHER_FIELD_NAMES: string[] = map(OTHER_ENCOUNTER_OPTIONS, 'fieldName') as string[];
 const OTHER_FIELD_MAPPING = zipObject(OTHER_FIELD_NAMES, map(
@@ -132,27 +134,30 @@ export class Report extends React.Component<ReportProps, ReportState> {
     }
 
     // #region chart definitions
+    // row charts
     const ageBucketChart = dc.rowChart('#age-chart');
     const clinicChart = dc.rowChart('#clinic-chart');
-    const dayOfWeekChart = dc.barChart('#number-of-tasks-chart');
     const diagnosisChart = dc.rowChart('#diagnosis-chart');
     const doctorChart = dc.rowChart('#doctor-chart');
     const encounterTypeChart = dc.rowChart('#encounter-type-chart');
-    const encountersByDateChart = dc.barChart('#encounter-date-chart');
     const gadChart = dc.rowChart('#gad-chart');
     const interventionChart = dc.rowChart('#intervention-chart');
     const limitedEnglishProficiencyChart = dc.rowChart('#limited-english-proficiency-chart');
     const locationChart = dc.rowChart('#location-chart');
     const mocaChart = dc.rowChart('#moca-chart');
-    const numberOfInterventionsChart = dc.barChart('#number-of-interventions-chart');
     const otherCategoryChart = dc.rowChart('#other-category-chart');
     const otherCategoryTimeChart = dc.rowChart('#other-category-time-chart');
     const phqChart = dc.rowChart('#phq-chart');
     const researchChart = dc.rowChart('#research-chart');
     const stageChart = dc.rowChart('#stage-chart');
     const testChart = dc.rowChart('#test-chart');
-    const timeChart = dc.barChart('#time-chart');
     const userChart = dc.rowChart('#user-chart');
+
+    // bar charts
+    const dayOfWeekChart = dc.barChart('#number-of-tasks-chart');
+    const encountersByDateChart = dc.barChart('#encounter-date-chart');
+    const numberOfInterventionsChart = dc.barChart('#number-of-interventions-chart');
+    const timeChart = dc.barChart('#time-chart');
     // #endregion
 
     const ndx = crossfilter(this.state.encounters);
@@ -335,7 +340,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .yAxisPadding('15%')
       .dimension(encounterDateDimension)
       .group(encounterDateGroup)
-      .margins(OUR_MARGINS);
+      .margins(VERTICAL_CHART_MARGINS);
 
     encountersByDateChart.xAxis().tickFormat(d => {
       const tokens = d.split('-');
@@ -366,7 +371,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .yAxisPadding('10%')
       .dimension(dayOfWeekDimension)
       .group(removeExcludedData(dayOfWeekGroup))
-      .margins(OUR_MARGINS);
+      .margins(VERTICAL_CHART_MARGINS);
 
     dayOfWeekChart
       .xAxis()
@@ -395,7 +400,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       // @ts-ignore
       .yAxisPadding('10%')
       .dimension(numberOfInterventionsDimension)
-      .margins(OUR_MARGINS)
+      .margins(VERTICAL_CHART_MARGINS)
       .group(removeExcludedData(numberOfInterventionsGroup));
 
     numberOfInterventionsChart
@@ -445,7 +450,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .yAxisPadding('10%')
       .renderLabel(true)
       .dimension(timeDimension)
-      .margins(OUR_MARGINS)
+      .margins(VERTICAL_CHART_MARGINS)
       .group(timeGroup)
       .x(d3.scaleLinear().domain(timeRange))
       .xUnits(dc.units.fp.precision(timeBinWidth))
@@ -479,6 +484,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
       .title(d => d.value)
       .ordering(d => GAD_PHQ_ORDERING[d.key])
+      .margins(HORIZONTAL_CHART_MARGINS)
       .xAxis()
       .ticks(4);
 
@@ -500,6 +506,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
       .title(d => d.value)
       .ordering(d => MOCA_ORDERING[d.key])
+      .margins(HORIZONTAL_CHART_MARGINS)
       .xAxis()
       .ticks(4);
 
@@ -521,6 +528,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
       .title(d => d.value)
       .ordering(d => GAD_PHQ_ORDERING[d.key])
+      .margins(HORIZONTAL_CHART_MARGINS)
       .xAxis()
       .ticks(4);
 
@@ -549,6 +557,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .renderTitleLabel(true)
       .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
       .title(d => d.value.exceptionCount)
+      .margins(HORIZONTAL_CHART_MARGINS)
       .xAxis()
       .ticks(4);
 
@@ -571,6 +580,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .renderTitleLabel(true)
       .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
       .title(d => d.value.exceptionCount)
+      .margins(HORIZONTAL_CHART_MARGINS)
       .xAxis()
       .ticks(4);
 
@@ -599,6 +609,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .renderTitleLabel(true)
       .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
       .title(d => d.value.exceptionCount)
+      .margins(HORIZONTAL_CHART_MARGINS)
       .xAxis()
       .ticks(4);
 
@@ -627,6 +638,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .renderTitleLabel(true)
       .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
       .title(d => d.value.exceptionCount)
+      .margins(HORIZONTAL_CHART_MARGINS)
       .xAxis()
       .ticks(4);
 
@@ -649,6 +661,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .renderTitleLabel(true)
       .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
       .title(d => d.value)
+      .margins(HORIZONTAL_CHART_MARGINS)
       .xAxis()
       .ticks(4);
 
@@ -668,7 +681,8 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .group(testGroup)
       .renderTitleLabel(true)
       .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
-      .title(d => d.value);
+      .title(d => d.value)
+      .margins(HORIZONTAL_CHART_MARGINS);
 
     testChart.render();
     // #endregion
@@ -695,6 +709,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .renderTitleLabel(true)
       .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
       .title(d => d.value.exceptionCount)
+      .margins(HORIZONTAL_CHART_MARGINS)
       .xAxis()
       .ticks(4);
 
@@ -720,6 +735,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .renderTitleLabel(true)
       .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
       .title(d => d.value)
+      .margins(HORIZONTAL_CHART_MARGINS)
       .xAxis()
       .ticks(5);
 
@@ -739,6 +755,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .renderTitleLabel(true)
       .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
       .title(d => formatTitle(d.value))
+      .margins(HORIZONTAL_CHART_MARGINS)
       .xAxis()
       .ticks(5);
 
@@ -759,6 +776,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .renderTitleLabel(true)
       .titleLabelOffsetX(windowWidth / 3 - TITLE_PADDING)
       .title(d => d.value)
+      .margins(HORIZONTAL_CHART_MARGINS)
       .xAxis()
       .ticks(4);
 
@@ -780,7 +798,8 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .group(removeExcludedData(doctorGroup))
       .renderTitleLabel(true)
       .titleLabelOffsetX(windowWidth / 2 - TITLE_PADDING)
-      .title(d => d.value.exceptionCount);
+      .title(d => d.value.exceptionCount)
+      .margins(HORIZONTAL_CHART_MARGINS);
 
     doctorChart.render();
     // #endregion
@@ -798,7 +817,8 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .group(interventionGroup)
       .renderTitleLabel(true)
       .titleLabelOffsetX(windowWidth / 2 - TITLE_PADDING)
-      .title(d => d.value);
+      .title(d => d.value)
+      .margins(HORIZONTAL_CHART_MARGINS);
 
     interventionChart.render();
     // #endregion
@@ -816,7 +836,8 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .group(removeExcludedData(locationGroup))
       .renderTitleLabel(true)
       .titleLabelOffsetX(windowWidth / 3 - TITLE_PADDING)
-      .title(d => d.value);
+      .title(d => d.value)
+      .margins(HORIZONTAL_CHART_MARGINS);
 
     locationChart.render();
     // #endregion
@@ -834,7 +855,8 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .group(removeExcludedData(clinicGroup))
       .renderTitleLabel(true)
       .titleLabelOffsetX(windowWidth / 3 - TITLE_PADDING)
-      .title(d => d.value);
+      .title(d => d.value)
+      .margins(HORIZONTAL_CHART_MARGINS);
 
     clinicChart.render();
     // #endregion

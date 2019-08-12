@@ -22,3 +22,23 @@ img.screenshot {
   max-height: 800px;
   max-width: 100%;
 }
+
+#age-chart .titlerow,
+#clinic-chart .titlerow,
+#diagnosis-chart .titlerow,
+#doctor-chart .titlerow,
+#encounter-type-chart .titlerow,
+#gad-chart .titlerow,
+#intervention-chart .titlerow,
+#limited-english-proficiency-chart .titlerow,
+#location-chart .titlerow,
+#moca-chart .titlerow,
+#other-category-chart .titlerow,
+#other-category-time-chart .titlerow,
+#phq-chart .titlerow,
+#research-chart .titlerow,
+#stage-chart .titlerow,
+#test-chart .titlerow,
+#user-chart .titlerow {
+  transform: translateX(10px);
+}
