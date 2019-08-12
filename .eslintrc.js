@@ -43,6 +43,7 @@ module.exports = {
     'lines-between-class-members': 'off',
     'no-case-declarations': 'off',
     'no-cond-assign': ['error', 'except-parens'],
+    'no-continue': 'off',
     'no-param-reassign': [
       'error',
       {

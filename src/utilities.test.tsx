@@ -1,5 +1,3 @@
-/* eslint-disable no-undef */
-
 import { arraySimilarity, metaphones } from './utilities';
 
 describe('arraySimilarity', () => {
