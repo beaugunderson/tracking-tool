@@ -88,6 +88,8 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
           <Button onClick={() => this.props.onComplete()}>Back</Button>
         </div>
 
+        <h2>{abnormalEncounters.length} abnormal entries</h2>
+
         <Table>
           <Table.Header>
             <Table.Row>
