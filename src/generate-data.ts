@@ -46,7 +46,7 @@ function fakePatient() {
   return {
     patientName: faker.fake('{{name.lastName}}, {{name.firstName}} {{name.firstName}}'),
 
-    dateOfBirth: moment(faker.date.past(115)).format(DATE_FORMAT_DATABASE),
+    dateOfBirth: moment(faker.date.past(130)).format(DATE_FORMAT_DATABASE),
 
     diagnosis: diagnosis(),
 
@@ -70,7 +70,7 @@ function fakePatient() {
 }
 
 export function insertExamples(encounters: Nedb) {
-  const records = Math.floor(Math.random() * 150);
+  const records = 2500;
 
   // pre-generate fake patients so we can have multiple encounters per patient
   const patients = times(records, fakePatient);
@@ -109,7 +109,7 @@ export function insertExamples(encounters: Nedb) {
 
       ...patientDiagnosis,
 
-      encounterDate: moment(faker.date.recent(30)).format(DATE_FORMAT_DATABASE),
+      encounterDate: moment(faker.date.recent(180)).format(DATE_FORMAT_DATABASE),
       encounterType: 'patient',
 
       // 20% of the time generate new location for a given patient
