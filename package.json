@@ -46,7 +46,7 @@
     "prepack": "yarn build",
     "postinstall": "electron-builder install-app-deps",
     "start": "concurrently \"cross-env BROWSER=none yarn react-scripts start\" \"wait-on http://localhost:3000 && electron .\"",
-    "test": "react-scripts test --env=jsdom"
+    "test": "yarn react-scripts test --env @jest-runner/electron/environment --runner @jest-runner/electron"
   },
   "dependencies": {
     "async": "^3.1.0",
@@ -81,6 +81,7 @@
     "username": "^5.1.0"
   },
   "devDependencies": {
+    "@jest-runner/electron": "^2.0.2",
     "@types/async": "^3.0.1",
     "@types/d3": "^5.7.2",
     "@types/dc": "^0.0.28",
