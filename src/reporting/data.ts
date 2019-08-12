@@ -56,7 +56,7 @@ export function parseDate(date: string) {
 }
 
 export function ageYears(encounterDate: moment.Moment, dateOfBirth: moment.Moment): number {
-  return dateOfBirth.diff(encounterDate, 'years');
+  return encounterDate.diff(dateOfBirth, 'years');
 }
 
 // TODO update this to not extend PatientEncounter and encompass all optional fields correctly
