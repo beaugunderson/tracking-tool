@@ -36,9 +36,14 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
     const now = moment();
 
     function abnormalDateOfBirth(encounter: TransformedEncounter) {
+      if (encounter.encounterType !== 'patient') {
+        return false;
+      }
+
       return encounter.parsedEncounterDate
-        .subtract(OLDEST_POSSIBLE_AGE)
-        .isBefore(moment(encounter.dateOfBirth));
+        .clone()
+        .subtract(OLDEST_POSSIBLE_AGE, 'years')
+        .isAfter(encounter.parsedDateOfBirth);
     }
 
     function abnormalEncounterDate(encounter: TransformedEncounter) {

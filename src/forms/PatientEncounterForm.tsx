@@ -869,7 +869,9 @@ export const PatientEncounterForm = withFormik<PatientEncounterFormProps, Patien
       errors.dateOfBirth = 'Must be in the past';
     } else if (
       values.encounterDate &&
-      parsedDateOfBirth.isBefore(parsedEncounterDate.subtract(OLDEST_POSSIBLE_AGE, 'years'))
+      parsedDateOfBirth.isBefore(
+        parsedEncounterDate.clone().subtract(OLDEST_POSSIBLE_AGE, 'years')
+      )
     ) {
       errors.dateOfBirth = 'Must be younger than 117 years old';
     }
