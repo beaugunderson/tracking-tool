@@ -449,7 +449,9 @@ export function transformEncounters(encounters: PatientEncounter[], mapMrns = tr
   let swedishMapping: MrnMapping;
 
   if (mapMrns) {
-    [providenceMapping, swedishMapping] = inferMrns(encounters);
+    [providenceMapping, swedishMapping] = inferMrns(
+      encounters.filter(encounter => encounter.encounterType === 'patient')
+    );
   }
 
   return encounters
