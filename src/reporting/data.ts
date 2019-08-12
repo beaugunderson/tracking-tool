@@ -297,13 +297,25 @@ export function transformEncounter(
   }
 
   let { providenceMrn } = encounter;
-  let swedishMrn: string = encounter.mrn;
+  let swedishMrn = encounter.mrn;
 
-  if (swedishMapping && swedishMrn && !providenceMrn && swedishMapping[swedishMrn]) {
+  if (
+    swedishMapping &&
+    swedishMrn &&
+    !providenceMrn &&
+    swedishMapping[swedishMrn] &&
+    swedishMapping[swedishMrn] !== EXCLUDE_STRING_VALUE
+  ) {
     providenceMrn = swedishMapping[swedishMrn];
   }
 
-  if (providenceMapping && providenceMrn && !swedishMrn && providenceMapping[providenceMrn]) {
+  if (
+    providenceMapping &&
+    providenceMrn &&
+    !swedishMrn &&
+    providenceMapping[providenceMrn] &&
+    providenceMapping[providenceMrn] !== EXCLUDE_STRING_VALUE
+  ) {
     swedishMrn = providenceMapping[providenceMrn];
   }
 
@@ -355,44 +367,89 @@ export function transformEncounter(
   };
 }
 
+type MrnMapping = { [mrn: string]: string } | undefined;
+
+export function inferMrns(encounters: PatientEncounter[]): [MrnMapping, MrnMapping] {
+  const providenceMapping: MrnMapping = {};
+  const swedishMapping: MrnMapping = {};
+
+  let lastProvidenceMapping: MrnMapping;
+  let lastSwedishMapping: MrnMapping;
+
+  let counter = 0;
+
+  while (
+    !isEqual(lastProvidenceMapping, providenceMapping) ||
+    !isEqual(lastSwedishMapping, swedishMapping)
+  ) {
+    lastProvidenceMapping = clone(providenceMapping);
+    lastSwedishMapping = clone(swedishMapping);
+
+    for (const encounter of encounters) {
+      if (!encounter.mrn || !encounter.providenceMrn) {
+        continue;
+      }
+
+      const currentProvidenceMapping = providenceMapping[encounter.providenceMrn];
+      const currentSwedishMapping = swedishMapping[encounter.mrn];
+
+      if (
+        currentProvidenceMapping === EXCLUDE_STRING_VALUE ||
+        currentSwedishMapping === EXCLUDE_STRING_VALUE
+      ) {
+        continue;
+      }
+
+      if (!currentProvidenceMapping && !currentSwedishMapping) {
+        providenceMapping[encounter.providenceMrn] = encounter.mrn;
+        swedishMapping[encounter.mrn] = encounter.providenceMrn;
+      }
+
+      if (
+        (currentProvidenceMapping && currentProvidenceMapping !== encounter.mrn) ||
+        (currentSwedishMapping && currentSwedishMapping !== encounter.providenceMrn)
+      ) {
+        providenceMapping[encounter.providenceMrn] = EXCLUDE_STRING_VALUE;
+        swedishMapping[encounter.mrn] = EXCLUDE_STRING_VALUE;
+      }
+    }
+
+    counter++;
+  }
+
+  for (const providence of Object.keys(providenceMapping)) {
+    if (providenceMapping[providence] === EXCLUDE_STRING_VALUE) {
+      continue;
+    }
+
+    if (swedishMapping[providenceMapping[providence]] === EXCLUDE_STRING_VALUE) {
+      providenceMapping[providence] = EXCLUDE_STRING_VALUE;
+    }
+  }
+
+  for (const swedish of Object.keys(swedishMapping)) {
+    if (swedishMapping[swedish] === EXCLUDE_STRING_VALUE) {
+      continue;
+    }
+
+    if (providenceMapping[swedishMapping[swedish]] === EXCLUDE_STRING_VALUE) {
+      swedishMapping[swedish] = EXCLUDE_STRING_VALUE;
+    }
+  }
+
+  log.debug('resolved MRNs in %d cycles', counter);
+
+  return [providenceMapping, swedishMapping];
+}
+
 export function transformEncounters(encounters: PatientEncounter[], mapMrns = true) {
   log.debug(`transformEncounters: transforming ${encounters.length} encounters`);
 
-  let providenceMapping: { [mrn: string]: string } | undefined;
-  let swedishMapping: { [mrn: string]: string } | undefined;
+  let providenceMapping: MrnMapping;
+  let swedishMapping: MrnMapping;
 
   if (mapMrns) {
-    providenceMapping = {};
-    swedishMapping = {};
-
-    let lastProvidenceMapping: { [mrn: string]: string };
-    let lastSwedishMapping: { [mrn: string]: string };
-
-    let counter = 0;
-
-    while (
-      !isEqual(lastProvidenceMapping, providenceMapping) ||
-      !isEqual(lastSwedishMapping, swedishMapping)
-    ) {
-      lastProvidenceMapping = clone(providenceMapping);
-      lastSwedishMapping = clone(swedishMapping);
-
-      for (const encounter of encounters) {
-        if (
-          encounter.mrn &&
-          encounter.providenceMrn &&
-          !providenceMapping[encounter.providenceMrn] &&
-          !swedishMapping[encounter.mrn]
-        ) {
-          providenceMapping[encounter.providenceMrn] = encounter.mrn;
-          swedishMapping[encounter.mrn] = encounter.providenceMrn;
-        }
-      }
-
-      counter++;
-    }
-
-    log.debug('resolved MRNs in %d cycles', counter);
+    [providenceMapping, swedishMapping] = inferMrns(encounters);
   }
 
   return encounters

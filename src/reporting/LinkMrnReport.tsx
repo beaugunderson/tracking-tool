@@ -148,20 +148,29 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
     each(byDOB, dobEncounters => {
       const sets = [];
 
-      while (dobEncounters.length) {
+      let remaining = dobEncounters.length;
+
+      while (remaining) {
         const currentSet = [dobEncounters.shift()];
 
-        dobEncounters.slice().forEach(encounter => {
+        for (let i = 0; i < dobEncounters.length; i++) {
+          if (!dobEncounters[i]) {
+            continue;
+          }
+
           const similarity = arraySimilarity(
             metaphones(currentSet[0].patientName),
-            metaphones(encounter.patientName)
+            metaphones(dobEncounters[i].patientName)
           );
 
           if (similarity >= 0.6) {
-            currentSet.push(encounter);
-            dobEncounters.shift();
+            currentSet.push(dobEncounters[i]);
+            // eslint-disable-next-line no-param-reassign
+            dobEncounters[i] = null;
           }
-        });
+        }
+
+        remaining = dobEncounters.filter(e => e).length;
 
         sets.push(currentSet);
       }
