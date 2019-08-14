@@ -18,22 +18,40 @@ export const setRootPath = (value: string) => store.set('root-path', value);
 export const rootPathExists = (): boolean => rootPath() && fs.existsSync(rootPath());
 
 export const userDirectoryPath = (): string => path.join(rootPath(), username.sync());
-
-export const userDirectoryExists = (): boolean => {
-  return fs.existsSync(userDirectoryPath());
-};
-
-export const backupPath = (): string => userFilePath('backups');
-
+export const userDirectoryExists = (): boolean => fs.existsSync(userDirectoryPath());
 export const userFilePath = (...args: string[]): string => path.join(userDirectoryPath(), ...args);
+export const userBackupPath = (): string => userFilePath('backups');
+
+export const fixesDirectoryPath = (): string => path.join(rootPath(), 'fixes');
+export const fixesDirectoryExists = (): boolean => fs.existsSync(fixesDirectoryPath());
+export const fixesFilePath = (...args: string[]): string =>
+  path.join(fixesDirectoryPath(), ...args);
+export const fixesBackupPath = (): string => fixesFilePath('backups');
+
+export const ensureFixesDirectoryExists = () => {
+  if (!fixesDirectoryExists()) {
+    fs.mkdirSync(fixesDirectoryPath());
+  }
+
+  if (!fs.existsSync(fixesBackupPath())) {
+    fs.mkdirSync(fixesBackupPath());
+  }
+
+  if (fs.existsSync(fixesFilePath('fixes.json'))) {
+    fs.copyFileSync(
+      fixesFilePath('fixes.json'),
+      fixesFilePath('backups', `${new Date().valueOf()}.json`)
+    );
+  }
+};
 
 export const ensureUserDirectoryExists = () => {
   if (!userDirectoryExists()) {
     fs.mkdirSync(userDirectoryPath());
   }
 
-  if (!fs.existsSync(backupPath())) {
-    fs.mkdirSync(backupPath());
+  if (!fs.existsSync(userBackupPath())) {
+    fs.mkdirSync(userBackupPath());
   }
 
   if (fs.existsSync(userFilePath('encounters.json'))) {

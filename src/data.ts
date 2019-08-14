@@ -2,13 +2,20 @@ import async from 'async';
 import Debug from 'debug';
 import moment from 'moment';
 import { DATE_FORMAT_DATABASE } from './constants';
+import { fixesFilePath, userFilePath } from './store';
 import { isEqual } from 'lodash';
 import { parseDate } from './reporting/data';
 import { PatientEncounter } from './forms/PatientEncounterForm';
-import { userFilePath } from './store';
 
 const DataStore = window.require('nedb');
 const debug = Debug('tracking-tool:data');
+const log = window.require('electron-log');
+
+export type Fix = {
+  uniqueId: string;
+  mrn?: string;
+  providenceMrn?: string;
+};
 
 type Migration = {
   id: string;
@@ -94,6 +101,43 @@ export const openEncounters = (cb: (err: Error, dataStore: Nedb) => void): void 
     }
   );
 };
+
+export const openFixes = () => {
+  return new DataStore({
+    autoload: true,
+    compareStrings: (a: string, b: string) => {
+      return a.toLowerCase().localeCompare(b.toLowerCase());
+    },
+    filename: fixesFilePath('fixes.json'),
+    timestampData: true
+  });
+};
+
+export async function getFixes(filename: string): Promise<Fix[]> {
+  log.debug(`getFixes: "${filename}"`);
+
+  const dataStore: Nedb = new DataStore({
+    autoload: true,
+    filename,
+    timestampData: true
+  });
+
+  return new Promise((resolve, reject) => {
+    log.debug(`getFixes: calling dataStore.find for "${filename}`);
+
+    dataStore
+      .find({})
+      .sort({ createdAt: 1 })
+      .exec((err: Error, results: Fix[]) => {
+        if (err) {
+          log.debug(`getFixes: error in dataStore.find "${err}"`);
+          reject(err);
+        } else {
+          resolve(results);
+        }
+      });
+  });
+}
 
 function applyMigration(
   results: PatientEncounter[],

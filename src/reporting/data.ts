@@ -1,10 +1,11 @@
 import moment from 'moment';
 import path from 'path';
-import { clone, isEqual, isNaN, isNumber } from 'lodash';
+import { clone, findLast, isEqual, isNaN, isNumber, pick } from 'lodash';
 import { DATE_FORMAT_DATABASE, DATE_FORMAT_DISPLAY } from '../constants';
+import { Fix, getFixes } from '../data';
+import { fixesFilePath, rootPath } from '../store';
 import { INTERVENTIONS } from '../patient-interventions';
 import { PatientEncounter } from '../forms/PatientEncounterForm';
-import { rootPath } from '../store';
 
 const DataStore = window.require('nedb');
 const fs = window.require('fs');
@@ -105,6 +106,11 @@ interface CopyFilesResult {
   temporaryDirectory: string;
 }
 
+interface CopyFixFileResult {
+  file: string;
+  temporaryDirectory: string;
+}
+
 function bucketAge(age?: number): AgeBucket | undefined {
   if (isNaN(age) || !isNumber(age)) {
     return;
@@ -131,6 +137,22 @@ async function getEncounterFiles(): Promise<string[]> {
       }
     });
   });
+}
+
+async function copyFixFile(): Promise<CopyFixFileResult> {
+  const copyPath = fs.mkdtempSync(path.join(os.tmpdir(), 'fixes-'));
+  const fixFile = fixesFilePath('fixes.json');
+
+  log.debug(`copyFixFile: copying "${fixFile}"`);
+
+  const destination = path.join(copyPath, `fixes.json`);
+
+  fs.copyFileSync(fixFile, destination);
+
+  return {
+    file: destination,
+    temporaryDirectory: copyPath
+  };
 }
 
 async function copyEncounterFiles(): Promise<CopyFilesResult> {
@@ -461,10 +483,19 @@ export function transformEncounters(encounters: PatientEncounter[], mapMrns = tr
     .map(encounter => transformEncounter(encounter, providenceMapping, swedishMapping));
 }
 
-export async function transform(mapMrns: boolean = true): Promise<TransformedEncounter[]> {
+export async function transform(
+  mapMrns: boolean = true,
+  fixMrns: boolean = true
+): Promise<TransformedEncounter[]> {
   log.debug('transform: copying encounter files');
-  const userEncounters = await copyEncounterFiles();
 
+  const fixFile = await copyFixFile();
+  const fixes = await getFixes(fixFile.file);
+
+  log.debug(`transform: removing temporary directory "${fixFile.temporaryDirectory}"`);
+  rimraf.sync(fixFile.temporaryDirectory, { glob: false });
+
+  const userEncounters = await copyEncounterFiles();
   const allEncounters: PatientEncounter[] = [];
 
   for (const userEncounter of userEncounters.files) {
@@ -476,10 +507,30 @@ export async function transform(mapMrns: boolean = true): Promise<TransformedEnc
     log.debug(`transform: got ${encounters.length} encounters for "${userEncounter.filename}"`);
 
     for (const encounter of encounters) {
-      allEncounters.push({
-        ...encounter,
-        username: userEncounter.username
-      });
+      if (fixMrns && encounter.encounterType === 'patient') {
+        const uniqueId = `${userEncounter.username}-${encounter._id}`;
+
+        const fix: Fix = pick(
+          findLast(fixes, { uniqueId }) || { uniqueId },
+          'mrn',
+          'providenceMrn',
+          'uniqueId'
+        );
+
+        allEncounters.push({
+          ...encounter,
+
+          // apply fixes to the patient encounter (to manage MRN linkages)
+          ...fix,
+
+          username: userEncounter.username
+        });
+      } else {
+        allEncounters.push({
+          ...encounter,
+          username: userEncounter.username
+        });
+      }
     }
   }
 

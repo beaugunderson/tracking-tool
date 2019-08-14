@@ -10,7 +10,10 @@ import {
 import { Button, Checkbox, Input, Table } from 'semantic-ui-react';
 import { DATE_FORMAT_DISPLAY } from '../constants';
 import { each, sortBy } from 'lodash';
+import { ensureFixesDirectoryExists } from '../store';
+import { ErrorMessage } from '../ErrorMessage';
 import { EXCLUDE_STRING_VALUE, transform, TransformedEncounter } from './data';
+import { Fix, openFixes } from '../data';
 import { usernameToName } from '../usernames';
 
 function needsMatching(encounters: TransformedEncounter[]) {
@@ -59,22 +62,28 @@ interface LinkMrnReportProps {
 interface LinkMrnReportState {
   changedRows: {};
   encounters: TransformedEncounter[] | null;
+  error?: Error;
+  mrnFixesEnabled: boolean;
   mrnInferenceEnabled: boolean;
   loading: boolean;
   obfuscated: boolean;
 }
 
 export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnReportState> {
+  fixes: Nedb;
+
   state: LinkMrnReportState = {
     changedRows: {},
     encounters: null,
+    error: null,
+    mrnFixesEnabled: true,
     mrnInferenceEnabled: true,
     loading: true,
     obfuscated: false
   };
 
-  async loadEncounters(mapMrns: boolean) {
-    const allEncounters = await transform(mapMrns);
+  async loadEncounters(mapMrns: boolean, fixMrns: boolean) {
+    const allEncounters = await transform(mapMrns, fixMrns);
     const encounters = allEncounters.filter(encounter => encounter.encounterType === 'patient');
 
     try {
@@ -85,11 +94,27 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
   }
 
   async componentDidMount() {
-    await this.loadEncounters(this.state.mrnInferenceEnabled);
+    ensureFixesDirectoryExists();
+
+    this.fixes = openFixes();
+
+    await this.loadEncounters(this.state.mrnInferenceEnabled, this.state.mrnFixesEnabled);
   }
 
   render() {
-    const { changedRows, encounters, loading, mrnInferenceEnabled, obfuscated } = this.state;
+    const {
+      changedRows,
+      encounters,
+      error,
+      loading,
+      mrnFixesEnabled,
+      mrnInferenceEnabled,
+      obfuscated
+    } = this.state;
+
+    if (error) {
+      return <ErrorMessage error={error} />;
+    }
 
     if (loading) {
       return <h1>Loading encounters...</h1>;
@@ -108,14 +133,36 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
         <Checkbox
           checked={mrnInferenceEnabled}
           label="Enable MRN inference"
-          onClick={(e, data) => {
+          onClick={() => {
             this.setState(
               state => ({
                 mrnInferenceEnabled: !state.mrnInferenceEnabled,
                 loading: true
               }),
               async () => {
-                await this.loadEncounters(data.checked);
+                await this.loadEncounters(
+                  this.state.mrnInferenceEnabled,
+                  this.state.mrnFixesEnabled
+                );
+              }
+            );
+          }}
+        />
+        &nbsp;&nbsp;&nbsp;
+        <Checkbox
+          checked={mrnFixesEnabled}
+          label="Enable MRN fixes"
+          onClick={() => {
+            this.setState(
+              state => ({
+                mrnFixesEnabled: !state.mrnFixesEnabled,
+                loading: true
+              }),
+              async () => {
+                await this.loadEncounters(
+                  this.state.mrnInferenceEnabled,
+                  this.state.mrnFixesEnabled
+                );
               }
             );
           }}
@@ -269,7 +316,6 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
                         {!obfuscated && (
                           <Button
                             disabled={
-                              mrnInferenceEnabled ||
                               !(match.uniqueId in changedRows) ||
                               ((!('mrn' in changedRows[match.uniqueId]) ||
                                 changedRows[match.uniqueId].mrn === match.mrn) &&
@@ -277,12 +323,23 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
                                   changedRows[match.uniqueId].providenceMrn ===
                                     match.providenceMrn))
                             }
-                            onClick={() =>
-                              console.log({
-                                uniqueId: match.uniqueId,
-                                value: changedRows[match.uniqueId]
-                              })
-                            }
+                            onClick={() => {
+                              if (!changedRows[match.uniqueId]) {
+                                return;
+                              }
+
+                              const record: Fix = { uniqueId: match.uniqueId };
+
+                              if (changedRows[match.uniqueId].mrn) {
+                                record.mrn = changedRows[match.uniqueId].mrn;
+                              }
+
+                              if (changedRows[match.uniqueId].providenceMrn) {
+                                record.providenceMrn = changedRows[match.uniqueId].providenceMrn;
+                              }
+
+                              this.fixes.insert(record, err => this.setState({ error: err }));
+                            }}
                             primary
                           >
                             Save
