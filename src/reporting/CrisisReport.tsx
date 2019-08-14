@@ -84,18 +84,26 @@ export class CrisisReport extends React.Component<CrisisReportProps, CrisisRepor
                 </Table.Cell>
                 <Table.Cell>{usernameToName(encounter.username)}</Table.Cell>
                 <Table.Cell>
-                  <a onClick={() => clipboard.writeText(encounter.providenceMrn)}>
+                  <button
+                    className="button-link"
+                    onClick={() => clipboard.writeText(encounter.providenceMrn)}
+                    type="button"
+                  >
                     {encounter.providenceMrn === EXCLUDE_STRING_VALUE
                       ? ''
                       : encounter.providenceMrn}{' '}
                     <Icon name="copy" />
-                  </a>
+                  </button>
                 </Table.Cell>
                 <Table.Cell>
-                  <a onClick={() => clipboard.writeText(encounter.mrn)}>
+                  <button
+                    className="button-link"
+                    onClick={() => clipboard.writeText(encounter.mrn)}
+                    type="button"
+                  >
                     {encounter.mrn === EXCLUDE_STRING_VALUE ? '' : encounter.mrn}{' '}
                     <Icon name="copy" />
-                  </a>
+                  </button>
                 </Table.Cell>
                 <Table.Cell>{crises(encounter)}</Table.Cell>
                 <Table.Cell>{encounter.location}</Table.Cell>

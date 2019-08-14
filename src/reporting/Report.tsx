@@ -987,9 +987,9 @@ export class Report extends React.Component<ReportProps, ReportState> {
 
         <br />
 
-        <a className="reset" onClick={this.handleReset}>
+        <button className="button-link reset" onClick={this.handleReset} type="button">
           Reset filters
-        </a>
+        </button>
 
         <br />
 

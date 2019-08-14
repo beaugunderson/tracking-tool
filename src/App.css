@@ -2,6 +2,29 @@ body {
   padding: 2em;
 }
 
+.button-link {
+  background: none;
+  border-bottom: 0;
+  border: none;
+  color: #4183c4;
+  cursor: pointer;
+  font: inherit;
+  outline: none;
+  padding: 0 !important;
+}
+
+.button-link:focus {
+  outline: none;
+}
+
+.button-link .icon {
+  visibility: hidden;
+}
+
+.button-link:hover .icon {
+  visibility: initial;
+}
+
 .ui.form .grouped .inline.field {
   display: inline-block !important;
   margin: 0;

@@ -81,12 +81,24 @@ export class FirstTimeSetup extends React.Component<FirstTimeSetupProps, FirstTi
         />
 
         {pathExists && (
-          <Button icon onClick={this.handleDefaultClick} primary size="huge">
+          <Button
+            className="icon-margin"
+            icon
+            onClick={this.handleDefaultClick}
+            primary
+            size="huge"
+          >
             Use Default Directory
           </Button>
         )}
 
-        <Button icon onClick={this.handleChooseClick} secondary size="huge">
+        <Button
+          className="icon-margin"
+          icon
+          onClick={this.handleChooseClick}
+          secondary
+          size="huge"
+        >
           Choose a Directory <Icon name="folder open" />
         </Button>
       </Container>
