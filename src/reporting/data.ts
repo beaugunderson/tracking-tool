@@ -139,7 +139,7 @@ async function getEncounterFiles(): Promise<string[]> {
   });
 }
 
-async function copyFixFile(): Promise<CopyFixFileResult> {
+export async function copyFixFile(): Promise<CopyFixFileResult> {
   const copyPath = fs.mkdtempSync(path.join(os.tmpdir(), 'fixes-'));
   const fixFile = fixesFilePath('fixes.json');
 

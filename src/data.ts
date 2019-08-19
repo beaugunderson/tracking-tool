@@ -12,6 +12,9 @@ const debug = Debug('tracking-tool:data');
 const log = window.require('electron-log');
 
 export type Fix = {
+  createdAt?: Date;
+  modifiedAt?: Date;
+
   uniqueId: string;
   mrn?: string;
   providenceMrn?: string;

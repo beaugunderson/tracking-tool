@@ -1,4 +1,5 @@
 import './GridReport.css';
+import moment from 'moment';
 import React from 'react';
 import {
   arraySimilarity,
@@ -7,13 +8,13 @@ import {
   obfuscateNumber,
   obfuscateString
 } from '../utilities';
-import { Button, Checkbox, Input, Table } from 'semantic-ui-react';
+import { Button, Checkbox, Input, Radio, Table } from 'semantic-ui-react';
+import { copyFixFile, EXCLUDE_STRING_VALUE, transform, TransformedEncounter } from './data';
 import { DATE_FORMAT_DISPLAY } from '../constants';
 import { each, sortBy } from 'lodash';
 import { ensureFixesDirectoryExists } from '../store';
 import { ErrorMessage } from '../ErrorMessage';
-import { EXCLUDE_STRING_VALUE, transform, TransformedEncounter } from './data';
-import { Fix, openFixes } from '../data';
+import { Fix, getFixes, openFixes } from '../data';
 import { usernameToName } from '../usernames';
 
 function needsMatching(encounters: TransformedEncounter[]) {
@@ -55,15 +56,21 @@ function needsMatching(encounters: TransformedEncounter[]) {
   return false;
 }
 
+enum MODE {
+  MAKE_FIXES = 'MAKE_FIXES',
+  SHOW_FIXES = 'SHOW_FIXES'
+}
+
 interface LinkMrnReportProps {
   onComplete: (err?: Error) => void;
 }
 
 interface LinkMrnReportState {
   changedRows: {};
-  encounters: TransformedEncounter[] | null;
+  encounters: TransformedEncounter[];
   error?: Error;
-  mrnFixesEnabled: boolean;
+  fixes: Fix[];
+  mode: MODE;
   mrnInferenceEnabled: boolean;
   loading: boolean;
   obfuscated: boolean;
@@ -74,20 +81,24 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
 
   state: LinkMrnReportState = {
     changedRows: {},
-    encounters: null,
+    encounters: [],
     error: null,
-    mrnFixesEnabled: true,
+    fixes: [],
+    mode: MODE.MAKE_FIXES,
     mrnInferenceEnabled: true,
     loading: true,
     obfuscated: false
   };
 
-  async loadEncounters(mapMrns: boolean, fixMrns: boolean) {
-    const allEncounters = await transform(mapMrns, fixMrns);
+  async loadEncounters(mapMrns: boolean) {
+    const allEncounters = await transform(mapMrns);
     const encounters = allEncounters.filter(encounter => encounter.encounterType === 'patient');
 
+    const fixFile = await copyFixFile();
+    const fixes = await getFixes(fixFile.file);
+
     try {
-      this.setState({ encounters, loading: false });
+      this.setState({ encounters, fixes, loading: false });
     } catch (e) {
       this.props.onComplete(e);
     }
@@ -98,19 +109,11 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
 
     this.fixes = openFixes();
 
-    await this.loadEncounters(this.state.mrnInferenceEnabled, this.state.mrnFixesEnabled);
+    await this.loadEncounters(this.state.mrnInferenceEnabled);
   }
 
   render() {
-    const {
-      changedRows,
-      encounters,
-      error,
-      loading,
-      mrnFixesEnabled,
-      mrnInferenceEnabled,
-      obfuscated
-    } = this.state;
+    const { error, loading, mode, mrnInferenceEnabled, obfuscated } = this.state;
 
     if (error) {
       return <ErrorMessage error={error} />;
@@ -140,35 +143,39 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
                 loading: true
               }),
               async () => {
-                await this.loadEncounters(
-                  this.state.mrnInferenceEnabled,
-                  this.state.mrnFixesEnabled
-                );
+                await this.loadEncounters(this.state.mrnInferenceEnabled);
               }
             );
           }}
         />
         &nbsp;&nbsp;&nbsp;
-        <Checkbox
-          checked={mrnFixesEnabled}
-          label="Enable MRN fixes"
-          onClick={() => {
-            this.setState(
-              state => ({
-                mrnFixesEnabled: !state.mrnFixesEnabled,
-                loading: true
-              }),
-              async () => {
-                await this.loadEncounters(
-                  this.state.mrnInferenceEnabled,
-                  this.state.mrnFixesEnabled
-                );
-              }
-            );
-          }}
+        <Radio
+          label="Make Fixes"
+          name="mode"
+          value={MODE.MAKE_FIXES}
+          checked={this.state.mode === MODE.MAKE_FIXES}
+          onChange={(e, { value }: any) => this.setState({ mode: value })}
+        />
+        &nbsp;&nbsp;&nbsp;
+        <Radio
+          label="Show Fixes"
+          name="mode"
+          value={MODE.SHOW_FIXES}
+          checked={this.state.mode === MODE.SHOW_FIXES}
+          onChange={(e, { value }: any) => this.setState({ mode: value })}
         />
       </div>
     );
+
+    if (mode === MODE.MAKE_FIXES) {
+      return this.renderMakeFixes(header);
+    }
+
+    return this.renderShowFixes(header);
+  }
+
+  renderMakeFixes(header) {
+    const { changedRows, encounters, obfuscated } = this.state;
 
     if (!encounters || encounters.length === 0) {
       return (
@@ -353,6 +360,52 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
             </Table>
           );
         })}
+      </>
+    );
+  }
+
+  renderShowFixes(header) {
+    const { fixes } = this.state;
+
+    if (!fixes || fixes.length === 0) {
+      return (
+        <>
+          {header}
+
+          <h1>There are no fixes to display.</h1>
+        </>
+      );
+    }
+
+    return (
+      <>
+        {header}
+
+        <h2>{fixes.length} fixes recorded</h2>
+
+        <Table>
+          <Table.Header>
+            <Table.Row>
+              <Table.HeaderCell>Created At</Table.HeaderCell>
+              <Table.HeaderCell>Unique ID</Table.HeaderCell>
+              <Table.HeaderCell>Swedish MRN</Table.HeaderCell>
+              <Table.HeaderCell>Providence MRN</Table.HeaderCell>
+            </Table.Row>
+          </Table.Header>
+
+          <Table.Body>
+            {sortBy(fixes, 'createdAt').map((fix, i) => {
+              return (
+                <Table.Row key={i}>
+                  <Table.Cell>{moment(fix.createdAt).format(DATE_FORMAT_DISPLAY)}</Table.Cell>
+                  <Table.Cell>{fix.uniqueId}</Table.Cell>
+                  <Table.Cell>{fix.mrn}</Table.Cell>
+                  <Table.Cell>{fix.providenceMrn}</Table.Cell>
+                </Table.Row>
+              );
+            })}
+          </Table.Body>
+        </Table>
       </>
     );
   }
