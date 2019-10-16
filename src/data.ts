@@ -90,13 +90,17 @@ export const openEncounters = (cb: (err: Error, dataStore: Nedb) => void): void 
           return cbEachMigration();
         }
 
-        dataStore.find(migration.query, {}, (findError: Error, results: PatientEncounter[]) => {
-          if (findError) {
-            return cbEachMigration(findError);
-          }
+        dataStore.find(
+          migration.query,
+          {} as PatientEncounter,
+          (findError: Error, results: PatientEncounter[]) => {
+            if (findError) {
+              return cbEachMigration(findError);
+            }
 
-          applyMigration(results, migration, dataStore, cbEachMigration);
-        });
+            applyMigration(results, migration, dataStore, cbEachMigration);
+          }
+        );
       });
     },
     migrationError => {
