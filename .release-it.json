@@ -8,6 +8,6 @@
     "tokenRef": "RELEASE_IT_TOKEN"
   },
   "hooks": {
-    "before:release": "yarn dist"
+    "before:release": "yarn dist-mac && ./build-windows.sh"
   }
 }
