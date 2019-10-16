@@ -4198,7 +4198,7 @@ cross-unzip@0.0.2:
 
 crossfilter2@^1.4.0-alpha.6, "crossfilter2@https://github.com/crossfilter/crossfilter":
   version "1.4.7"
-  resolved "https://github.com/crossfilter/crossfilter#cb4588dc16e11fd705ddb7a330f94627179c9eb1"
+  resolved "https://github.com/crossfilter/crossfilter#70f55d00baa5bade12387f500bc5688f949219de"
   dependencies:
     lodash.result "^4.4.0"
 
