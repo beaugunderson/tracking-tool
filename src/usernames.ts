@@ -27,6 +27,7 @@ export const USERNAMES = {
   tennta1: 'Tyne Tennyson-Ray',
   torrdc1: 'Danielle McLaughlin',
   yangge1: 'Grace Yang',
+  yangvf1: 'Vickie Yang',
 
   // development users
   beau: 'Beau Gunderson',
