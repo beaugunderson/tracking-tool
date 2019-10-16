@@ -7,6 +7,7 @@ export const USERNAMES = {
   fillmx1: 'Mark Filler',
   foxxva1: 'Vivian Foxx',
   goodmx1: 'Morgan Goodney',
+  'john.d.gonzales': 'John Gonzales',
   johnss1: 'Sandra Johnson',
   jonasa1: 'Samuel Jonas',
   kanedp2: 'Daniel Kane',
@@ -36,6 +37,7 @@ export const USERNAMES = {
 
 export const INTERNS = [
   'goodmx1',
+  'john.d.gonzales',
   'jonasa1',
   'kanedp2',
   'maysam1',
