@@ -23,6 +23,7 @@ export const USERNAMES = {
   pughat1: 'Alan Pugh',
   riormp1: 'Maxine Riordan',
   'rodney.antonson': 'Rodney Antonson',
+  selbse1: 'Sandra Selby',
   semasl1: 'Sharla Semana',
   stracp1: 'Carolyn Maret',
   stramr3: 'Meg Strader',
