@@ -22,6 +22,7 @@ export const USERNAMES = {
   philcm1: 'Courtney Phillips-Youman',
   pughat1: 'Alan Pugh',
   riormp1: 'Maxine Riordan',
+  'rodney.antonson': 'Rodney Antonson',
   semasl1: 'Sharla Semana',
   stracp1: 'Carolyn Maret',
   stramr3: 'Meg Strader',
@@ -44,7 +45,8 @@ export const INTERNS = [
   'montme1',
   'n6335348',
   'n7867222',
-  'pughat1'
+  'pughat1',
+  'rodney.antonson'
 ];
 
 export function usernameToName(username: string) {
