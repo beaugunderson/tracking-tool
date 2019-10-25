@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-docker run --rm -ti \
+docker run --rm \
   --env-file .env \
   --env ELECTRON_CACHE="/root/.cache/electron" \
   --env ELECTRON_BUILDER_CACHE="/root/.cache/electron-builder" \
