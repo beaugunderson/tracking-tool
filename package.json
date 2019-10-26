@@ -21,7 +21,7 @@
     },
     "mac": {
       "category": "public.app-category.healthcare-fitness",
-      "target": "zip"
+      "target": "dmg"
     },
     "productName": "Tracking Tool",
     "win": {
