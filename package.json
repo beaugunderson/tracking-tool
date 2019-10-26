@@ -38,6 +38,7 @@
   },
   "scripts": {
     "build": "react-scripts build",
+    "dist": "rm -rf dist/ && yarn dist-mac && ./build-windows.sh",
     "dist-mac": "electron-builder --mac",
     "dist-win": "electron-builder --win",
     "eject": "react-scripts eject",

@@ -3,11 +3,11 @@
     "release": true,
     "assets": [
       "dist/*.exe",
-      "dist/*-mac.zip"
+      "dist/*-mac.dmg"
     ],
     "tokenRef": "RELEASE_IT_TOKEN"
   },
   "hooks": {
-    "before:release": "rm -rf dist/ && yarn dist-mac && ./build-windows.sh"
+    "before:release": "yarn dist"
   }
 }
