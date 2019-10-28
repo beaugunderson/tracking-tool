@@ -6,6 +6,7 @@ const defaultMenu = require('electron-default-menu');
 require('electron-context-menu')({ showSaveImageAs: true });
 
 let mainWindow;
+let showExitPrompt = true;
 
 const createWindow = () => {
   mainWindow = new BrowserWindow({
@@ -23,23 +24,6 @@ const createWindow = () => {
     isDev ? 'http://localhost:3000' : `file://${path.join(__dirname, '../build/index.html')}`
   );
 
-  // if (isDev) {
-  //   const {
-  //     default: installExtension,
-  //     REACT_DEVELOPER_TOOLS
-  //   } = require('electron-devtools-installer');
-
-  //   installExtension(REACT_DEVELOPER_TOOLS)
-  //     .then(name => {
-  //       console.log(`Added Extension: ${name}`);
-  //     })
-  //     .catch(err => {
-  //       console.log(`An error occurred: ${err}`);
-  //     });
-
-  //   require('devtron').install();
-  // }
-
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
 
@@ -48,26 +32,30 @@ const createWindow = () => {
     });
   });
 
-  mainWindow.on('close', e => {
-    if (app.showExitPrompt) {
-      e.preventDefault();
+  mainWindow.on('closed', () => {
+    mainWindow = null;
+  });
 
-      dialog.showMessageBox(
-        {
-          type: 'question',
-          buttons: ['Yes', 'No'],
-          title: 'Confirm',
-          message: 'Are you sure you want to quit?'
-        },
+  mainWindow.on('close', async e => {
+    if (!showExitPrompt) {
+      return;
+    }
 
-        response => {
-          if (response === 0) {
-            app.showExitPrompt = false;
+    e.preventDefault();
 
-            mainWindow.close();
-          }
-        }
-      );
+    const response = await dialog.showMessageBox(mainWindow, {
+      type: 'question',
+      buttons: ['&Yes', '&No'],
+      normalizeAccessKeys: true,
+      cancelId: 1,
+      defaultId: 0,
+      title: 'Confirm',
+      message: 'Are you sure you want to quit?'
+    });
+
+    if (response.response === 0) {
+      showExitPrompt = false;
+      mainWindow.close();
     }
   });
 };
@@ -81,7 +69,7 @@ const generateMenu = () => {
 };
 
 app.on('ready', () => {
-  app.showExitPrompt = true;
+  showExitPrompt = true;
 
   createWindow();
   generateMenu();
@@ -93,8 +81,7 @@ app.on('window-all-closed', () => {
 
 app.on('activate', () => {
   if (mainWindow === null) {
-    app.showExitPrompt = true;
-
+    showExitPrompt = true;
     createWindow();
   }
 });
