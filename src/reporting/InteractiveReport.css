@@ -23,6 +23,19 @@ img.screenshot {
   max-width: 100%;
 }
 
+.button-row {
+  margin-bottom: 1em;
+}
+
+.short-label {
+  margin-left: 1em;
+}
+
+.short-label input {
+  padding-bottom: 0 !important;
+  padding-top: 0 !important;
+}
+
 #age-chart .titlerow,
 #clinic-chart .titlerow,
 #diagnosis-chart .titlerow,

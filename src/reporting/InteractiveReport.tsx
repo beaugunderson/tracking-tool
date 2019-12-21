@@ -7,7 +7,17 @@ import dc from 'dc';
 import React from 'react';
 import reductio from 'reductio';
 // import typedArrayToBuffer from 'typedarray-to-buffer';
-import { Button, Checkbox, Container, Dimmer, Loader, Modal, Statistic } from 'semantic-ui-react';
+import {
+  Button,
+  Checkbox,
+  Container,
+  Dimmer,
+  Form,
+  Input,
+  Loader,
+  Modal,
+  Statistic
+} from 'semantic-ui-react';
 import {
   EXCLUDE_NUMBER_VALUE,
   EXCLUDE_STRING_VALUE,
@@ -21,11 +31,28 @@ import {
   transform,
   TransformedEncounter
 } from './data';
-import { isBoolean, isNaN, isString, keys, map, sum, values, zipObject } from 'lodash';
+import {
+  isBoolean,
+  isNaN,
+  isString,
+  keys,
+  map,
+  maxBy,
+  minBy,
+  sum,
+  values,
+  zipObject
+} from 'lodash';
 import { OTHER_ENCOUNTER_OPTIONS } from '../forms/OtherEncounterForm';
 import { usernameToName } from '../usernames';
 
 // const { remote, screen } = window.require('electron');
+
+// TODO: You are using d3.schemeCategory20c, which has been removed in D3v5.
+// See the explanation at https://github.com/d3/d3/blob/master/CHANGES.md#changes-in-d3-50.
+// DC is using it for backward compatibility, however it will be changed in DCv3.1.
+// You can change it by calling dc.config.defaultColors(newScheme).
+// See https://github.com/d3/d3-scale-chromatic for some alternatives.
 
 const DEFAULT_MARGINS = { top: 10, right: 50, bottom: 30, left: 30 };
 
@@ -90,6 +117,8 @@ interface ReportProps {
 }
 
 interface ReportState {
+  dateFrom: string;
+  dateTo: string;
   encounters?: TransformedEncounter[];
   hideSocialWorkers?: boolean;
   loading?: boolean;
@@ -98,7 +127,10 @@ interface ReportState {
 }
 
 export class InteractiveReport extends React.Component<ReportProps, ReportState> {
-  state: ReportState = {};
+  state: ReportState = {
+    dateFrom: '',
+    dateTo: ''
+  };
 
   resize = () => this.setState({ windowWidth: window.innerWidth });
 
@@ -121,15 +153,43 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
 
   async componentDidUpdate(prevProps: any, prevState: ReportState) {
     if (
+      this.state.encounters &&
+      !prevState.dateFrom &&
+      !prevState.dateTo &&
+      !this.state.dateFrom &&
+      !this.state.dateTo
+    ) {
+      const firstEncounter = minBy(this.state.encounters, encounter =>
+        encounter.parsedEncounterDate.valueOf()
+      );
+
+      const lastEncounter = maxBy(this.state.encounters, encounter =>
+        encounter.parsedEncounterDate.valueOf()
+      );
+
+      if (firstEncounter && lastEncounter) {
+        this.setState({
+          dateFrom: firstEncounter.parsedEncounterDate.format('YYYY-MM-DD'),
+          dateTo: lastEncounter.parsedEncounterDate.format('YYYY-MM-DD')
+        });
+      }
+    }
+
+    if (
       this.state.encounters !== prevState.encounters ||
-      this.state.windowWidth !== prevState.windowWidth
+      this.state.windowWidth !== prevState.windowWidth ||
+      (this.state.dateFrom &&
+        this.state.dateTo &&
+        (this.state.dateFrom !== prevState.dateFrom || this.state.dateTo !== prevState.dateTo))
     ) {
       await this.renderCharts();
     }
   }
 
   async renderCharts() {
-    if (!this.state.encounters) {
+    const { encounters, dateFrom, dateTo, windowWidth } = this.state;
+
+    if (!encounters) {
       return;
     }
 
@@ -160,10 +220,14 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     const timeChart = dc.barChart('#time-chart');
     // #endregion
 
-    const ndx = crossfilter(this.state.encounters);
+    const filteredEncounters = encounters.filter(encounter =>
+      encounter.parsedEncounterDate.isBetween(dateFrom, dateTo, null, '[]')
+    );
+
+    const ndx = crossfilter(filteredEncounters);
 
     const colors = ['#6baed6'];
-    const windowWidth = this.state.windowWidth - 100;
+    const paddedWidth = windowWidth - 100;
 
     // #region grouped reducers
     const idKey = (d: TransformedEncounter) => d._id;
@@ -361,7 +425,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     const dayOfWeekGroup = dayOfWeekDimension.group().reduceSum(d => d.parsedNumberOfTasks);
 
     dayOfWeekChart
-      .width(windowWidth / 3)
+      .width(paddedWidth / 3)
       .height(200)
       .brushOn(false)
       .x(d3.scaleBand())
@@ -392,7 +456,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     const numberOfInterventionsGroup = numberOfInterventionsDimension.group();
 
     numberOfInterventionsChart
-      .width(windowWidth / 3)
+      .width(paddedWidth / 3)
       .height(200)
       .brushOn(false)
       .elasticY(true)
@@ -444,7 +508,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     const timeGroup = timeDimension.group();
 
     timeChart
-      .width(windowWidth / 3)
+      .width(paddedWidth / 3)
       .height(200)
       .brushOn(false)
       .elasticY(true)
@@ -479,12 +543,12 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     gadChart
       .dimension(gadDimension)
       .group(removeExcludedData(gadGroup))
-      .width(windowWidth / 4)
+      .width(paddedWidth / 4)
       .height(200)
       .elasticX(true)
       .ordinalColors(colors)
       .renderTitleLabel(true)
-      .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
+      .titleLabelOffsetX(paddedWidth / 4 - TITLE_PADDING)
       .title(d => d.value)
       .ordering(d => GAD_PHQ_ORDERING[d.key])
       .margins(HORIZONTAL_CHART_MARGINS)
@@ -501,12 +565,12 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     mocaChart
       .dimension(mocaDimension)
       .group(removeExcludedData(mocaGroup))
-      .width(windowWidth / 4)
+      .width(paddedWidth / 4)
       .height(200)
       .elasticX(true)
       .ordinalColors(colors)
       .renderTitleLabel(true)
-      .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
+      .titleLabelOffsetX(paddedWidth / 4 - TITLE_PADDING)
       .title(d => d.value)
       .ordering(d => MOCA_ORDERING[d.key])
       .margins(HORIZONTAL_CHART_MARGINS)
@@ -523,12 +587,12 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     phqChart
       .dimension(phqDimension)
       .group(removeExcludedData(phqGroup))
-      .width(windowWidth / 4)
+      .width(paddedWidth / 4)
       .ordinalColors(colors)
       .height(200)
       .elasticX(true)
       .renderTitleLabel(true)
-      .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
+      .titleLabelOffsetX(paddedWidth / 4 - TITLE_PADDING)
       .title(d => d.value)
       .ordering(d => GAD_PHQ_ORDERING[d.key])
       .margins(HORIZONTAL_CHART_MARGINS)
@@ -549,7 +613,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     const ageGroup = uniqueMrn(ageDimension.group());
 
     ageBucketChart
-      .width(windowWidth / 4)
+      .width(paddedWidth / 4)
       .height(200)
       .elasticX(true)
       .dimension(ageDimension)
@@ -558,7 +622,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .valueAccessor(d => d.value.exceptionCount)
       .ordering(d => -d.value.exceptionCount)
       .renderTitleLabel(true)
-      .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
+      .titleLabelOffsetX(paddedWidth / 4 - TITLE_PADDING)
       .title(d => d.value.exceptionCount)
       .margins(HORIZONTAL_CHART_MARGINS)
       .xAxis()
@@ -572,7 +636,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     const diagnosisGroup = uniqueMrn(diagnosisDimension.group());
 
     diagnosisChart
-      .width(windowWidth / 4)
+      .width(paddedWidth / 4)
       .height(200)
       .elasticX(true)
       .dimension(diagnosisDimension)
@@ -581,7 +645,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .valueAccessor(d => d.value.exceptionCount)
       .ordering(d => -d.value.exceptionCount)
       .renderTitleLabel(true)
-      .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
+      .titleLabelOffsetX(paddedWidth / 4 - TITLE_PADDING)
       .title(d => d.value.exceptionCount)
       .margins(HORIZONTAL_CHART_MARGINS)
       .xAxis()
@@ -601,7 +665,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     const stageGroup = uniqueMrn(stageDimension.group());
 
     stageChart
-      .width(windowWidth / 4)
+      .width(paddedWidth / 4)
       .height(200)
       .elasticX(true)
       .dimension(stageDimension)
@@ -610,7 +674,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .valueAccessor(d => d.value.exceptionCount)
       .ordering(d => -d.value.exceptionCount)
       .renderTitleLabel(true)
-      .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
+      .titleLabelOffsetX(paddedWidth / 4 - TITLE_PADDING)
       .title(d => d.value.exceptionCount)
       .margins(HORIZONTAL_CHART_MARGINS)
       .xAxis()
@@ -630,7 +694,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     const transplantGroup = uniqueMrn(transplantDimension.group());
 
     transplantChart
-      .width(windowWidth / 4)
+      .width(paddedWidth / 4)
       .height(200)
       .elasticX(true)
       .dimension(transplantDimension)
@@ -639,7 +703,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .valueAccessor(d => d.value.exceptionCount)
       .ordering(d => -d.value.exceptionCount)
       .renderTitleLabel(true)
-      .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
+      .titleLabelOffsetX(paddedWidth / 4 - TITLE_PADDING)
       .title(d => d.value.exceptionCount)
       .margins(HORIZONTAL_CHART_MARGINS)
       .xAxis()
@@ -655,14 +719,14 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .reduceSum(d => (d.encounterType === 'other' ? 1 : d.parsedNumberOfTasks));
 
     encounterTypeChart
-      .width(windowWidth / 4)
+      .width(paddedWidth / 4)
       .height(200)
       .elasticX(true)
       .dimension(encounterTypeDimension)
       .group(encounterTypeGroup)
       .ordinalColors(colors)
       .renderTitleLabel(true)
-      .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
+      .titleLabelOffsetX(paddedWidth / 4 - TITLE_PADDING)
       .title(d => d.value)
       .margins(HORIZONTAL_CHART_MARGINS)
       .xAxis()
@@ -676,14 +740,14 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     const testGroup = testDimension.group();
 
     testChart
-      .width(windowWidth / 4)
+      .width(paddedWidth / 4)
       .height(200)
       .elasticX(true)
       .ordinalColors(colors)
       .dimension(testDimension)
       .group(testGroup)
       .renderTitleLabel(true)
-      .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
+      .titleLabelOffsetX(paddedWidth / 4 - TITLE_PADDING)
       .title(d => d.value)
       .margins(HORIZONTAL_CHART_MARGINS);
 
@@ -701,7 +765,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     const limitedEnglishProficiencyGroup = uniqueMrn(limitedEnglishProficiencyDimension.group());
 
     limitedEnglishProficiencyChart
-      .width(windowWidth / 4)
+      .width(paddedWidth / 4)
       .height(200)
       .elasticX(true)
       .ordinalColors(colors)
@@ -710,7 +774,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .valueAccessor(d => d.value.exceptionCount)
       .ordering(d => -d.value.exceptionCount)
       .renderTitleLabel(true)
-      .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
+      .titleLabelOffsetX(paddedWidth / 4 - TITLE_PADDING)
       .title(d => d.value.exceptionCount)
       .margins(HORIZONTAL_CHART_MARGINS)
       .xAxis()
@@ -728,7 +792,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     const otherCategoryTimeGroup = otherCategoryDimension.group().reduceSum(d => d.timeSpentHours);
 
     otherCategoryChart
-      .width(windowWidth / 4)
+      .width(paddedWidth / 4)
       .height(200)
       .elasticX(true)
       .ordinalColors(colors)
@@ -736,7 +800,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .group(removeExcludedData(otherCategoryGroup))
       .ordinalColors(colors)
       .renderTitleLabel(true)
-      .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
+      .titleLabelOffsetX(paddedWidth / 4 - TITLE_PADDING)
       .title(d => d.value)
       .margins(HORIZONTAL_CHART_MARGINS)
       .xAxis()
@@ -747,7 +811,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     const formatTitle = d3.format('d');
 
     otherCategoryTimeChart
-      .width(windowWidth / 4)
+      .width(paddedWidth / 4)
       .height(200)
       // causes super weird issue
       // .elasticX(true)
@@ -756,7 +820,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .group(removeExcludedData(otherCategoryTimeGroup))
       .ordinalColors(colors)
       .renderTitleLabel(true)
-      .titleLabelOffsetX(windowWidth / 4 - TITLE_PADDING)
+      .titleLabelOffsetX(paddedWidth / 4 - TITLE_PADDING)
       .title(d => formatTitle(d.value))
       .margins(HORIZONTAL_CHART_MARGINS)
       .xAxis()
@@ -770,14 +834,14 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     const userGroup = userDimension.group().reduceSum(d => d.parsedNumberOfTasks);
 
     userChart
-      .width(windowWidth / 3)
+      .width(paddedWidth / 3)
       .height(600)
       .elasticX(true)
       .ordinalColors(colors)
       .dimension(userDimension)
       .group(userGroup)
       .renderTitleLabel(true)
-      .titleLabelOffsetX(windowWidth / 3 - TITLE_PADDING)
+      .titleLabelOffsetX(paddedWidth / 3 - TITLE_PADDING)
       .title(d => d.value)
       .margins(HORIZONTAL_CHART_MARGINS)
       .xAxis()
@@ -791,7 +855,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     const doctorGroup = uniqueMrn(doctorDimension.group());
 
     doctorChart
-      .width(windowWidth / 2)
+      .width(paddedWidth / 2)
       .height(1800)
       .elasticX(true)
       .ordinalColors(colors)
@@ -800,7 +864,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .ordering(d => -d.value.exceptionCount)
       .group(removeExcludedData(doctorGroup))
       .renderTitleLabel(true)
-      .titleLabelOffsetX(windowWidth / 2 - TITLE_PADDING)
+      .titleLabelOffsetX(paddedWidth / 2 - TITLE_PADDING)
       .title(d => d.value.exceptionCount)
       .margins(HORIZONTAL_CHART_MARGINS);
 
@@ -812,14 +876,14 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     const interventionGroup = interventionDimension.group();
 
     interventionChart
-      .width(windowWidth / 2)
+      .width(paddedWidth / 2)
       .height(1800)
       .elasticX(true)
       .ordinalColors(colors)
       .dimension(interventionDimension)
       .group(interventionGroup)
       .renderTitleLabel(true)
-      .titleLabelOffsetX(windowWidth / 2 - TITLE_PADDING)
+      .titleLabelOffsetX(paddedWidth / 2 - TITLE_PADDING)
       .title(d => d.value)
       .margins(HORIZONTAL_CHART_MARGINS);
 
@@ -831,14 +895,14 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     const locationGroup = locationDimension.group().reduceSum(d => d.parsedNumberOfTasks);
 
     locationChart
-      .width(windowWidth / 3)
+      .width(paddedWidth / 3)
       .height(300)
       .elasticX(true)
       .ordinalColors(colors)
       .dimension(locationDimension)
       .group(removeExcludedData(locationGroup))
       .renderTitleLabel(true)
-      .titleLabelOffsetX(windowWidth / 3 - TITLE_PADDING)
+      .titleLabelOffsetX(paddedWidth / 3 - TITLE_PADDING)
       .title(d => d.value)
       .margins(HORIZONTAL_CHART_MARGINS);
 
@@ -850,14 +914,14 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     const clinicGroup = clinicDimension.group().reduceSum(d => d.parsedNumberOfTasks);
 
     clinicChart
-      .width(windowWidth / 3)
+      .width(paddedWidth / 3)
       .height(600)
       .elasticX(true)
       .dimension(clinicDimension)
       .ordinalColors(colors)
       .group(removeExcludedData(clinicGroup))
       .renderTitleLabel(true)
-      .titleLabelOffsetX(windowWidth / 3 - TITLE_PADDING)
+      .titleLabelOffsetX(paddedWidth / 3 - TITLE_PADDING)
       .title(d => d.value)
       .margins(HORIZONTAL_CHART_MARGINS);
 
@@ -892,10 +956,26 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
           </Modal.Actions>
         </Modal>
 
-        <div>
+        <div className="button-row">
           <Button onClick={() => this.props.onComplete()}>Back</Button>
 
           <Button onClick={() => window.print()}>Print</Button>
+
+          <Input
+            className="short-label"
+            label="From"
+            onChange={(e, data) => this.setState({ dateFrom: data.value })}
+            type="date"
+            value={this.state.dateFrom}
+          />
+
+          <Input
+            className="short-label"
+            label="To"
+            onChange={(e, data) => this.setState({ dateTo: data.value })}
+            type="date"
+            value={this.state.dateTo}
+          />
 
           {/*
           <Button
