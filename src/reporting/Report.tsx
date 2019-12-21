@@ -33,10 +33,10 @@ const VERTICAL_CHART_MARGINS = { ...DEFAULT_MARGINS, left: 55 };
 const HORIZONTAL_CHART_MARGINS = { ...DEFAULT_MARGINS, left: 40 };
 
 const OTHER_FIELD_NAMES: string[] = map(OTHER_ENCOUNTER_OPTIONS, 'fieldName') as string[];
-const OTHER_FIELD_MAPPING = zipObject(OTHER_FIELD_NAMES, map(
-  OTHER_ENCOUNTER_OPTIONS,
-  'name'
-) as string[]);
+const OTHER_FIELD_MAPPING = zipObject(
+  OTHER_FIELD_NAMES,
+  map(OTHER_ENCOUNTER_OPTIONS, 'name') as string[]
+);
 
 const TITLE_PADDING = 78;
 
@@ -207,7 +207,10 @@ export class Report extends React.Component<ReportProps, ReportState> {
       number.render();
     }
 
-    renderNumber('#total-tasks', ndx.groupAll().reduceSum(d => d.parsedNumberOfTasks));
+    renderNumber(
+      '#total-tasks',
+      ndx.groupAll().reduceSum(d => d.parsedNumberOfTasks)
+    );
 
     renderNumber(
       '#average-minutes-per-entry',
