@@ -60,6 +60,8 @@ export const OTHER_ENCOUNTER_OPTIONS: Option[] = addFieldNames([
 
   { name: 'Project', description: 'Holiday Families, Intern Orientation' },
 
+  { name: 'SMART Group', description: '' },
+
   {
     name: 'Support Group Facilitation',
     description:
