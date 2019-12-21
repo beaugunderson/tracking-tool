@@ -1,6 +1,7 @@
 import async from 'async';
 import Debug from 'debug';
 import moment from 'moment';
+import { CommunityEncounter } from './forms/CommunityEncounterForm';
 import { DATE_FORMAT_DATABASE } from './constants';
 import { fixesFilePath, userFilePath } from './store';
 import { isEqual } from 'lodash';
@@ -23,7 +24,9 @@ export type Fix = {
 type Migration = {
   id: string;
   query: { encounterType: string };
-  transform: (encounter: PatientEncounter) => PatientEncounter;
+  transform: (
+    encounter: CommunityEncounter | PatientEncounter
+  ) => CommunityEncounter | PatientEncounter;
 };
 
 const migrations: Migration[] = [
@@ -62,6 +65,38 @@ const migrations: Migration[] = [
 
       return encounter;
     }
+  },
+
+  {
+    id: 'c8656182-2424-11ea-b2c2-3bd0ed5f017c',
+    query: { encounterType: 'patient' },
+    transform: (encounter: PatientEncounter): PatientEncounter => {
+      // @ts-ignore: externalSupportiveCare was removed but we need to migrate the data
+      if (encounter.externalSupportiveCare && !encounter.otherCommunityResources) {
+        return {
+          ...encounter,
+          otherCommunityResources: true
+        };
+      }
+
+      return encounter;
+    }
+  },
+
+  {
+    id: '998a042a-2425-11ea-a6cf-6b377a9d7b45',
+    query: { encounterType: 'community' },
+    transform: (encounter: CommunityEncounter): CommunityEncounter => {
+      // @ts-ignore: externalSupportiveCare was removed but we need to migrate the data
+      if (encounter.externalSupportiveCare && !encounter.otherCommunityResources) {
+        return {
+          ...encounter,
+          otherCommunityResources: true
+        };
+      }
+
+      return encounter;
+    }
   }
 ];
 
@@ -93,7 +128,7 @@ export const openEncounters = (cb: (err: Error, dataStore: Nedb) => void): void 
         dataStore.find(
           migration.query,
           {} as PatientEncounter,
-          (findError: Error, results: PatientEncounter[]) => {
+          (findError: Error, results: (CommunityEncounter | PatientEncounter)[]) => {
             if (findError) {
               return cbEachMigration(findError);
             }
@@ -147,7 +182,7 @@ export async function getFixes(filename: string): Promise<Fix[]> {
 }
 
 function applyMigration(
-  results: PatientEncounter[],
+  results: (CommunityEncounter | PatientEncounter)[],
   migration: Migration,
   dataStore: Nedb,
   cbEachMigration: async.ErrorCallback<Error>

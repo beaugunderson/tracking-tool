@@ -331,12 +331,6 @@ const CARE_COORDINATION = {
       description:
         'SCI Nutrition Counseling, Northwest Natural Health, Monroe Massage at SCI, Cancer Rehabilitation, Art & Music Therapy',
       community: true
-    },
-    {
-      name: 'External Supportive Care',
-      description:
-        'Complementary, alternative medicine outside of SCI, including Swedish resources not associated with the Cancer Institute (e.g. acupuncture through the pain clinic), plus community resources',
-      community: true
     }
   ])
 };
@@ -547,7 +541,6 @@ export type InitialInterventionValues = {
   distressScreen: boolean;
   documentation: boolean;
   employment: boolean;
-  externalSupportiveCare: boolean;
   familyMeeting: boolean;
   food: boolean;
   gad: boolean;
@@ -610,7 +603,6 @@ export type InitialCommunityInterventionValues = {
   communityGrantFunds: boolean;
   customerService: boolean;
   employment: boolean;
-  externalSupportiveCare: boolean;
   food: boolean;
   homeCareFacility: boolean;
   homelessness: boolean;

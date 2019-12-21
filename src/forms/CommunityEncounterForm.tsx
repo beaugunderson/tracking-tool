@@ -20,7 +20,7 @@ import { FormikErrors, FormikProps, withFormik } from 'formik';
 import { InfoButtonLabel } from '../InfoButtonLabel';
 import { isEmpty } from 'lodash';
 
-type CommunityEncounter = InitialCommunityInterventionValues & {
+export type CommunityEncounter = InitialCommunityInterventionValues & {
   _id?: string;
   username?: string;
 
