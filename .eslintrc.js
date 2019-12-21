@@ -30,6 +30,7 @@ module.exports = {
     'consistent-return': 'off',
     'filenames/match-exported': 'error',
     'import/default': 'error',
+    'import/extensions': ['warn', 'never'],
     'import/first': 'off',
     'import/named': 'error',
     'import/newline-after-import': 'warn',
@@ -107,6 +108,7 @@ module.exports = {
     'react/require-default-props': 'off',
     'react/sort-comp': 'off',
     'react/sort-prop-types': ['warn', { ignoreCase: true }],
+    'react/state-in-constructor': ['error', 'never'],
 
     //react-perf
     'react-perf/jsx-no-new-object-as-prop': 'warn',
