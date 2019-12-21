@@ -27,14 +27,14 @@ interface GridReportProps {
 interface GridReportState {
   encounters: TransformedEncounter[] | null;
   loading: boolean;
-  removeDocumentationTasks?: boolean;
+  filterDocumentationTasks?: boolean;
 }
 
 export class GridReport extends React.Component<GridReportProps, GridReportState> {
   state: GridReportState = {
     encounters: null,
     loading: true,
-    removeDocumentationTasks: false
+    filterDocumentationTasks: false
   };
 
   changeIncludeDocumentation: (
@@ -42,7 +42,7 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
     data: CheckboxProps
   ) => void = (event, data) => {
     this.setState({
-      removeDocumentationTasks: data.checked
+      filterDocumentationTasks: data.checked
     });
   };
 
@@ -74,7 +74,7 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
     const nonInterns = months.map(() => 0);
     const staff = months.map(() => 0);
 
-    const field = this.state.removeDocumentationTasks
+    const field = this.state.filterDocumentationTasks
       ? 'parsedNumberOfTasksMinusDocumentation'
       : 'parsedNumberOfTasks';
 

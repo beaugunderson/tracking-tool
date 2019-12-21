@@ -12,7 +12,6 @@ import {
   Checkbox,
   Container,
   Dimmer,
-  Form,
   Input,
   Loader,
   Modal,
@@ -120,6 +119,8 @@ interface ReportState {
   dateFrom: string;
   dateTo: string;
   encounters?: TransformedEncounter[];
+  filterDocumentationTasks: boolean;
+  hideDocumentationAndCareCoordination: boolean;
   hideSocialWorkers?: boolean;
   loading?: boolean;
   screenshotData?: string;
@@ -129,7 +130,9 @@ interface ReportState {
 export class InteractiveReport extends React.Component<ReportProps, ReportState> {
   state: ReportState = {
     dateFrom: '',
-    dateTo: ''
+    dateTo: '',
+    filterDocumentationTasks: false,
+    hideDocumentationAndCareCoordination: false
   };
 
   resize = () => this.setState({ windowWidth: window.innerWidth });
@@ -177,6 +180,9 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
 
     if (
       this.state.encounters !== prevState.encounters ||
+      this.state.hideDocumentationAndCareCoordination !==
+        prevState.hideDocumentationAndCareCoordination ||
+      this.state.filterDocumentationTasks !== prevState.filterDocumentationTasks ||
       this.state.windowWidth !== prevState.windowWidth ||
       (this.state.dateFrom &&
         this.state.dateTo &&
@@ -187,7 +193,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
   }
 
   async renderCharts() {
-    const { encounters, dateFrom, dateTo, windowWidth } = this.state;
+    const { encounters, dateFrom, dateTo, filterDocumentationTasks, windowWidth } = this.state;
 
     if (!encounters) {
       return;
@@ -220,9 +226,28 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     const timeChart = dc.barChart('#time-chart');
     // #endregion
 
-    const filteredEncounters = encounters.filter(encounter =>
-      encounter.parsedEncounterDate.isBetween(dateFrom, dateTo, null, '[]')
-    );
+    let filteredEncounters = encounters;
+
+    if (dateFrom && dateTo) {
+      filteredEncounters = encounters.filter(encounter =>
+        encounter.parsedEncounterDate.isBetween(dateFrom, dateTo, null, '[]')
+      );
+    }
+
+    if (filterDocumentationTasks) {
+      filteredEncounters = filteredEncounters.map(encounter => {
+        const interventions = encounter.interventions.filter(
+          intervention => intervention !== 'Documentation'
+        );
+
+        return {
+          ...encounter,
+          interventions,
+          numberOfInterventions: interventions.length,
+          parsedNumberOfTasks: encounter.parsedNumberOfTasksMinusDocumentation
+        };
+      });
+    }
 
     const ndx = crossfilter(filteredEncounters);
 
@@ -872,7 +897,17 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     // #endregion
 
     // #region by intervention
-    const interventionDimension = ndx.dimension(d => d.interventions as any, true);
+    const HIDDEN_INTERVENTIONS = ['Documentation', 'Care Coordination'];
+
+    const interventionDimension = ndx.dimension(d => {
+      if (this.state.hideDocumentationAndCareCoordination) {
+        return d.interventions.filter(
+          intervention => !HIDDEN_INTERVENTIONS.includes(intervention)
+        );
+      }
+
+      return d.interventions;
+    }, true);
     const interventionGroup = interventionDimension.group();
 
     interventionChart
@@ -975,6 +1010,26 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
             onChange={(e, data) => this.setState({ dateTo: data.value })}
             type="date"
             value={this.state.dateTo}
+          />
+
+          <Checkbox
+            checked={this.state.filterDocumentationTasks}
+            label="Filter Documentation"
+            onChange={() =>
+              this.setState(state => ({
+                filterDocumentationTasks: !state.filterDocumentationTasks
+              }))
+            }
+          />
+
+          <Checkbox
+            checked={this.state.hideDocumentationAndCareCoordination}
+            label="Hide Documentation and Care Coordination"
+            onChange={() =>
+              this.setState(state => ({
+                hideDocumentationAndCareCoordination: !state.hideDocumentationAndCareCoordination
+              }))
+            }
           />
 
           {/*

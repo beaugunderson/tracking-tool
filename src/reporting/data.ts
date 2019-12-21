@@ -376,6 +376,7 @@ export function transformEncounter(
     gadScoreLabel,
     mocaScoreLabel,
 
+    // TODO use length of `interventions` above?
     numberOfInterventions: ['patient', 'community'].includes(encounter.encounterType)
       ? INTERVENTIONS.reduce(
           (accumulator, intervention) => accumulator + (encounter[intervention.fieldName] ? 1 : 0),

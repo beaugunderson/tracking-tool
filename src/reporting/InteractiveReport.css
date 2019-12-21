@@ -27,6 +27,10 @@ img.screenshot {
   margin-bottom: 1em;
 }
 
+.button-row .ui.checkbox {
+  margin-left: 1em;
+}
+
 .short-label {
   margin-left: 1em;
 }
