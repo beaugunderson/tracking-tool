@@ -461,7 +461,11 @@ const MENTAL_HEALTH = {
       description:
         'Present/future focused, goal oriented, identifying strengths/barriers to goals, scaling, miracle question, brief, prioritizing, problem-solving, specific to identified problem, measurable outcomes'
     },
-    { name: 'Other', description: '', fieldName: 'otherMentalHealthIntervention' }
+    {
+      name: 'Other Psychotherapy Techniques',
+      description: '',
+      fieldName: 'otherMentalHealthIntervention'
+    }
   ])
 };
 
