@@ -1,5 +1,5 @@
 import '../../node_modules/dc/dc.css';
-import './Report.css';
+import './InteractiveReport.css';
 import * as d3 from 'd3';
 import crossfilter from 'crossfilter2';
 import dc from 'dc';
@@ -97,7 +97,7 @@ interface ReportState {
   windowWidth?: number;
 }
 
-export class Report extends React.Component<ReportProps, ReportState> {
+export class InteractiveReport extends React.Component<ReportProps, ReportState> {
   state: ReportState = {};
 
   resize = () => this.setState({ windowWidth: window.innerWidth });

@@ -26,10 +26,10 @@ import { fieldNameToName, OtherEncounterForm } from './forms/OtherEncounterForm'
 import { FirstTimeSetup } from './FirstTimeSetup';
 import { GridReport } from './reporting/GridReport';
 import { insertExamples } from './generate-data';
+import { InteractiveReport } from './reporting/InteractiveReport';
 import { LinkMrnReport } from './reporting/LinkMrnReport';
 import { openEncounters } from './data';
 import { PatientEncounter, PatientEncounterForm } from './forms/PatientEncounterForm';
-import { Report } from './reporting/Report';
 import { StaffEncounterForm } from './forms/StaffEncounterForm';
 import { transformEncounter, transformEncounters } from './reporting/data';
 
@@ -266,7 +266,7 @@ export class App extends React.Component<{}, AppState> {
     }
 
     if (reporting) {
-      return <Report onComplete={() => this.setState({ reporting: false })} />;
+      return <InteractiveReport onComplete={() => this.setState({ reporting: false })} />;
     }
 
     if (encounterForm === 'patient') {
