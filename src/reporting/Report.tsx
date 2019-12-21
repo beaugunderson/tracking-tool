@@ -148,7 +148,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
     const otherCategoryChart = dc.rowChart('#other-category-chart');
     const otherCategoryTimeChart = dc.rowChart('#other-category-time-chart');
     const phqChart = dc.rowChart('#phq-chart');
-    const researchChart = dc.rowChart('#research-chart');
+    const transplantChart = dc.rowChart('#transplant-chart');
     const stageChart = dc.rowChart('#stage-chart');
     const testChart = dc.rowChart('#test-chart');
     const userChart = dc.rowChart('#user-chart');
@@ -619,22 +619,22 @@ export class Report extends React.Component<ReportProps, ReportState> {
     stageChart.render();
     // #endregion
 
-    // #region by research
-    const researchDimension = ndx.dimension(d => {
-      if (isBoolean(d.research)) {
-        return d.research ? 'Research' : 'Non-research';
+    // #region by transplant
+    const transplantDimension = ndx.dimension(d => {
+      if (isBoolean(d.transplant)) {
+        return d.transplant ? 'Transplant patient' : 'Non-transplant patient';
       }
 
       return EXCLUDE_STRING_VALUE;
     });
-    const researchGroup = uniqueMrn(researchDimension.group());
+    const transplantGroup = uniqueMrn(transplantDimension.group());
 
-    researchChart
+    transplantChart
       .width(windowWidth / 4)
       .height(200)
       .elasticX(true)
-      .dimension(researchDimension)
-      .group(removeExcludedData(researchGroup))
+      .dimension(transplantDimension)
+      .group(removeExcludedData(transplantGroup))
       .ordinalColors(colors)
       .valueAccessor(d => d.value.exceptionCount)
       .ordering(d => -d.value.exceptionCount)
@@ -645,7 +645,7 @@ export class Report extends React.Component<ReportProps, ReportState> {
       .xAxis()
       .ticks(4);
 
-    researchChart.render();
+    transplantChart.render();
     // #endregion
 
     // #region by encounter type
@@ -1051,8 +1051,8 @@ export class Report extends React.Component<ReportProps, ReportState> {
           <div className="clear" />
         </div>
 
-        <div id="research-chart">
-          <strong>Research (unique MRNs)</strong>
+        <div id="transplant-chart">
+          <strong>Transplant patients (unique MRNs)</strong>
           <div className="clear" />
         </div>
 

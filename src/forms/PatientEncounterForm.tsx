@@ -53,8 +53,8 @@ export type PatientEncounter = InitialInterventionValues & {
   numberOfTasks: string;
   patientName: string;
   providenceMrn: string;
-  research: boolean;
   timeSpent: string;
+  transplant: boolean;
 };
 
 export const INITIAL_VALUES = (): PatientEncounter => ({
@@ -72,8 +72,8 @@ export const INITIAL_VALUES = (): PatientEncounter => ({
   numberOfTasks: '',
   patientName: '',
   providenceMrn: '',
-  research: false,
   timeSpent: '',
+  transplant: false,
 
   ...initialInterventionValues
 });
@@ -174,11 +174,8 @@ const LIMITED_ENGLISH_PROFICIENCY_LABEL = (
   </label>
 );
 
-const RESEARCH_LABEL = (
-  <label>
-    Is patient involved in research?{' '}
-    <InfoButton content="Mark this if you were referred by or coordinated with the research team, or are aware that the patient is on a research protocol, being considered for one, or is coming off of one" />
-  </label>
+const TRANSPLANT_LABEL = (
+  <label>Transplant patient{/* <InfoButton content="Description needed." /> */}</label>
 );
 
 function indexValues(values: any) {
@@ -381,7 +378,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
       diagnosisType: encounter.diagnosisType,
       diagnosisFreeText: encounter.diagnosisFreeText,
       diagnosisStage: encounter.diagnosisStage,
-      research: !!encounter.research
+      transplant: !!encounter.transplant
     });
 
     this.setState({ patientNameIndex });
@@ -712,12 +709,12 @@ class UnwrappedPatientEncounterForm extends React.Component<
           <Form.Field
             control={Checkbox}
             disabled={!values.patientName}
-            id="input-research"
-            label={RESEARCH_LABEL}
-            name="research"
+            id="input-transplant"
+            label={TRANSPLANT_LABEL}
+            name="transplant"
             onBlur={this.handleBlur}
             onChange={this.handleChange}
-            checked={values.research}
+            checked={values.transplant}
           />
 
           <Form.Field

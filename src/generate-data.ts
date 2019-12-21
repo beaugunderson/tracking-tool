@@ -65,7 +65,7 @@ function fakePatient() {
       .slice(2, 10)}`,
 
     limitedEnglishProficiency: sample([false, true]),
-    research: sample([false, true])
+    transplant: sample([false, true])
   };
 }
 
@@ -121,8 +121,8 @@ export function insertExamples(encounters: Nedb) {
       // 20% of the time generate new MDs for a given patient
       md: Math.random() > 0.2 ? patient.md : doctors(),
 
-      // 10% of the time flip the research flag
-      research: Math.random() > 0.1 ? patient.research : !patient.research,
+      // 10% of the time flip the transplant flag
+      transplant: Math.random() > 0.1 ? patient.transplant : !patient.transplant,
 
       numberOfTasks: `${1 + Math.floor(sampledInterventions.length * Math.random())}`,
 
