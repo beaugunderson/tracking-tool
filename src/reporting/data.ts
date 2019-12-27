@@ -276,6 +276,8 @@ function scorePhq(scoreString: string) {
   return SCORE_MILD_MINIMAL_OR_NONE;
 }
 
+const TYPES_WITH_INTERVENTIONS = ['patient', 'community'];
+
 export function transformEncounter(
   encounter: PatientEncounter,
   providenceMapping = null,
@@ -350,6 +352,16 @@ export function transformEncounter(
     swedishMrn = providenceMapping[providenceMrn];
   }
 
+  const interventions = TYPES_WITH_INTERVENTIONS.includes(encounter.encounterType)
+    ? INTERVENTIONS.reduce(
+        (accumulator: string[], intervention) =>
+          encounter[intervention.fieldName]
+            ? accumulator.concat([intervention.name])
+            : accumulator,
+        []
+      )
+    : [];
+
   return {
     ...encounter,
 
@@ -366,11 +378,7 @@ export function transformEncounter(
 
     doctorPrimary: (encounter.md && encounter.md[0]) || EXCLUDE_STRING_VALUE,
 
-    interventions: INTERVENTIONS.reduce(
-      (accumulator: string[], intervention) =>
-        encounter[intervention.fieldName] ? accumulator.concat([intervention.name]) : accumulator,
-      []
-    ),
+    interventions,
 
     mrn: swedishMrn || EXCLUDE_STRING_VALUE,
     providenceMrn: providenceMrn || EXCLUDE_STRING_VALUE,
@@ -385,12 +393,8 @@ export function transformEncounter(
     gadScoreLabel,
     mocaScoreLabel,
 
-    // TODO use length of `interventions` above?
-    numberOfInterventions: ['patient', 'community'].includes(encounter.encounterType)
-      ? INTERVENTIONS.reduce(
-          (accumulator, intervention) => accumulator + (encounter[intervention.fieldName] ? 1 : 0),
-          0
-        )
+    numberOfInterventions: TYPES_WITH_INTERVENTIONS.includes(encounter.encounterType)
+      ? interventions.length
       : EXCLUDE_NUMBER_VALUE,
 
     timeSpentHours: parseInt(encounter.timeSpent, 10) / 60,
