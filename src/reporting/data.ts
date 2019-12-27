@@ -183,6 +183,9 @@ async function getAllEncounters(filename: string): Promise<PatientEncounter[]> {
 
   const dataStore: Nedb = new DataStore({
     autoload: true,
+    compareStrings: (a: string, b: string) => {
+      return a.toLowerCase().localeCompare(b.toLowerCase());
+    },
     filename,
     timestampData: true
   });
