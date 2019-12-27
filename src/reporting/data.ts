@@ -509,20 +509,22 @@ export async function transform(
   log.debug(`transform: removing temporary directory "${fixFile.temporaryDirectory}"`);
   rimraf.sync(fixFile.temporaryDirectory, { glob: false });
 
-  const userEncounters = await copyEncounterFiles();
+  const copiedUserEncounters = await copyEncounterFiles();
   const allEncounters: PatientEncounter[] = [];
 
-  for (const userEncounter of userEncounters.files) {
-    log.debug(`transform: getting all encounters for "${userEncounter.filename}"`);
+  for (const copiedUserEncounter of copiedUserEncounters.files) {
+    log.debug(`transform: getting all encounters for "${copiedUserEncounter.filename}"`);
 
     // eslint-disable-next-line no-await-in-loop
-    const encounters = await getAllEncounters(userEncounter.filename);
+    const encounters = await getAllEncounters(copiedUserEncounter.filename);
 
-    log.debug(`transform: got ${encounters.length} encounters for "${userEncounter.filename}"`);
+    log.debug(
+      `transform: got ${encounters.length} encounters for "${copiedUserEncounter.filename}"`
+    );
 
     for (const encounter of encounters) {
       if (fixMrns && encounter.encounterType === 'patient') {
-        const uniqueId = `${userEncounter.username}-${encounter._id}`;
+        const uniqueId = `${copiedUserEncounter.username}-${encounter._id}`;
 
         const fix: Fix = pick(
           findLast(fixes, { uniqueId }) || { uniqueId },
@@ -537,19 +539,22 @@ export async function transform(
           // apply fixes to the patient encounter (to manage MRN linkages)
           ...fix,
 
-          username: userEncounter.username
+          username: copiedUserEncounter.username
         });
       } else {
         allEncounters.push({
           ...encounter,
-          username: userEncounter.username
+
+          username: copiedUserEncounter.username
         });
       }
     }
   }
 
-  log.debug(`transform: removing temporary directory "${userEncounters.temporaryDirectory}"`);
-  rimraf.sync(userEncounters.temporaryDirectory, { glob: false });
+  log.debug(
+    `transform: removing temporary directory "${copiedUserEncounters.temporaryDirectory}"`
+  );
+  rimraf.sync(copiedUserEncounters.temporaryDirectory, { glob: false });
 
   log.debug(`transform: running transformEncounters on ${allEncounters.length} encounters`);
   return transformEncounters(allEncounters, mapMrns);
