@@ -473,7 +473,7 @@ export function inferMrns(encounters: PatientEncounter[]): [MrnMapping, MrnMappi
     }
   }
 
-  log.debug('resolved MRNs in %d cycles', counter);
+  log.debug(`resolved MRNs in ${counter} cycles`);
 
   return [providenceMapping, swedishMapping];
 }
