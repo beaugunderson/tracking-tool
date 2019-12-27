@@ -110,38 +110,7 @@ export const openEncounters = (cb: (err: Error, dataStore: Nedb) => void): void 
     timestampData: true
   });
 
-  async.eachSeries(
-    migrations,
-    (migration, cbEachMigration) => {
-      debug('Applying migration "%s"', migration.id);
-
-      dataStore.findOne({ migration: migration.id }, {}, (findMigrationError, foundMigration) => {
-        if (findMigrationError) {
-          return cbEachMigration(findMigrationError);
-        }
-
-        if (foundMigration) {
-          debug('Skipping migration "%s", already applied', migration.id);
-          return cbEachMigration();
-        }
-
-        dataStore.find(
-          migration.query,
-          {} as PatientEncounter,
-          (findError: Error, results: (CommunityEncounter | PatientEncounter)[]) => {
-            if (findError) {
-              return cbEachMigration(findError);
-            }
-
-            applyMigration(results, migration, dataStore, cbEachMigration);
-          }
-        );
-      });
-    },
-    migrationError => {
-      cb(migrationError, dataStore);
-    }
-  );
+  applyMigrations(dataStore, cb);
 };
 
 export const openFixes = () => {
@@ -217,6 +186,41 @@ function applyMigration(
       }
 
       dataStore.insert({ migration: migration.id }, cbEachMigration);
+    }
+  );
+}
+
+export function applyMigrations(dataStore: Nedb, cb: (err: Error, dataStore: Nedb) => void) {
+  async.eachSeries(
+    migrations,
+    (migration, cbEachMigration) => {
+      debug('Applying migration "%s"', migration.id);
+
+      dataStore.findOne({ migration: migration.id }, {}, (findMigrationError, foundMigration) => {
+        if (findMigrationError) {
+          return cbEachMigration(findMigrationError);
+        }
+
+        if (foundMigration) {
+          debug('Skipping migration "%s", already applied', migration.id);
+          return cbEachMigration();
+        }
+
+        dataStore.find(
+          migration.query,
+          {} as PatientEncounter,
+          (findError: Error, results: (CommunityEncounter | PatientEncounter)[]) => {
+            if (findError) {
+              return cbEachMigration(findError);
+            }
+
+            applyMigration(results, migration, dataStore, cbEachMigration);
+          }
+        );
+      });
+    },
+    migrationError => {
+      cb(migrationError, dataStore);
     }
   );
 }

@@ -1,8 +1,8 @@
 import moment from 'moment';
 import path from 'path';
+import { applyMigrations, Fix, getFixes } from '../data';
 import { clone, findLast, isEqual, isNaN, isNumber, pick } from 'lodash';
 import { DATE_FORMAT_DATABASE, DATE_FORMAT_DISPLAY } from '../constants';
-import { Fix, getFixes } from '../data';
 import { fixesFilePath, rootPath } from '../store';
 import { INTERVENTIONS } from '../patient-interventions';
 import { PatientEncounter } from '../forms/PatientEncounterForm';
@@ -190,17 +190,23 @@ async function getAllEncounters(filename: string): Promise<PatientEncounter[]> {
   return new Promise((resolve, reject) => {
     log.debug(`getAllEncounters: calling dataStore.find for "${filename}`);
 
-    dataStore.find(
-      { encounterType: { $exists: true } },
-      (err: Error, results: PatientEncounter[]) => {
-        if (err) {
-          log.debug(`getAllEncounters: error in dataStore.find "${err}"`);
-          reject(err);
-        } else {
-          resolve(results);
-        }
+    applyMigrations(dataStore, (applyMigrationsError, migratedDataStore) => {
+      if (applyMigrationsError) {
+        return reject(applyMigrationsError);
       }
-    );
+
+      migratedDataStore.find(
+        { encounterType: { $exists: true } },
+        (err: Error, results: PatientEncounter[]) => {
+          if (err) {
+            log.debug(`getAllEncounters: error in dataStore.find "${err}"`);
+            reject(err);
+          } else {
+            resolve(results);
+          }
+        }
+      );
+    });
   });
 }
 
