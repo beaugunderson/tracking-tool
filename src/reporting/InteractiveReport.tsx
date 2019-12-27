@@ -487,9 +487,20 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     // #endregion
 
     // #region number of interventions
-    const numberOfInterventionsDimension = ndx.dimension(d =>
-      d.numberOfInterventions < 10 ? d.numberOfInterventions : 10
-    );
+    const numberOfInterventionsDimension = ndx.dimension(d => {
+      if (d.numberOfInterventions > 10) {
+        return 10;
+      }
+
+      // per Caryn, it can be confusing when everything shifts to the left when documentation is
+      // filtered out so we remove the zero column to prevent that confusion
+      if (d.numberOfInterventions < 1) {
+        return EXCLUDE_NUMBER_VALUE;
+      }
+
+      return d.numberOfInterventions;
+    });
+
     const numberOfInterventionsGroup = numberOfInterventionsDimension.group();
 
     numberOfInterventionsChart
