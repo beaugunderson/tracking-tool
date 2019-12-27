@@ -45,6 +45,8 @@ import {
 import { OTHER_ENCOUNTER_OPTIONS } from '../forms/OtherEncounterForm';
 import { usernameToName } from '../usernames';
 
+const log = window.require('electron-log');
+
 // const { remote, screen } = window.require('electron');
 
 // TODO: You are using d3.schemeCategory20c, which has been removed in D3v5.
@@ -193,6 +195,8 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
   }
 
   async renderCharts() {
+    log.debug('renderCharts()');
+
     const { encounters, dateFrom, dateTo, filterDocumentationTasks, windowWidth } = this.state;
 
     if (!encounters) {
@@ -226,6 +230,8 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     const timeChart = dc.barChart('#time-chart');
     // #endregion
 
+    log.debug('filtering encounters');
+
     let filteredEncounters = encounters;
 
     if (dateFrom && dateTo) {
@@ -248,6 +254,8 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
         };
       });
     }
+
+    log.debug('end filtering encounters');
 
     const ndx = crossfilter(filteredEncounters);
 
@@ -282,6 +290,8 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     // #endregion
 
     // #region totals
+    log.debug('renderNumber() calls');
+
     function renderNumber(
       selector: string,
       group: crossfilter.GroupAll<TransformedEncounter, {}>,
@@ -410,6 +420,8 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
         return mrns.size;
       }
     );
+
+    log.debug('end renderNumber() calls');
     // #endregion
 
     // #region encounters by day
@@ -962,6 +974,8 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
 
     clinicChart.render();
     // #endregion
+
+    log.debug('end renderCharts()');
   }
 
   render() {
