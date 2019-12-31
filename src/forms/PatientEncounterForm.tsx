@@ -175,7 +175,10 @@ const LIMITED_ENGLISH_PROFICIENCY_LABEL = (
 );
 
 const TRANSPLANT_LABEL = (
-  <label>Transplant patient{/* <InfoButton content="Description needed." /> */}</label>
+  <label>
+    Transplant patient{' '}
+    <InfoButton content="Mark this for patients who have completed a transplant or CAR-T assessment in preparation for treatment" />
+  </label>
 );
 
 function indexValues(values: any) {

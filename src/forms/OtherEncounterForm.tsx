@@ -60,7 +60,16 @@ export const OTHER_ENCOUNTER_OPTIONS: Option[] = addFieldNames([
 
   { name: 'Project', description: 'Holiday Families, Intern Orientation' },
 
-  { name: 'SMART Group', description: '' },
+  {
+    name: 'SMART Group Facilitation',
+    description: 'To be used for the direct facilitation of a SMART Group'
+  },
+
+  {
+    name: 'SMART Planning/Development',
+    description:
+      'To be used for program planning and development related to SMART; excludes SMART training'
+  },
 
   {
     name: 'Support Group Facilitation',

@@ -449,7 +449,11 @@ const MENTAL_HEALTH = {
       description:
         'Educational information, grief versus depression, inflammatory process, parenting and aging developmental stages, sleep hygiene, practical, pain, normalizing, support groups/counseling, social work intro, suicide awareness, PHQ/GAD review, evaluating understanding'
     },
-    { name: 'SMART', description: '' },
+    {
+      name: 'SMART',
+      description:
+        'SMART participants should mark when using SMART techniques one on one with a patient'
+    },
     {
       name: 'Solution-Focused',
       description:
