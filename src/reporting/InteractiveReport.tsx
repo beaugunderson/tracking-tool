@@ -1,8 +1,8 @@
-import '../../node_modules/dc/dc.css';
+import '../../node_modules/dc/dist/style/dc.css';
 import './InteractiveReport.css';
 import * as d3 from 'd3';
+import * as dc from 'dc';
 import crossfilter from 'crossfilter2';
-import dc from 'dc';
 // import mergeImg from 'merge-img';
 import React from 'react';
 import reductio from 'reductio';
