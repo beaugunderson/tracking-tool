@@ -194,11 +194,20 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
   async renderCharts() {
     log.debug('renderCharts()');
 
-    const { encounters, dateFrom, dateTo, filterDocumentationTasks, windowWidth } = this.state;
+    const {
+      dateFrom,
+      dateTo,
+      encounters,
+      filterDocumentationTasks,
+      hideDocumentationAndCareCoordination,
+      windowWidth
+    } = this.state;
 
     if (!encounters) {
       return;
     }
+
+    // TODO: when dc's types are updated switch to new way of instantiating, e.g. `new dc.RowChart`
 
     // #region chart definitions
     // row charts
@@ -920,7 +929,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     const HIDDEN_INTERVENTIONS = ['Documentation', 'Care Coordination'];
 
     const interventionDimension = ndx.dimension(d => {
-      if (this.state.hideDocumentationAndCareCoordination) {
+      if (hideDocumentationAndCareCoordination) {
         return d.interventions.filter(
           intervention => !HIDDEN_INTERVENTIONS.includes(intervention)
         );
@@ -1004,9 +1013,19 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
   handleHideSocialWorkersChange = (e, data) => this.setState({ hideSocialWorkers: data.checked });
 
   render() {
+    const { onComplete } = this.props;
+    const {
+      dateFrom,
+      dateTo,
+      filterDocumentationTasks,
+      hideDocumentationAndCareCoordination,
+      hideSocialWorkers,
+      loading
+    } = this.state;
+
     return (
-      <div className={this.state.hideSocialWorkers ? 'hide-social-workers' : ''}>
-        {this.state.loading && (
+      <div className={hideSocialWorkers ? 'hide-social-workers' : ''}>
+        {loading && (
           <Dimmer active>
             <Loader size="large" />
           </Dimmer>
@@ -1042,7 +1061,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
             label="From"
             onChange={this.handleDateFromChange}
             type="date"
-            value={this.state.dateFrom}
+            value={dateFrom}
           />
 
           <Input
@@ -1050,17 +1069,17 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
             label="To"
             onChange={this.handleDateToChange}
             type="date"
-            value={this.state.dateTo}
+            value={dateTo}
           />
 
           <Checkbox
-            checked={this.state.filterDocumentationTasks}
+            checked={filterDocumentationTasks}
             label="Filter Documentation"
             onChange={this.handleFilterDocumentationTasksChange}
           />
 
           <Checkbox
-            checked={this.state.hideDocumentationAndCareCoordination}
+            checked={hideDocumentationAndCareCoordination}
             label="Hide Documentation and Care Coordination"
             onChange={this.handleHideDocumentationAndCareCoordinationChange}
           />
