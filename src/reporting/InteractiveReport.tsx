@@ -109,8 +109,15 @@ const uniqueMrn = reductio()
   .exception((d: TransformedEncounter) => d.providenceOrSwedishMrn)
   .exceptionCount(true);
 
+export enum ReportAudience {
+  INDIVIDUAL = 0,
+  ADMINISTRATOR = 1
+}
+
 interface ReportProps {
+  audience: ReportAudience;
   onComplete: () => void;
+  username: string;
 }
 
 interface ReportState {
@@ -118,6 +125,7 @@ interface ReportState {
   dateTo: string;
   encounters?: TransformedEncounter[];
   filterDocumentationTasks: boolean;
+  forceIndividualView: boolean;
   hideDocumentationAndCareCoordination: boolean;
   hideSocialWorkers?: boolean;
   loading?: boolean;
@@ -130,6 +138,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     dateFrom: '',
     dateTo: '',
     filterDocumentationTasks: false,
+    forceIndividualView: false,
     hideDocumentationAndCareCoordination: false
   };
 
@@ -182,6 +191,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       this.state.hideDocumentationAndCareCoordination !==
         prevState.hideDocumentationAndCareCoordination ||
       this.state.filterDocumentationTasks !== prevState.filterDocumentationTasks ||
+      this.state.forceIndividualView !== prevState.forceIndividualView ||
       this.state.windowWidth !== prevState.windowWidth ||
       (this.state.dateFrom &&
         this.state.dateTo &&
@@ -194,11 +204,14 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
   async renderCharts() {
     log.debug('renderCharts()');
 
+    const { audience, username } = this.props;
+
     const {
       dateFrom,
       dateTo,
       encounters,
       filterDocumentationTasks,
+      forceIndividualView,
       hideDocumentationAndCareCoordination,
       windowWidth
     } = this.state;
@@ -893,7 +906,17 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     // #endregion
 
     // #region by social worker
-    const userDimension = ndx.dimension(d => usernameToName(d.username));
+    const userDimension = ndx.dimension(d => {
+      if (audience === ReportAudience.INDIVIDUAL || forceIndividualView) {
+        if (username === d.username.toLowerCase()) {
+          return usernameToName(d.username);
+        }
+
+        return 'Everyone else';
+      }
+
+      return usernameToName(d.username);
+    });
     const userGroup = userDimension.group().reduceSum(d => d.parsedNumberOfTasks);
 
     userChart
@@ -1014,6 +1037,11 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       filterDocumentationTasks: !state.filterDocumentationTasks
     }));
 
+  handleForceIndividualViewChange = () =>
+    this.setState(state => ({
+      forceIndividualView: !state.forceIndividualView
+    }));
+
   handleHideDocumentationAndCareCoordinationChange = () =>
     this.setState(state => ({
       hideDocumentationAndCareCoordination: !state.hideDocumentationAndCareCoordination
@@ -1022,11 +1050,12 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
   handleHideSocialWorkersChange = (e, data) => this.setState({ hideSocialWorkers: data.checked });
 
   render() {
-    const { onComplete } = this.props;
+    const { audience, onComplete } = this.props;
     const {
       dateFrom,
       dateTo,
       filterDocumentationTasks,
+      forceIndividualView,
       hideDocumentationAndCareCoordination,
       hideSocialWorkers,
       loading
@@ -1086,6 +1115,14 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
             label="Filter Documentation"
             onChange={this.handleFilterDocumentationTasksChange}
           />
+
+          {audience === ReportAudience.ADMINISTRATOR && (
+            <Checkbox
+              checked={forceIndividualView}
+              label="Individual View"
+              onChange={this.handleForceIndividualViewChange}
+            />
+          )}
 
           <Checkbox
             checked={hideDocumentationAndCareCoordination}

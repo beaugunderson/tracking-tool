@@ -26,7 +26,7 @@ import { fieldNameToName, OtherEncounterForm } from './forms/OtherEncounterForm'
 import { FirstTimeSetup } from './FirstTimeSetup';
 import { GridReport } from './reporting/GridReport';
 import { insertExamples } from './generate-data';
-import { InteractiveReport } from './reporting/InteractiveReport';
+import { InteractiveReport, ReportAudience } from './reporting/InteractiveReport';
 import { LinkMrnReport } from './reporting/LinkMrnReport';
 import { MENTAL_HEALTH_FIELD_NAMES } from './patient-interventions';
 import { openEncounters } from './data';
@@ -274,7 +274,13 @@ export class App extends React.Component<{}, AppState> {
     }
 
     if (reporting) {
-      return <InteractiveReport onComplete={() => this.setState({ reporting: false })} />;
+      return (
+        <InteractiveReport
+          audience={canSeeReporting() ? ReportAudience.ADMINISTRATOR : ReportAudience.INDIVIDUAL}
+          onComplete={() => this.setState({ reporting: false })}
+          username={username.sync()}
+        />
+      );
     }
 
     if (encounterForm === 'patient') {
@@ -368,14 +374,14 @@ export class App extends React.Component<{}, AppState> {
             Other
           </Button>
 
+          <Divider hidden />
+
+          <Button onClick={() => this.setState({ reporting: true })} size="big">
+            Interactive Report
+          </Button>
+
           {canSeeReporting() && (
             <>
-              <Divider hidden />
-
-              <Button onClick={() => this.setState({ reporting: true })} size="big">
-                Interactive Report
-              </Button>
-
               <Button onClick={() => this.setState({ crisisReporting: true })} size="big">
                 Crisis Report
               </Button>
