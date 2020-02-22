@@ -467,6 +467,10 @@ const MENTAL_HEALTH = {
   ])
 };
 
+export const MENTAL_HEALTH_FIELD_NAMES = MENTAL_HEALTH.interventions.map(
+  intervention => intervention.fieldName
+);
+
 export const interventionGroups: Array<Array<InterventionGroup>> = [
   [ENCOUNTER_TYPE, CRISIS, SUPPORT_GROUP, SOCIAL_PRACTICAL],
 

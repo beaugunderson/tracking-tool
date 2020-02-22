@@ -14,7 +14,7 @@ import {
   Statistic,
   Table
 } from 'semantic-ui-react';
-import { chain, escapeRegExp } from 'lodash';
+import { chain, escapeRegExp, sumBy } from 'lodash';
 import { CommunityEncounterForm } from './forms/CommunityEncounterForm';
 import { CrisisReport } from './reporting/CrisisReport';
 import { DataAuditReport } from './reporting/DataAuditReport';
@@ -28,6 +28,7 @@ import { GridReport } from './reporting/GridReport';
 import { insertExamples } from './generate-data';
 import { InteractiveReport } from './reporting/InteractiveReport';
 import { LinkMrnReport } from './reporting/LinkMrnReport';
+import { MENTAL_HEALTH_FIELD_NAMES } from './patient-interventions';
 import { openEncounters } from './data';
 import { PatientEncounter, PatientEncounterForm } from './forms/PatientEncounterForm';
 import { StaffEncounterForm } from './forms/StaffEncounterForm';
@@ -60,6 +61,7 @@ type AppState = {
   firstTimeSetup: boolean;
   gads: number;
   gridReporting: boolean;
+  interventions?: number;
   linkMrnReporting: boolean;
   mocas: number;
   phqs: number;
@@ -81,6 +83,7 @@ export class App extends React.Component<{}, AppState> {
     encounterSearchType: 'All',
     firstTimeSetup: !rootPathExists(),
     gridReporting: false,
+    interventions: 0,
     linkMrnReporting: false,
     gads: 0,
     mocas: 0,
@@ -149,7 +152,11 @@ export class App extends React.Component<{}, AppState> {
       const mocas = monthEncounters.filter(encounter => !!encounter.moca).length;
       const phqs = monthEncounters.filter(encounter => !!encounter.phq).length;
 
-      this.setState({ gads, mocas, phqs });
+      const interventions = sumBy(monthEncounters, encounter =>
+        sumBy(MENTAL_HEALTH_FIELD_NAMES, field => (encounter[field] ? 1 : 0))
+      );
+
+      this.setState({ gads, mocas, phqs, interventions });
     });
   }
 
@@ -221,6 +228,7 @@ export class App extends React.Component<{}, AppState> {
       firstTimeSetup,
       gads,
       gridReporting,
+      interventions,
       linkMrnReporting,
       mocas,
       phqs,
@@ -401,7 +409,7 @@ export class App extends React.Component<{}, AppState> {
           )}
         </Segment>
 
-        <Statistic.Group widths="3">
+        <Statistic.Group widths="4">
           <Statistic>
             <Statistic.Value>{phqs}</Statistic.Value>
             <Statistic.Label>PHQ assessments</Statistic.Label>
@@ -415,6 +423,11 @@ export class App extends React.Component<{}, AppState> {
           <Statistic>
             <Statistic.Value>{mocas}</Statistic.Value>
             <Statistic.Label>MoCA assessments</Statistic.Label>
+          </Statistic>
+
+          <Statistic>
+            <Statistic.Value>{interventions}</Statistic.Value>
+            <Statistic.Label>Intervention Techniques</Statistic.Label>
           </Statistic>
         </Statistic.Group>
 
