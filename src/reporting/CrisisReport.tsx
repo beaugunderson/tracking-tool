@@ -77,8 +77,8 @@ export class CrisisReport extends React.Component<CrisisReportProps, CrisisRepor
           </Table.Header>
 
           <Table.Body>
-            {crisisEncounters.map(encounter => (
-              <Table.Row>
+            {crisisEncounters.map((encounter, i) => (
+              <Table.Row key={i}>
                 <Table.Cell>
                   {encounter.parsedEncounterDate.format(DATE_FORMAT_DISPLAY)}
                 </Table.Cell>
