@@ -989,6 +989,23 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     log.debug('end renderCharts()');
   }
 
+  print = () => window.print();
+
+  handleDateFromChange = (e, data) => this.setState({ dateFrom: data.value });
+  handleDateToChange = (e, data) => this.setState({ dateTo: data.value });
+
+  handleFilterDocumentationTasksChange = () =>
+    this.setState(state => ({
+      filterDocumentationTasks: !state.filterDocumentationTasks
+    }));
+
+  handleHideDocumentationAndCareCoordinationChange = () =>
+    this.setState(state => ({
+      hideDocumentationAndCareCoordination: !state.hideDocumentationAndCareCoordination
+    }));
+
+  handleHideSocialWorkersChange = (e, data) => this.setState({ hideSocialWorkers: data.checked });
+
   render() {
     return (
       <div className={this.state.hideSocialWorkers ? 'hide-social-workers' : ''}>
@@ -1017,14 +1034,14 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
         </Modal>
 
         <div className="button-row">
-          <Button onClick={() => this.props.onComplete()}>Back</Button>
+          <Button onClick={onComplete}>Back</Button>
 
-          <Button onClick={() => window.print()}>Print</Button>
+          <Button onClick={this.print}>Print</Button>
 
           <Input
             className="short-label"
             label="From"
-            onChange={(e, data) => this.setState({ dateFrom: data.value })}
+            onChange={this.handleDateFromChange}
             type="date"
             value={this.state.dateFrom}
           />
@@ -1032,7 +1049,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
           <Input
             className="short-label"
             label="To"
-            onChange={(e, data) => this.setState({ dateTo: data.value })}
+            onChange={this.handleDateToChange}
             type="date"
             value={this.state.dateTo}
           />
@@ -1040,21 +1057,13 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
           <Checkbox
             checked={this.state.filterDocumentationTasks}
             label="Filter Documentation"
-            onChange={() =>
-              this.setState(state => ({
-                filterDocumentationTasks: !state.filterDocumentationTasks
-              }))
-            }
+            onChange={this.handleFilterDocumentationTasksChange}
           />
 
           <Checkbox
             checked={this.state.hideDocumentationAndCareCoordination}
             label="Hide Documentation and Care Coordination"
-            onChange={() =>
-              this.setState(state => ({
-                hideDocumentationAndCareCoordination: !state.hideDocumentationAndCareCoordination
-              }))
-            }
+            onChange={this.handleHideDocumentationAndCareCoordinationChange}
           />
 
           {/*
@@ -1252,10 +1261,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
           <div id="user-chart">
             <strong>
               Tasks per Social Worker &nbsp;&nbsp;&nbsp;
-              <Checkbox
-                label="Hide"
-                onChange={(e, data) => this.setState({ hideSocialWorkers: data.checked })}
-              />
+              <Checkbox label="Hide" onChange={this.handleHideSocialWorkersChange} />
             </strong>
             <div className="clear" />
           </div>

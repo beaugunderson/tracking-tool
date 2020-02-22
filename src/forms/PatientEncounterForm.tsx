@@ -491,6 +491,9 @@ class UnwrappedPatientEncounterForm extends React.Component<
     );
   };
 
+  handleDateOfBirthRef = ref => (this.dateOfBirthRef = ref);
+  handlePatientRef = ref => (this.patientNameRef = ref);
+
   render() {
     const { patientOptions } = this.state;
     const {
@@ -559,7 +562,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
               value={values.patientName}
             />
           ) : (
-            <Ref innerRef={ref => (this.patientNameRef = ref)}>
+            <Ref innerRef={this.handlePatientRef}>
               <Form.Field
                 additionLabel="Add new patient "
                 allowAdditions
@@ -608,7 +611,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
             value={values.mrn}
           />
 
-          <Ref innerRef={ref => (this.dateOfBirthRef = ref)}>
+          <Ref innerRef={this.handleDateOfBirthRef}>
             <Form.Field
               control={Input}
               disabled={!values.patientName}
