@@ -12,7 +12,8 @@ import {
   FIRST_TRACKING_DATE,
   OLDEST_POSSIBLE_AGE
 } from '../constants';
-import { DIAGNOSES, DOCTORS, STAGES } from '../options';
+import { DIAGNOSES, STAGES } from '../options';
+import { DOCTORS } from '../doctors';
 import {
   EncounterClinicField,
   EncounterDateField,

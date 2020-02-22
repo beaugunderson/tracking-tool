@@ -8,7 +8,7 @@ import { INTERVENTIONS } from './patient-interventions';
 import { sample, sampleSize, times } from 'lodash';
 
 function doctors() {
-  return sampleSize(DOCTORS, Math.random() > 0.75 ? 2 : 1);
+  return sampleSize(DOCTORS, Math.random() > 0.75 ? 2 : 1).map(doctor => doctor.value);
 }
 
 function location() {

@@ -1,5 +1,4 @@
 import { mapValues } from 'lodash';
-import { DOCTORS as RAW_DOCTORS } from './doctors';
 
 export type option = {
   value: string;
@@ -48,8 +47,6 @@ export const CLINIC_OPTIONS = makeOptions(CLINICS);
 export const STAFF_CLINIC_OPTIONS = makeOptions(CLINICS.concat([TREATMENT_CENTER]).sort());
 
 export const DIAGNOSES = makeOptions(['Malignant', 'Benign/Other', 'Unknown']);
-
-export const DOCTORS = makeOptions(RAW_DOCTORS);
 
 export const ENCOUNTER_TYPES = makeOptions(['All', 'Patient', 'Community', 'Staff', 'Other']);
 
