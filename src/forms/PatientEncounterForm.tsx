@@ -361,7 +361,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
     encounter: PatientEncounter,
     patientName: string
   ) => {
-    const { setValues, values } = this.props;
+    const { setValues, validateForm, values } = this.props;
 
     // this is faster than calling setFieldValue multiple times
     setValues({
@@ -379,6 +379,11 @@ class UnwrappedPatientEncounterForm extends React.Component<
       diagnosisStage: encounter.diagnosisStage,
       transplant: !!encounter.transplant
     });
+
+    // HACK: validateForm does run automatically after setValues but for some reason it doesn't
+    // contain the newest values at that point, so this is a hack to run it again the next time
+    // through the event loop... it does result in a brief flash of red on the Patient field.
+    setTimeout(() => validateForm());
 
     this.setState({ patientNameIndex });
   };
