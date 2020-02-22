@@ -10,11 +10,11 @@ import reductio from 'reductio';
 import {
   Button,
   Checkbox,
-  Container,
+  // Container,
   Dimmer,
   Input,
   Loader,
-  Modal,
+  // Modal,
   Statistic
 } from 'semantic-ui-react';
 import {
@@ -125,7 +125,7 @@ interface ReportState {
   hideDocumentationAndCareCoordination: boolean;
   hideSocialWorkers?: boolean;
   loading?: boolean;
-  screenshotData?: string;
+  // screenshotData?: string;
   windowWidth?: number;
 }
 
@@ -1015,6 +1015,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
           </Dimmer>
         )}
 
+        {/*
         <Modal open={!!this.state.screenshotData}>
           <Modal.Header>Screenshot</Modal.Header>
 
@@ -1032,6 +1033,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
             />
           </Modal.Actions>
         </Modal>
+        */}
 
         <div className="button-row">
           <Button onClick={onComplete}>Back</Button>
