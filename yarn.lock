@@ -4867,12 +4867,6 @@ crossfilter2@^1.5.2:
   dependencies:
     "@ranfdev/deepobj" "1.0.2"
 
-"crossfilter2@https://github.com/crossfilter/crossfilter":
-  version "1.4.7"
-  resolved "https://github.com/crossfilter/crossfilter#70f55d00baa5bade12387f500bc5688f949219de"
-  dependencies:
-    lodash.result "^4.4.0"
-
 crypto-browserify@^3.11.0:
   version "3.12.0"
   resolved "https://registry.yarnpkg.com/crypto-browserify/-/crypto-browserify-3.12.0.tgz#396cf9f3137f03e4b8e532c58f698254e00f80ec"
@@ -5350,43 +5344,6 @@ d3-zoom@1:
     d3-selection "1"
     d3-transition "1"
 
-d3@^5.14.2:
-  version "5.14.2"
-  resolved "https://registry.yarnpkg.com/d3/-/d3-5.14.2.tgz#a3fb3af016d362aaf4dacbe618ae949c1744b8c4"
-  integrity sha512-Ccipa9XrYW5N0QkP6u0Qb8kU6WekIXBiDenmZm1zLvuq/9pBBhRCJLCICEOsH5Og4B0Xw02bhqGkK5VN/oPH0w==
-  dependencies:
-    d3-array "1"
-    d3-axis "1"
-    d3-brush "1"
-    d3-chord "1"
-    d3-collection "1"
-    d3-color "1"
-    d3-contour "1"
-    d3-dispatch "1"
-    d3-drag "1"
-    d3-dsv "1"
-    d3-ease "1"
-    d3-fetch "1"
-    d3-force "1"
-    d3-format "1"
-    d3-geo "1"
-    d3-hierarchy "1"
-    d3-interpolate "1"
-    d3-path "1"
-    d3-polygon "1"
-    d3-quadtree "1"
-    d3-random "1"
-    d3-scale "2"
-    d3-scale-chromatic "1"
-    d3-selection "1"
-    d3-shape "1"
-    d3-time "1"
-    d3-time-format "2"
-    d3-timer "1"
-    d3-transition "1"
-    d3-voronoi "1"
-    d3-zoom "1"
-
 d3@^5.15.0:
   version "5.15.0"
   resolved "https://registry.yarnpkg.com/d3/-/d3-5.15.0.tgz#ffd44958e6a3cb8a59a84429c45429b8bca5677a"
@@ -5463,13 +5420,12 @@ date-now@^0.1.4:
   resolved "https://registry.yarnpkg.com/date-now/-/date-now-0.1.4.tgz#eaf439fd4d4848ad74e5cc7dbef200672b9e345b"
   integrity sha1-6vQ5/U1ISK105cx9vvIAZyueNFs=
 
-dc@^3.1.9:
-  version "3.1.9"
-  resolved "https://registry.yarnpkg.com/dc/-/dc-3.1.9.tgz#54e80b2ea2d60723a4c141973714eb0a740f30a7"
-  integrity sha512-WhUYObdGeAWMIssjaKzc3LBMyAjCPrOVutCx31/zptnDa2KaVMj4Q+2H7hs64f5EoQ/A/v82hiJKbXMWEA9hiA==
+dc@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/dc/-/dc-4.0.0.tgz#06bbc50570cbf2b5943557f844579f26c9132248"
+  integrity sha512-oZ1L0UY7+VOzc0YV9in5OAi6rOYJjdszuQ2skuzNhb+c0NXjqA6mnbmM6WJEiULg71hjLBFI4tNZc7hSTSVU8w==
   dependencies:
-    d3 "^5.14.2"
-    url-search-params-polyfill "^7.0.1"
+    d3 "^5.15.0"
 
 debounce-fn@^3.0.1:
   version "3.0.1"
@@ -9679,11 +9635,6 @@ lodash.memoize@^4.1.2:
   version "4.1.2"
   resolved "https://registry.yarnpkg.com/lodash.memoize/-/lodash.memoize-4.1.2.tgz#bcc6c49a42a2840ed997f323eada5ecd182e0bfe"
   integrity sha1-vMbEmkKihA7Zl/Mj6tpezRguC/4=
-
-lodash.result@^4.4.0:
-  version "4.5.2"
-  resolved "https://registry.yarnpkg.com/lodash.result/-/lodash.result-4.5.2.tgz#cb45b27fb914eaa8d8ee6f0ce7b2870b87cb70aa"
-  integrity sha1-y0Wyf7kU6qjY7m8M57KHC4fLcKo=
 
 lodash.set@^4.3.2:
   version "4.3.2"
@@ -15012,11 +14963,6 @@ url-regex@^3.0.0:
   integrity sha1-260eDJ4p4QXdCx8J9oYvf9tIJyQ=
   dependencies:
     ip-regex "^1.0.1"
-
-url-search-params-polyfill@^7.0.1:
-  version "7.0.1"
-  resolved "https://registry.yarnpkg.com/url-search-params-polyfill/-/url-search-params-polyfill-7.0.1.tgz#b900cd9a0d9d2ff757d500135256f2344879cbff"
-  integrity sha512-bAw7L2E+jn9XHG5P9zrPnHdO0yJub4U+yXJOdpcpkr7OBd9T8oll4lUos0iSGRcDvfZoLUKfx9a6aNmIhJ4+mQ==
 
 url@^0.11.0:
   version "0.11.0"

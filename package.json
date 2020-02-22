@@ -53,9 +53,9 @@
   "dependencies": {
     "async": "^3.1.1",
     "camelcase": "^5.3.1",
-    "crossfilter2": "https://github.com/crossfilter/crossfilter",
+    "crossfilter2": "^1.5.2",
     "d3": "^5.15.0",
-    "dc": "^3.1.9",
+    "dc": "^4.0.0",
     "debug": "^4.1.1",
     "double-metaphone": "^1.0.5",
     "electron-context-menu": "^0.16.0",
