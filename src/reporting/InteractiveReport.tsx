@@ -49,11 +49,7 @@ const log = window.require('electron-log');
 
 // const { remote, screen } = window.require('electron');
 
-// TODO: You are using d3.schemeCategory20c, which has been removed in D3v5.
-// See the explanation at https://github.com/d3/d3/blob/master/CHANGES.md#changes-in-d3-50.
-// DC is using it for backward compatibility, however it will be changed in DCv3.1.
-// You can change it by calling dc.config.defaultColors(newScheme).
-// See https://github.com/d3/d3-scale-chromatic for some alternatives.
+dc.config.defaultColors(d3.schemeCategory10 as string[]);
 
 const DEFAULT_MARGINS = { top: 10, right: 50, bottom: 30, left: 30 };
 
@@ -173,6 +169,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       );
 
       if (firstEncounter && lastEncounter) {
+        // eslint-disable-next-line react/no-did-update-set-state
         this.setState({
           dateFrom: firstEncounter.parsedEncounterDate.format('YYYY-MM-DD'),
           dateTo: lastEncounter.parsedEncounterDate.format('YYYY-MM-DD')
