@@ -192,6 +192,7 @@ type PatientEncounterFormProps = {
 type PatientEncounterFormState = {
   activeInfoButton: string | null;
   patientNameIndex: string;
+  loadingSearchOptions: boolean;
   patientOptions: {
     content: any;
     encounter: {} | null;
@@ -210,6 +211,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
   state: PatientEncounterFormState = {
     activeInfoButton: null,
     patientNameIndex: '',
+    loadingSearchOptions: false,
     patientOptions: []
   };
 
@@ -237,14 +239,15 @@ class UnwrappedPatientEncounterForm extends React.Component<
   };
 
   setSearchEncounterList = (searchQuery: string) => {
+    this.setState({ loadingSearchOptions: true });
+
     this.props.encounters
-      .find({ encounterType: 'patient', patientName: new RegExp(escapeRegExp(searchQuery), 'i') })
+      .find({
+        encounterType: 'patient',
+        patientName: new RegExp(escapeRegExp(searchQuery), 'i')
+      })
       .sort({ patientName: 1 })
       .exec((err, docs: PatientEncounter[]) => {
-        // for (const doc of docs) {
-        //   debug('%s %s %s %s', doc.patientName, doc.encounterDate, doc.clinic, doc.location);
-        // }
-
         // get the most recent encounter for each patient matching the query,
         // sorted by patient name
         const patientOptions = chain(docs)
@@ -255,17 +258,10 @@ class UnwrappedPatientEncounterForm extends React.Component<
           .map(docToOption)
           .value();
 
-        // for (const patientOption of patientOptions) {
-        //   debug(
-        //     '%s %s %s %s',
-        //     patientOption['data-encounter'].patientName,
-        //     patientOption['data-encounter'].encounterDate,
-        //     patientOption['data-encounter'].clinic,
-        //     patientOption['data-encounter'].location
-        //   );
-        // }
-
-        this.setState({ patientOptions: indexValues(patientOptions) });
+        this.setState({
+          loadingSearchOptions: false,
+          patientOptions: indexValues(patientOptions)
+        });
       });
   };
 
@@ -495,7 +491,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
   handlePatientRef = ref => (this.patientNameRef = ref);
 
   render() {
-    const { patientOptions } = this.state;
+    const { loadingSearchOptions, patientOptions } = this.state;
     const {
       dirty,
       encounter,
@@ -570,6 +566,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
                 error={!!(touched.patientName && errors.patientName)}
                 id="input-patient-name"
                 label="Patient Name"
+                loading={loadingSearchOptions}
                 name="patientName"
                 noResultsMessage="Last, First Middle"
                 onAddItem={this.handlePatientAddition}
