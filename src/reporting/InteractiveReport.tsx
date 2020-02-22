@@ -464,7 +464,16 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     // #endregion
 
     // #region day of week
-    const dayOfWeekDimension = ndx.dimension(d => d.parsedEncounterDate.isoWeekday());
+    const dayOfWeekDimension = ndx.dimension(d => {
+      const weekday = d.parsedEncounterDate.isoWeekday();
+
+      // exclude weekend days
+      if (weekday > 5) {
+        return EXCLUDE_NUMBER_VALUE;
+      }
+
+      return weekday;
+    });
     const dayOfWeekGroup = dayOfWeekDimension.group().reduceSum(d => d.parsedNumberOfTasks);
 
     dayOfWeekChart
