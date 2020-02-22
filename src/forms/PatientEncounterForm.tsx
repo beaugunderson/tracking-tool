@@ -181,7 +181,7 @@ const TRANSPLANT_LABEL = (
   </label>
 );
 
-function indexValues(values: any) {
+function indexValues<T extends any[]>(values: T) {
   return values.map((value: any, i: number) => ({ ...value, value: `${i}` }));
 }
 
