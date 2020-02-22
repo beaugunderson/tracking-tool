@@ -4,7 +4,7 @@ import Debug from 'debug';
 import moment from 'moment';
 import React from 'react';
 import { ageYears, parseDate } from '../reporting/data';
-import { chain, deburr, escapeRegExp, isEmpty, isNaN } from 'lodash';
+import { chain, escapeRegExp, isEmpty, isNaN } from 'lodash';
 import { Checkbox, Divider, Dropdown, Form, Grid, Header, Input, Ref } from 'semantic-ui-react';
 import {
   DATE_FORMAT_DATABASE,
@@ -396,12 +396,8 @@ class UnwrappedPatientEncounterForm extends React.Component<
     this.updatePatientIndexAndValue(selectedOption.value, encounter, patientName);
   };
 
-  handlePatientNameSearch = (options: any, searchQuery: string) => {
-    const strippedQuery = deburr(searchQuery);
-    const re = new RegExp(escapeRegExp(strippedQuery), 'i');
-
-    return options.filter((option: any) => re.test(deburr(option['data-patient-name'])));
-  };
+  // HACK: without creating a new options array here we end up with duplicate additionLabels
+  handlePatientNameSearch = (options: any[]) => [...options];
 
   handlePatientSearchChange = (e: any, { searchQuery }: { searchQuery: string }) => {
     if (searchQuery) {
@@ -625,7 +621,6 @@ class UnwrappedPatientEncounterForm extends React.Component<
 
         <Form.Field
           control={Dropdown}
-          deburr
           disabled={!values.patientName}
           error={!!(touched.md && errors.md)}
           id="input-md"
@@ -736,7 +731,6 @@ class UnwrappedPatientEncounterForm extends React.Component<
 
         <Form.Field
           control={Dropdown}
-          deburr
           fluid
           onChange={this.handleInterventionChange}
           openOnFocus={false}
