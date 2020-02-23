@@ -467,6 +467,10 @@ const MENTAL_HEALTH = {
   ])
 };
 
+export const MENTAL_HEALTH_INTERVENTION_NAMES = MENTAL_HEALTH.interventions.map(
+  intervention => intervention.name
+);
+
 export const MENTAL_HEALTH_FIELD_NAMES = MENTAL_HEALTH.interventions.map(
   intervention => intervention.fieldName
 );

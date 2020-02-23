@@ -39,9 +39,11 @@ import {
   maxBy,
   minBy,
   sum,
+  sumBy,
   values,
   zipObject
 } from 'lodash';
+import { MENTAL_HEALTH_INTERVENTION_NAMES } from '../patient-interventions';
 import { OTHER_ENCOUNTER_OPTIONS } from '../forms/OtherEncounterForm';
 import { usernameToName } from '../usernames';
 
@@ -230,6 +232,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     const doctorChart = dc.rowChart('#doctor-chart');
     const encounterTypeChart = dc.rowChart('#encounter-type-chart');
     const gadChart = dc.rowChart('#gad-chart');
+    const interventionTechniquesChart = dc.rowChart('#intervention-techniques-chart');
     const interventionChart = dc.rowChart('#intervention-chart');
     const limitedEnglishProficiencyChart = dc.rowChart('#limited-english-proficiency-chart');
     const locationChart = dc.rowChart('#location-chart');
@@ -318,7 +321,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     ) {
       const number = dc.numberDisplay(selector);
       number
-        .formatNumber(d3.format('.1~f'))
+        .formatNumber(d3.format(',.1~f'))
         .group(group)
         .transitionDuration(0)
         .valueAccessor(accessor);
@@ -438,6 +441,17 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
 
         return mrns.size;
       }
+    );
+
+    renderNumber(
+      '#total-intervention-techniques',
+      ndx
+        .groupAll()
+        .reduceSum(d =>
+          sumBy(d.interventions, intervention =>
+            MENTAL_HEALTH_INTERVENTION_NAMES.includes(intervention) ? 1 : 0
+          )
+        )
     );
 
     log.debug('end renderNumber() calls');
@@ -957,23 +971,54 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     doctorChart.render();
     // #endregion
 
+    // #region by intervention techniques
+    const interventionTechniquesDimension = ndx.dimension(
+      d =>
+        d.interventions.map(intervention =>
+          MENTAL_HEALTH_INTERVENTION_NAMES.includes(intervention)
+            ? intervention
+            : EXCLUDE_STRING_VALUE
+        ),
+      true
+    );
+    const interventionTechniquesGroup = interventionTechniquesDimension.group();
+
+    interventionTechniquesChart
+      .width(paddedWidth / 2)
+      .height(300)
+      .elasticX(true)
+      .ordinalColors(colors)
+      .dimension(interventionTechniquesDimension)
+      .group(removeExcludedData(interventionTechniquesGroup))
+      .renderTitleLabel(true)
+      .titleLabelOffsetX(paddedWidth / 2 - TITLE_PADDING)
+      .title(d => d.value)
+      .margins(HORIZONTAL_CHART_MARGINS);
+
+    interventionTechniquesChart.render();
+    // #endregion
+
     // #region by intervention
     const HIDDEN_INTERVENTIONS = ['Documentation', 'Care Coordination'];
 
     const interventionDimension = ndx.dimension(d => {
+      const interventions = d.interventions.map(intervention =>
+        MENTAL_HEALTH_INTERVENTION_NAMES.includes(intervention)
+          ? 'Intervention techniques'
+          : intervention
+      );
+
       if (hideDocumentationAndCareCoordination) {
-        return d.interventions.filter(
-          intervention => !HIDDEN_INTERVENTIONS.includes(intervention)
-        );
+        return interventions.filter(intervention => !HIDDEN_INTERVENTIONS.includes(intervention));
       }
 
-      return d.interventions;
+      return interventions;
     }, true);
     const interventionGroup = interventionDimension.group();
 
     interventionChart
       .width(paddedWidth / 2)
-      .height(1800)
+      .height(1477)
       .elasticX(true)
       .ordinalColors(colors)
       .dimension(interventionDimension)
@@ -1340,6 +1385,13 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
 
         <div id="intervention-chart">
           <strong>Intervention (entries)</strong>
+          <div className="clear" />
+        </div>
+
+        <div id="intervention-techniques-chart">
+          <strong>
+            Intervention techniques (entries): <span id="total-intervention-techniques" />
+          </strong>
           <div className="clear" />
         </div>
       </div>
