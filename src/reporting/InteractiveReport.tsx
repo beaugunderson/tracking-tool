@@ -995,6 +995,8 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .title(d => d.value)
       .margins(HORIZONTAL_CHART_MARGINS);
 
+    interventionTechniquesChart.onClick = () => {};
+
     interventionTechniquesChart.render();
     // #endregion
 
