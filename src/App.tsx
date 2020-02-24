@@ -1,4 +1,4 @@
-import './App.css';
+import './App.scss';
 
 import moment from 'moment';
 import React from 'react';
