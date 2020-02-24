@@ -129,6 +129,6 @@
     "wait-on": "^4.0.0"
   },
   "browserslist": [
-    "Electron 6.0"
+    "Electron 8.0"
   ]
 }
