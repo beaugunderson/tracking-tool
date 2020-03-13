@@ -278,7 +278,7 @@ export class App extends React.Component<{}, AppState> {
         <InteractiveReport
           audience={canSeeReporting() ? ReportAudience.ADMINISTRATOR : ReportAudience.INDIVIDUAL}
           onComplete={() => this.setState({ reporting: false })}
-          username={username.sync()}
+          username={username.sync().toLowerCase()}
         />
       );
     }
