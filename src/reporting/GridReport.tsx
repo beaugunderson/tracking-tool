@@ -4,9 +4,11 @@ import React from 'react';
 import { Button, Checkbox, CheckboxProps, Table } from 'semantic-ui-react';
 import { extendMoment } from 'moment-range';
 import { INTERNS } from '../usernames';
-// import { maxBy, minBy } from 'lodash';
 import { MONTHLY_REPORT_OPTIONS, ROW_TYPE } from '../options';
+import { PageLoader } from '../components/PageLoader';
 import { transform, TransformedEncounter } from './data';
+
+// import { maxBy, minBy } from 'lodash';
 
 const log = window.require('electron-log');
 
@@ -20,21 +22,17 @@ function formatCount(count: number) {
   return count;
 }
 
-interface GridReportProps {
-  onComplete: (err?: Error) => void;
-}
+interface GridReportProps {}
 
 interface GridReportState {
   encounters: TransformedEncounter[] | null;
-  loading: boolean;
   filterDocumentationTasks?: boolean;
 }
 
 export class GridReport extends React.Component<GridReportProps, GridReportState> {
   state: GridReportState = {
     encounters: null,
-    loading: true,
-    filterDocumentationTasks: false
+    filterDocumentationTasks: false,
   };
 
   changeIncludeDocumentation: (
@@ -42,22 +40,18 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
     data: CheckboxProps
   ) => void = (event, data) => {
     this.setState({
-      filterDocumentationTasks: data.checked
+      filterDocumentationTasks: data.checked,
     });
   };
 
   async componentDidMount() {
     log.debug('GridReport componentDidMount');
 
-    try {
-      const encounters = await transform();
+    const encounters = await transform();
 
-      log.debug(`GridReport componentDidMount: loaded ${encounters.length} encounters`);
-      this.setState({ encounters, loading: false });
-    } catch (e) {
-      log.debug(`GridReport componentDidMount: error "${e}"`);
-      this.props.onComplete(e);
-    }
+    log.debug(`GridReport componentDidMount: loaded ${encounters.length} encounters`);
+
+    this.setState({ encounters });
   }
 
   rowsForPermutation(
@@ -148,15 +142,14 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
   }
 
   render() {
-    const { encounters, loading } = this.state;
+    const { encounters } = this.state;
 
-    if (loading) {
-      return <h1>Loading encounters...</h1>;
+    if (!encounters) {
+      return <PageLoader />;
     }
 
     const header = (
       <div>
-        <Button onClick={() => this.props.onComplete()}>Back</Button>
         <Button onClick={() => window.print()}>Print</Button>
         &nbsp;&nbsp;&nbsp;
         <Checkbox label="Remove documentation tasks" onChange={this.changeIncludeDocumentation} />
@@ -200,7 +193,7 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
               <Table.HeaderCell>Location</Table.HeaderCell>
               <Table.HeaderCell>Clinic</Table.HeaderCell>
               <Table.HeaderCell>Staff</Table.HeaderCell>
-              {months.map(month => (
+              {months.map((month) => (
                 <Table.HeaderCell key={`${month.format('YYYY-MM')}`} textAlign="right">
                   {month.format('YYYY-MM')}
                 </Table.HeaderCell>

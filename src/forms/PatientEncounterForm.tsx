@@ -10,7 +10,7 @@ import {
   DATE_FORMAT_DATABASE,
   DATE_FORMAT_DISPLAY,
   FIRST_TRACKING_DATE,
-  OLDEST_POSSIBLE_AGE
+  OLDEST_POSSIBLE_AGE,
 } from '../constants';
 import { DIAGNOSES, STAGES } from '../options';
 import { DOCTORS } from '../doctors';
@@ -21,7 +21,7 @@ import {
   EncounterNumberOfTasksField,
   EncounterTimeSpentField,
   SubmitButtons,
-  today
+  today,
 } from '../shared-fields';
 import { EncounterFormProps, Intervention } from '../types';
 import { FormikErrors, FormikProps, withFormik } from 'formik';
@@ -31,7 +31,7 @@ import {
   initialInterventionValues,
   InitialInterventionValues,
   interventionGroups,
-  interventionOptions
+  interventionOptions,
 } from '../patient-interventions';
 
 const debug = Debug('tracking-tool:patient-encounter-form');
@@ -76,7 +76,7 @@ export const INITIAL_VALUES = (): PatientEncounter => ({
   timeSpent: '',
   transplant: false,
 
-  ...initialInterventionValues
+  ...initialInterventionValues,
 });
 
 const NUMERIC_FIELDS = ['numberOfTasks', 'timeSpent'];
@@ -88,17 +88,13 @@ const REQUIRED_FIELDS = [
   'encounterDate',
   'location',
   'md',
-  'patientName'
+  'patientName',
 ];
 
 const SCORED_FIELDS = ['phq', 'gad', 'moca'];
 
 const docToOption = (doc: PatientEncounter) => {
-  const _today = moment()
-    .hour(0)
-    .minute(0)
-    .second(0)
-    .millisecond(0);
+  const _today = moment().hour(0).minute(0).second(0).millisecond(0);
 
   let relativeTime = moment(doc.encounterDate).from(_today);
 
@@ -136,7 +132,7 @@ const docToOption = (doc: PatientEncounter) => {
       <>
         {doc.patientName} <input type="hidden" value={doc.dateOfBirth} />
       </>
-    )
+    ),
 
     // note: the value is handled by indexValues and becomes the array index of the option
   };
@@ -213,7 +209,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
     activeInfoButton: null,
     patientNameIndex: '',
     loadingSearchOptions: false,
-    patientOptions: []
+    patientOptions: [],
   };
 
   setInitialEncounterList = () => {
@@ -227,10 +223,10 @@ class UnwrappedPatientEncounterForm extends React.Component<
             content: encounter.patientName,
             encounter: null,
             text: encounter.patientName,
-            value: '0'
-          }
+            value: '0',
+          },
         ],
-        patientNameIndex: '0'
+        patientNameIndex: '0',
       });
     }
 
@@ -245,7 +241,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
     this.props.encounters
       .find({
         encounterType: 'patient',
-        patientName: new RegExp(escapeRegExp(searchQuery), 'i')
+        patientName: new RegExp(escapeRegExp(searchQuery), 'i'),
       })
       .sort({ patientName: 1 })
       .exec((err, docs: PatientEncounter[]) => {
@@ -261,7 +257,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
 
         this.setState({
           loadingSearchOptions: false,
-          patientOptions: indexValues(patientOptions)
+          patientOptions: indexValues(patientOptions),
         });
       });
   };
@@ -340,16 +336,16 @@ class UnwrappedPatientEncounterForm extends React.Component<
 
   handlePatientAddition = (e: any, { value }: any) => {
     this.setState(
-      state => ({
+      (state) => ({
         patientOptions: indexValues([
           {
             content: value,
             'data-encounter': null,
             'data-patient-name': value,
-            text: value
+            text: value,
           },
-          ...state.patientOptions
-        ])
+          ...state.patientOptions,
+        ]),
       }),
       () => {
         this.updatePatientIndexAndValue('0', INITIAL_VALUES(), value);
@@ -378,7 +374,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
       diagnosisType: encounter.diagnosisType,
       diagnosisFreeText: encounter.diagnosisFreeText,
       diagnosisStage: encounter.diagnosisStage,
-      transplant: !!encounter.transplant
+      transplant: !!encounter.transplant,
     });
 
     // HACK: validateForm does run automatically after setValues but for some reason it doesn't
@@ -430,7 +426,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
   handleInterventionOnMouseLeave = (e: any) => {
     e.persist();
 
-    this.setState(state => {
+    this.setState((state) => {
       if (state.activeInfoButton === e.target.parentElement.firstChild.name) {
         return { activeInfoButton: null } as PatientEncounterFormState;
       }
@@ -489,8 +485,8 @@ class UnwrappedPatientEncounterForm extends React.Component<
     );
   };
 
-  handleDateOfBirthRef = ref => (this.dateOfBirthRef = ref);
-  handlePatientRef = ref => (this.patientNameRef = ref);
+  handleDateOfBirthRef = (ref) => (this.dateOfBirthRef = ref);
+  handlePatientRef = (ref) => (this.patientNameRef = ref);
 
   render() {
     const { loadingSearchOptions, patientOptions } = this.state;
@@ -502,7 +498,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
       onCancel,
       submitForm,
       touched,
-      values
+      values,
     } = this.props;
 
     const columns = interventionGroups.map((column, i) => {
@@ -513,7 +509,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
               <Form.Group grouped key={`${i}-${j}`}>
                 <label>{group.label}</label>
 
-                {group.interventions.map(intervention => {
+                {group.interventions.map((intervention) => {
                   return intervention.scored
                     ? this.renderScoredField(intervention)
                     : this.renderField(intervention);
@@ -793,19 +789,19 @@ const RE_NUMERIC = /^\d+$/;
 const isNumeric = (string: string) => RE_NUMERIC.test(string);
 
 export const PatientEncounterForm = withFormik<PatientEncounterFormProps, PatientEncounter>({
-  mapPropsToValues: props => {
+  mapPropsToValues: (props) => {
     if (props.encounter) {
       return {
         ...props.encounter,
 
-        dateOfBirth: parseDate(props.encounter.dateOfBirth).format(DATE_FORMAT_DISPLAY)
+        dateOfBirth: parseDate(props.encounter.dateOfBirth).format(DATE_FORMAT_DISPLAY),
       };
     }
 
     return INITIAL_VALUES();
   },
 
-  validate: values => {
+  validate: (values) => {
     const errors: FormikErrors<PatientEncounter> = {};
 
     if (values.diagnosisType === 'Malignant') {
@@ -818,7 +814,7 @@ export const PatientEncounterForm = withFormik<PatientEncounterFormProps, Patien
       }
     }
 
-    SCORED_FIELDS.forEach(field => {
+    SCORED_FIELDS.forEach((field) => {
       const scoredFieldName = `${field}Score`;
 
       if (
@@ -839,13 +835,13 @@ export const PatientEncounterForm = withFormik<PatientEncounterFormProps, Patien
         'Providence MRN is required and must start with 600 followed by 8 digits';
     }
 
-    NUMERIC_FIELDS.forEach(field => {
+    NUMERIC_FIELDS.forEach((field) => {
       if (!isNumeric(values[field])) {
         errors[field] = 'Must be a valid number';
       }
     });
 
-    REQUIRED_FIELDS.forEach(field => {
+    REQUIRED_FIELDS.forEach((field) => {
       if (isEmpty(values[field])) {
         errors[field] = 'This field is required';
       }
@@ -906,13 +902,13 @@ export const PatientEncounterForm = withFormik<PatientEncounterFormProps, Patien
         ...values,
 
         dateOfBirth: parseDate(values.dateOfBirth).format(DATE_FORMAT_DATABASE),
-        patientName: values.patientName.trim()
+        patientName: values.patientName.trim(),
       },
 
-      err => {
+      (err) => {
         setSubmitting(false);
         onComplete(err);
       }
     );
-  }
+  },
 })(UnwrappedPatientEncounterForm);

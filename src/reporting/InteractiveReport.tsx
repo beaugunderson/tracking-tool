@@ -11,11 +11,9 @@ import {
   Button,
   Checkbox,
   // Container,
-  Dimmer,
   Input,
-  Loader,
   // Modal,
-  Statistic
+  Statistic,
 } from 'semantic-ui-react';
 import {
   EXCLUDE_NUMBER_VALUE,
@@ -28,7 +26,7 @@ import {
   SCORE_NORMAL,
   SCORE_SEVERE,
   transform,
-  TransformedEncounter
+  TransformedEncounter,
 } from './data';
 import {
   isBoolean,
@@ -41,10 +39,11 @@ import {
   sum,
   sumBy,
   values,
-  zipObject
+  zipObject,
 } from 'lodash';
 import { MENTAL_HEALTH_INTERVENTION_NAMES } from '../patient-interventions';
 import { OTHER_ENCOUNTER_OPTIONS } from '../forms/OtherEncounterForm';
+import { PageLoader } from '../components/PageLoader';
 import { usernameToName } from '../usernames';
 
 const log = window.require('electron-log');
@@ -71,13 +70,13 @@ const GAD_PHQ_ORDERING = {
   [SCORE_MODERATELY_SEVERE]: 1,
   [SCORE_MODERATE]: 2,
   [SCORE_MILD_MINIMAL_OR_NONE]: 3,
-  [SCORE_DECLINED]: 4
+  [SCORE_DECLINED]: 4,
 };
 
 const MOCA_ORDERING = {
   [SCORE_MAY_INDICATE_COGNITIVE_IMPAIRMENT]: 0,
   [SCORE_NORMAL]: 1,
-  [SCORE_DECLINED]: 2
+  [SCORE_DECLINED]: 2,
 };
 
 // function sleep(ms) {
@@ -102,8 +101,8 @@ function removeExcludedData(group) {
     all() {
       return group
         .all()
-        .filter(d => d.key !== EXCLUDE_STRING_VALUE && d.key !== EXCLUDE_NUMBER_VALUE);
-    }
+        .filter((d) => d.key !== EXCLUDE_STRING_VALUE && d.key !== EXCLUDE_NUMBER_VALUE);
+    },
   };
 }
 
@@ -113,12 +112,11 @@ const uniqueMrn = reductio()
 
 export enum ReportAudience {
   INDIVIDUAL = 0,
-  ADMINISTRATOR = 1
+  ADMINISTRATOR = 1,
 }
 
 interface ReportProps {
   audience: ReportAudience;
-  onComplete: () => void;
   username: string;
 }
 
@@ -130,7 +128,6 @@ interface ReportState {
   forceIndividualView: boolean;
   hideDocumentationAndCareCoordination: boolean;
   hideSocialWorkers?: boolean;
-  loading?: boolean;
   // screenshotData?: string;
   windowWidth?: number;
 }
@@ -141,7 +138,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     dateTo: '',
     filterDocumentationTasks: false,
     forceIndividualView: false,
-    hideDocumentationAndCareCoordination: false
+    hideDocumentationAndCareCoordination: false,
   };
 
   resize = () => this.setState({ windowWidth: window.innerWidth });
@@ -171,11 +168,11 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       !this.state.dateFrom &&
       !this.state.dateTo
     ) {
-      const firstEncounter = minBy(this.state.encounters, encounter =>
+      const firstEncounter = minBy(this.state.encounters, (encounter) =>
         encounter.parsedEncounterDate.valueOf()
       );
 
-      const lastEncounter = maxBy(this.state.encounters, encounter =>
+      const lastEncounter = maxBy(this.state.encounters, (encounter) =>
         encounter.parsedEncounterDate.valueOf()
       );
 
@@ -183,7 +180,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState({
           dateFrom: firstEncounter.parsedEncounterDate.format('YYYY-MM-DD'),
-          dateTo: lastEncounter.parsedEncounterDate.format('YYYY-MM-DD')
+          dateTo: lastEncounter.parsedEncounterDate.format('YYYY-MM-DD'),
         });
       }
     }
@@ -215,7 +212,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       filterDocumentationTasks,
       forceIndividualView,
       hideDocumentationAndCareCoordination,
-      windowWidth
+      windowWidth,
     } = this.state;
 
     if (!encounters) {
@@ -257,22 +254,22 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     let filteredEncounters = encounters;
 
     if (dateFrom && dateTo) {
-      filteredEncounters = encounters.filter(encounter =>
+      filteredEncounters = encounters.filter((encounter) =>
         encounter.parsedEncounterDate.isBetween(dateFrom, dateTo, null, '[]')
       );
     }
 
     if (filterDocumentationTasks) {
-      filteredEncounters = filteredEncounters.map(encounter => {
+      filteredEncounters = filteredEncounters.map((encounter) => {
         const interventions = encounter.interventions.filter(
-          intervention => intervention !== 'Documentation'
+          (intervention) => intervention !== 'Documentation'
         );
 
         return {
           ...encounter,
           interventions,
           numberOfInterventions: interventions.length,
-          parsedNumberOfTasks: encounter.parsedNumberOfTasksMinusDocumentation
+          parsedNumberOfTasks: encounter.parsedNumberOfTasksMinusDocumentation,
         };
       });
     }
@@ -317,7 +314,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     function renderNumber(
       selector: string,
       group: crossfilter.GroupAll<TransformedEncounter, {}>,
-      accessor: (d: any) => number | string = d => d
+      accessor: (d: any) => number | string = (d) => d
     ) {
       const number = dc.numberDisplay(selector);
       number
@@ -330,7 +327,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
 
     renderNumber(
       '#total-tasks',
-      ndx.groupAll().reduceSum(d => d.parsedNumberOfTasks)
+      ndx.groupAll().reduceSum((d) => d.parsedNumberOfTasks)
     );
 
     renderNumber(
@@ -340,7 +337,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
         let minuteCount = 0;
         let entryCount = 0;
 
-        entries.forEach(entry => {
+        entries.forEach((entry) => {
           if (entry.providenceOrSwedishMrn === EXCLUDE_STRING_VALUE) {
             return;
           }
@@ -362,7 +359,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
         let taskCount = 0;
         let entryCount = 0;
 
-        entries.forEach(entry => {
+        entries.forEach((entry) => {
           if (entry.providenceOrSwedishMrn === EXCLUDE_STRING_VALUE) {
             return;
           }
@@ -383,7 +380,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       (entries: TransformedEncounter[]) => {
         const byMrn = {};
 
-        entries.forEach(entry => {
+        entries.forEach((entry) => {
           if (entry.providenceOrSwedishMrn === EXCLUDE_STRING_VALUE) {
             return;
           }
@@ -407,7 +404,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       (entries: TransformedEncounter[]) => {
         const byMrn = {};
 
-        entries.forEach(entry => {
+        entries.forEach((entry) => {
           if (entry.providenceOrSwedishMrn === EXCLUDE_STRING_VALUE) {
             return;
           }
@@ -431,7 +428,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       (entries: TransformedEncounter[]) => {
         const mrns = new Set();
 
-        entries.forEach(entry => {
+        entries.forEach((entry) => {
           if (entry.providenceOrSwedishMrn === EXCLUDE_STRING_VALUE) {
             return;
           }
@@ -447,8 +444,8 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       '#total-intervention-techniques',
       ndx
         .groupAll()
-        .reduceSum(d =>
-          sumBy(d.interventions, intervention =>
+        .reduceSum((d) =>
+          sumBy(d.interventions, (intervention) =>
             MENTAL_HEALTH_INTERVENTION_NAMES.includes(intervention) ? 1 : 0
           )
         )
@@ -458,10 +455,10 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     // #endregion
 
     // #region encounters by day
-    const encounterDateDimension = ndx.dimension(d => d.parsedEncounterDate.format('YYYY-MM'));
+    const encounterDateDimension = ndx.dimension((d) => d.parsedEncounterDate.format('YYYY-MM'));
     const encounterDateGroup = encounterDateDimension
       .group()
-      .reduceSum(d => d.parsedNumberOfTasks);
+      .reduceSum((d) => d.parsedNumberOfTasks);
 
     encountersByDateChart
       .width(windowWidth)
@@ -479,7 +476,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .group(encounterDateGroup)
       .margins(VERTICAL_CHART_MARGINS);
 
-    encountersByDateChart.xAxis().tickFormat(d => {
+    encountersByDateChart.xAxis().tickFormat((d) => {
       const tokens = d.split('-');
       return `${tokens[1]}/${tokens[0]}`;
     });
@@ -491,7 +488,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     // #endregion
 
     // #region day of week
-    const dayOfWeekDimension = ndx.dimension(d => {
+    const dayOfWeekDimension = ndx.dimension((d) => {
       const weekday = d.parsedEncounterDate.isoWeekday();
 
       // exclude weekend days
@@ -501,7 +498,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
 
       return weekday;
     });
-    const dayOfWeekGroup = dayOfWeekDimension.group().reduceSum(d => d.parsedNumberOfTasks);
+    const dayOfWeekGroup = dayOfWeekDimension.group().reduceSum((d) => d.parsedNumberOfTasks);
 
     dayOfWeekChart
       .width(paddedWidth / 3)
@@ -522,14 +519,14 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     dayOfWeekChart
       .xAxis()
       .ticks(7)
-      .tickFormat(t => 'MTWTFSS'[t - 1]);
+      .tickFormat((t) => 'MTWTFSS'[t - 1]);
     dayOfWeekChart.yAxisMin = () => 0;
 
     dayOfWeekChart.render();
     // #endregion
 
     // #region number of interventions
-    const numberOfInterventionsDimension = ndx.dimension(d => {
+    const numberOfInterventionsDimension = ndx.dimension((d) => {
       if (d.numberOfInterventions > 10) {
         return 10;
       }
@@ -563,7 +560,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     numberOfInterventionsChart
       .xAxis()
       .ticks(7)
-      .tickFormat(d => {
+      .tickFormat((d) => {
         if (d === 10) {
           return '10+';
         }
@@ -580,7 +577,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     const timeRange = [0, 100];
     const timeBinWidth = 10;
 
-    const timeDimension = ndx.dimension(d => {
+    const timeDimension = ndx.dimension((d) => {
       let timeSpent = parseInt(d.timeSpent, 10);
 
       if (timeSpent <= timeRange[0]) {
@@ -613,7 +610,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .xUnits(dc.units.fp.precision(timeBinWidth))
       .round((d: number) => timeBinWidth * Math.floor(d / timeBinWidth));
 
-    timeChart.xAxis().tickFormat(d => {
+    timeChart.xAxis().tickFormat((d) => {
       if (d === timeRange[1]) {
         return '100+';
       }
@@ -627,7 +624,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     // #endregion
 
     // #region gad
-    const gadDimension = ndx.dimension(d => d.gadScoreLabel || EXCLUDE_STRING_VALUE);
+    const gadDimension = ndx.dimension((d) => d.gadScoreLabel || EXCLUDE_STRING_VALUE);
     const gadGroup = gadDimension.group().reduceCount();
 
     gadChart
@@ -639,8 +636,8 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .ordinalColors(colors)
       .renderTitleLabel(true)
       .titleLabelOffsetX(paddedWidth / 4 - TITLE_PADDING)
-      .title(d => d.value)
-      .ordering(d => GAD_PHQ_ORDERING[d.key])
+      .title((d) => d.value)
+      .ordering((d) => GAD_PHQ_ORDERING[d.key])
       .margins(HORIZONTAL_CHART_MARGINS)
       .xAxis()
       .ticks(4);
@@ -649,7 +646,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     // #endregion
 
     // #region moca
-    const mocaDimension = ndx.dimension(d => d.mocaScoreLabel || EXCLUDE_STRING_VALUE);
+    const mocaDimension = ndx.dimension((d) => d.mocaScoreLabel || EXCLUDE_STRING_VALUE);
     const mocaGroup = mocaDimension.group().reduceCount();
 
     mocaChart
@@ -661,8 +658,8 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .ordinalColors(colors)
       .renderTitleLabel(true)
       .titleLabelOffsetX(paddedWidth / 4 - TITLE_PADDING)
-      .title(d => d.value)
-      .ordering(d => MOCA_ORDERING[d.key])
+      .title((d) => d.value)
+      .ordering((d) => MOCA_ORDERING[d.key])
       .margins(HORIZONTAL_CHART_MARGINS)
       .xAxis()
       .ticks(4);
@@ -671,7 +668,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     // #endregion
 
     // #region phq
-    const phqDimension = ndx.dimension(d => d.phqScoreLabel || EXCLUDE_STRING_VALUE);
+    const phqDimension = ndx.dimension((d) => d.phqScoreLabel || EXCLUDE_STRING_VALUE);
     const phqGroup = phqDimension.group().reduceCount();
 
     phqChart
@@ -683,8 +680,8 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .elasticX(true)
       .renderTitleLabel(true)
       .titleLabelOffsetX(paddedWidth / 4 - TITLE_PADDING)
-      .title(d => d.value)
-      .ordering(d => GAD_PHQ_ORDERING[d.key])
+      .title((d) => d.value)
+      .ordering((d) => GAD_PHQ_ORDERING[d.key])
       .margins(HORIZONTAL_CHART_MARGINS)
       .xAxis()
       .ticks(4);
@@ -693,7 +690,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     // #endregion
 
     // #region by age
-    const ageDimension = ndx.dimension(d => {
+    const ageDimension = ndx.dimension((d) => {
       if (d.encounterType === 'patient') {
         return isString(d.ageBucket) ? d.ageBucket : 'Unknown';
       }
@@ -709,11 +706,11 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .dimension(ageDimension)
       .group(removeExcludedData(ageGroup))
       .ordinalColors(colors)
-      .valueAccessor(d => d.value.exceptionCount)
-      .ordering(d => -d.value.exceptionCount)
+      .valueAccessor((d) => d.value.exceptionCount)
+      .ordering((d) => -d.value.exceptionCount)
       .renderTitleLabel(true)
       .titleLabelOffsetX(paddedWidth / 4 - TITLE_PADDING)
-      .title(d => d.value.exceptionCount)
+      .title((d) => d.value.exceptionCount)
       .margins(HORIZONTAL_CHART_MARGINS)
       .xAxis()
       .ticks(4);
@@ -722,7 +719,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     // #endregion
 
     // #region by diagnosis
-    const diagnosisDimension = ndx.dimension(d => d.diagnosisType || EXCLUDE_STRING_VALUE);
+    const diagnosisDimension = ndx.dimension((d) => d.diagnosisType || EXCLUDE_STRING_VALUE);
     const diagnosisGroup = uniqueMrn(diagnosisDimension.group());
 
     diagnosisChart
@@ -732,11 +729,11 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .dimension(diagnosisDimension)
       .group(removeExcludedData(diagnosisGroup))
       .ordinalColors(colors)
-      .valueAccessor(d => d.value.exceptionCount)
-      .ordering(d => -d.value.exceptionCount)
+      .valueAccessor((d) => d.value.exceptionCount)
+      .ordering((d) => -d.value.exceptionCount)
       .renderTitleLabel(true)
       .titleLabelOffsetX(paddedWidth / 4 - TITLE_PADDING)
-      .title(d => d.value.exceptionCount)
+      .title((d) => d.value.exceptionCount)
       .margins(HORIZONTAL_CHART_MARGINS)
       .xAxis()
       .ticks(4);
@@ -745,7 +742,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     // #endregion
 
     // #region by stage
-    const stageDimension = ndx.dimension(d => {
+    const stageDimension = ndx.dimension((d) => {
       if (d.encounterType === 'patient') {
         return d.diagnosisStage || 'N/A';
       }
@@ -761,11 +758,11 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .dimension(stageDimension)
       .group(removeExcludedData(stageGroup))
       .ordinalColors(colors)
-      .valueAccessor(d => d.value.exceptionCount)
-      .ordering(d => -d.value.exceptionCount)
+      .valueAccessor((d) => d.value.exceptionCount)
+      .ordering((d) => -d.value.exceptionCount)
       .renderTitleLabel(true)
       .titleLabelOffsetX(paddedWidth / 4 - TITLE_PADDING)
-      .title(d => d.value.exceptionCount)
+      .title((d) => d.value.exceptionCount)
       .margins(HORIZONTAL_CHART_MARGINS)
       .xAxis()
       .ticks(4);
@@ -774,7 +771,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     // #endregion
 
     // #region by transplant
-    const transplantDimension = ndx.dimension(d => {
+    const transplantDimension = ndx.dimension((d) => {
       if (isBoolean(d.transplant)) {
         return d.transplant ? 'Transplant patient' : 'Non-transplant patient';
       }
@@ -790,11 +787,11 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .dimension(transplantDimension)
       .group(removeExcludedData(transplantGroup))
       .ordinalColors(colors)
-      .valueAccessor(d => d.value.exceptionCount)
-      .ordering(d => -d.value.exceptionCount)
+      .valueAccessor((d) => d.value.exceptionCount)
+      .ordering((d) => -d.value.exceptionCount)
       .renderTitleLabel(true)
       .titleLabelOffsetX(paddedWidth / 4 - TITLE_PADDING)
-      .title(d => d.value.exceptionCount)
+      .title((d) => d.value.exceptionCount)
       .margins(HORIZONTAL_CHART_MARGINS)
       .xAxis()
       .ticks(4);
@@ -803,10 +800,10 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     // #endregion
 
     // #region by encounter type
-    const encounterTypeDimension = ndx.dimension(d => d.formattedEncounterType);
+    const encounterTypeDimension = ndx.dimension((d) => d.formattedEncounterType);
     const encounterTypeGroup = encounterTypeDimension
       .group()
-      .reduceSum(d => (d.encounterType === 'other' ? 1 : d.parsedNumberOfTasks));
+      .reduceSum((d) => (d.encounterType === 'other' ? 1 : d.parsedNumberOfTasks));
 
     encounterTypeChart
       .width(paddedWidth / 4)
@@ -817,7 +814,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .ordinalColors(colors)
       .renderTitleLabel(true)
       .titleLabelOffsetX(paddedWidth / 4 - TITLE_PADDING)
-      .title(d => d.value)
+      .title((d) => d.value)
       .margins(HORIZONTAL_CHART_MARGINS)
       .xAxis()
       .ticks(4);
@@ -826,7 +823,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     // #endregion
 
     // #region by assessment tool
-    const testDimension = ndx.dimension(d => d.tests as any, true);
+    const testDimension = ndx.dimension((d) => d.tests as any, true);
     const testGroup = testDimension.group();
 
     testChart
@@ -838,14 +835,14 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .group(testGroup)
       .renderTitleLabel(true)
       .titleLabelOffsetX(paddedWidth / 4 - TITLE_PADDING)
-      .title(d => d.value)
+      .title((d) => d.value)
       .margins(HORIZONTAL_CHART_MARGINS);
 
     testChart.render();
     // #endregion
 
     // #region by limited-english proficiency
-    const limitedEnglishProficiencyDimension = ndx.dimension(d => {
+    const limitedEnglishProficiencyDimension = ndx.dimension((d) => {
       if (isBoolean(d.limitedEnglishProficiency)) {
         return d.limitedEnglishProficiency ? 'LEP' : 'Non-LEP';
       }
@@ -861,11 +858,11 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .ordinalColors(colors)
       .dimension(limitedEnglishProficiencyDimension)
       .group(removeExcludedData(limitedEnglishProficiencyGroup))
-      .valueAccessor(d => d.value.exceptionCount)
-      .ordering(d => -d.value.exceptionCount)
+      .valueAccessor((d) => d.value.exceptionCount)
+      .ordering((d) => -d.value.exceptionCount)
       .renderTitleLabel(true)
       .titleLabelOffsetX(paddedWidth / 4 - TITLE_PADDING)
-      .title(d => d.value.exceptionCount)
+      .title((d) => d.value.exceptionCount)
       .margins(HORIZONTAL_CHART_MARGINS)
       .xAxis()
       .ticks(4);
@@ -874,12 +871,14 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     // #endregion
 
     // #region by other category
-    const otherCategoryDimension = ndx.dimension(d =>
+    const otherCategoryDimension = ndx.dimension((d) =>
       d.activity ? OTHER_FIELD_MAPPING[d.activity] : EXCLUDE_STRING_VALUE
     );
 
     const otherCategoryGroup = otherCategoryDimension.group();
-    const otherCategoryTimeGroup = otherCategoryDimension.group().reduceSum(d => d.timeSpentHours);
+    const otherCategoryTimeGroup = otherCategoryDimension
+      .group()
+      .reduceSum((d) => d.timeSpentHours);
 
     otherCategoryChart
       .width(paddedWidth / 4)
@@ -891,7 +890,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .ordinalColors(colors)
       .renderTitleLabel(true)
       .titleLabelOffsetX(paddedWidth / 4 - TITLE_PADDING)
-      .title(d => d.value)
+      .title((d) => d.value)
       .margins(HORIZONTAL_CHART_MARGINS)
       .xAxis()
       .ticks(5);
@@ -911,7 +910,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .ordinalColors(colors)
       .renderTitleLabel(true)
       .titleLabelOffsetX(paddedWidth / 4 - TITLE_PADDING)
-      .title(d => formatTitle(d.value))
+      .title((d) => formatTitle(d.value))
       .margins(HORIZONTAL_CHART_MARGINS)
       .xAxis()
       .ticks(5);
@@ -920,7 +919,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     // #endregion
 
     // #region by social worker
-    const userDimension = ndx.dimension(d => {
+    const userDimension = ndx.dimension((d) => {
       if (audience === ReportAudience.INDIVIDUAL || forceIndividualView) {
         if (username === d.username.toLowerCase()) {
           return usernameToName(d.username);
@@ -931,7 +930,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
 
       return usernameToName(d.username);
     });
-    const userGroup = userDimension.group().reduceSum(d => d.parsedNumberOfTasks);
+    const userGroup = userDimension.group().reduceSum((d) => d.parsedNumberOfTasks);
 
     userChart
       .width(paddedWidth / 3)
@@ -942,7 +941,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .group(userGroup)
       .renderTitleLabel(true)
       .titleLabelOffsetX(paddedWidth / 3 - TITLE_PADDING)
-      .title(d => d.value)
+      .title((d) => d.value)
       .margins(HORIZONTAL_CHART_MARGINS)
       .xAxis()
       .ticks(4);
@@ -951,7 +950,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     // #endregion
 
     // #region by doctor
-    const doctorDimension = ndx.dimension(d => d.doctorPrimary);
+    const doctorDimension = ndx.dimension((d) => d.doctorPrimary);
     const doctorGroup = uniqueMrn(doctorDimension.group());
 
     doctorChart
@@ -960,12 +959,12 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .elasticX(true)
       .ordinalColors(colors)
       .dimension(doctorDimension)
-      .valueAccessor(d => d.value.exceptionCount)
-      .ordering(d => -d.value.exceptionCount)
+      .valueAccessor((d) => d.value.exceptionCount)
+      .ordering((d) => -d.value.exceptionCount)
       .group(removeExcludedData(doctorGroup))
       .renderTitleLabel(true)
       .titleLabelOffsetX(paddedWidth / 2 - TITLE_PADDING)
-      .title(d => d.value.exceptionCount)
+      .title((d) => d.value.exceptionCount)
       .margins(HORIZONTAL_CHART_MARGINS);
 
     doctorChart.render();
@@ -973,8 +972,8 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
 
     // #region by intervention techniques
     const interventionTechniquesDimension = ndx.dimension(
-      d =>
-        d.interventions.map(intervention =>
+      (d) =>
+        d.interventions.map((intervention) =>
           MENTAL_HEALTH_INTERVENTION_NAMES.includes(intervention)
             ? intervention
             : EXCLUDE_STRING_VALUE
@@ -992,7 +991,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .group(removeExcludedData(interventionTechniquesGroup))
       .renderTitleLabel(true)
       .titleLabelOffsetX(paddedWidth / 2 - TITLE_PADDING)
-      .title(d => d.value)
+      .title((d) => d.value)
       .margins(HORIZONTAL_CHART_MARGINS);
 
     interventionTechniquesChart.onClick = () => {};
@@ -1003,15 +1002,17 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     // #region by intervention
     const HIDDEN_INTERVENTIONS = ['Documentation', 'Care Coordination'];
 
-    const interventionDimension = ndx.dimension(d => {
-      const interventions = d.interventions.map(intervention =>
+    const interventionDimension = ndx.dimension((d) => {
+      const interventions = d.interventions.map((intervention) =>
         MENTAL_HEALTH_INTERVENTION_NAMES.includes(intervention)
           ? 'Intervention techniques'
           : intervention
       );
 
       if (hideDocumentationAndCareCoordination) {
-        return interventions.filter(intervention => !HIDDEN_INTERVENTIONS.includes(intervention));
+        return interventions.filter(
+          (intervention) => !HIDDEN_INTERVENTIONS.includes(intervention)
+        );
       }
 
       return interventions;
@@ -1027,15 +1028,17 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .group(interventionGroup)
       .renderTitleLabel(true)
       .titleLabelOffsetX(paddedWidth / 2 - TITLE_PADDING)
-      .title(d => d.value)
+      .title((d) => d.value)
       .margins(HORIZONTAL_CHART_MARGINS);
 
     interventionChart.render();
     // #endregion
 
     // #region by location
-    const locationDimension = ndx.dimension(d => (d.location ? d.location : EXCLUDE_STRING_VALUE));
-    const locationGroup = locationDimension.group().reduceSum(d => d.parsedNumberOfTasks);
+    const locationDimension = ndx.dimension((d) =>
+      d.location ? d.location : EXCLUDE_STRING_VALUE
+    );
+    const locationGroup = locationDimension.group().reduceSum((d) => d.parsedNumberOfTasks);
 
     locationChart
       .width(paddedWidth / 3)
@@ -1046,15 +1049,15 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .group(removeExcludedData(locationGroup))
       .renderTitleLabel(true)
       .titleLabelOffsetX(paddedWidth / 3 - TITLE_PADDING)
-      .title(d => d.value)
+      .title((d) => d.value)
       .margins(HORIZONTAL_CHART_MARGINS);
 
     locationChart.render();
     // #endregion
 
     // #region by clinic
-    const clinicDimension = ndx.dimension(d => d.clinic || EXCLUDE_STRING_VALUE);
-    const clinicGroup = clinicDimension.group().reduceSum(d => d.parsedNumberOfTasks);
+    const clinicDimension = ndx.dimension((d) => d.clinic || EXCLUDE_STRING_VALUE);
+    const clinicGroup = clinicDimension.group().reduceSum((d) => d.parsedNumberOfTasks);
 
     clinicChart
       .width(paddedWidth / 3)
@@ -1065,7 +1068,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .group(removeExcludedData(clinicGroup))
       .renderTitleLabel(true)
       .titleLabelOffsetX(paddedWidth / 3 - TITLE_PADDING)
-      .title(d => d.value)
+      .title((d) => d.value)
       .margins(HORIZONTAL_CHART_MARGINS);
 
     clinicChart.render();
@@ -1080,42 +1083,40 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
   handleDateToChange = (e, data) => this.setState({ dateTo: data.value });
 
   handleFilterDocumentationTasksChange = () =>
-    this.setState(state => ({
-      filterDocumentationTasks: !state.filterDocumentationTasks
+    this.setState((state) => ({
+      filterDocumentationTasks: !state.filterDocumentationTasks,
     }));
 
   handleForceIndividualViewChange = () =>
-    this.setState(state => ({
-      forceIndividualView: !state.forceIndividualView
+    this.setState((state) => ({
+      forceIndividualView: !state.forceIndividualView,
     }));
 
   handleHideDocumentationAndCareCoordinationChange = () =>
-    this.setState(state => ({
-      hideDocumentationAndCareCoordination: !state.hideDocumentationAndCareCoordination
+    this.setState((state) => ({
+      hideDocumentationAndCareCoordination: !state.hideDocumentationAndCareCoordination,
     }));
 
   handleHideSocialWorkersChange = (e, data) => this.setState({ hideSocialWorkers: data.checked });
 
   render() {
-    const { audience, onComplete } = this.props;
+    const { audience } = this.props;
     const {
       dateFrom,
       dateTo,
+      encounters,
       filterDocumentationTasks,
       forceIndividualView,
       hideDocumentationAndCareCoordination,
       hideSocialWorkers,
-      loading
     } = this.state;
+
+    if (!encounters) {
+      return <PageLoader />;
+    }
 
     return (
       <div className={hideSocialWorkers ? 'hide-social-workers' : ''}>
-        {loading && (
-          <Dimmer active>
-            <Loader size="large" />
-          </Dimmer>
-        )}
-
         {/*
         <Modal open={!!this.state.screenshotData}>
           <Modal.Header>Screenshot</Modal.Header>
@@ -1137,8 +1138,6 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
         */}
 
         <div className="button-row">
-          <Button onClick={onComplete}>Back</Button>
-
           <Button onClick={this.print}>Print</Button>
 
           <Input

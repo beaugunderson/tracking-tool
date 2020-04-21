@@ -49,7 +49,7 @@ export function parseDate(date: string) {
       'M-D-YY',
 
       // database format
-      'YYYY-MM-DD'
+      'YYYY-MM-DD',
     ],
     // strict mode
     true
@@ -151,7 +151,7 @@ export async function copyFixFile(): Promise<CopyFixFileResult> {
 
   return {
     file: destination,
-    temporaryDirectory: copyPath
+    temporaryDirectory: copyPath,
   };
 }
 
@@ -174,7 +174,7 @@ async function copyEncounterFiles(): Promise<CopyFilesResult> {
 
   return {
     files: copiedFiles,
-    temporaryDirectory: copyPath
+    temporaryDirectory: copyPath,
   };
 }
 
@@ -187,7 +187,7 @@ async function getAllEncounters(filename: string): Promise<PatientEncounter[]> {
       return a.toLowerCase().localeCompare(b.toLowerCase());
     },
     filename,
-    timestampData: true
+    timestampData: true,
   });
 
   return new Promise((resolve, reject) => {
@@ -399,7 +399,7 @@ export function transformEncounter(
 
     timeSpentHours: parseInt(encounter.timeSpent, 10) / 60,
 
-    uniqueId: `${encounter.username}-${encounter._id}`
+    uniqueId: `${encounter.username}-${encounter._id}`,
   };
 }
 
@@ -486,15 +486,15 @@ export function transformEncounters(encounters: PatientEncounter[], mapMrns = tr
 
   if (mapMrns) {
     [providenceMapping, swedishMapping] = inferMrns(
-      encounters.filter(encounter => encounter.encounterType === 'patient')
+      encounters.filter((encounter) => encounter.encounterType === 'patient')
     );
   }
 
   return encounters
-    .filter(encounter =>
+    .filter((encounter) =>
       ['community', 'patient', 'other', 'staff'].includes(encounter.encounterType)
     )
-    .map(encounter => transformEncounter(encounter, providenceMapping, swedishMapping));
+    .map((encounter) => transformEncounter(encounter, providenceMapping, swedishMapping));
 }
 
 export async function transform(
@@ -539,13 +539,13 @@ export async function transform(
           // apply fixes to the patient encounter (to manage MRN linkages)
           ...fix,
 
-          username: copiedUserEncounter.username
+          username: copiedUserEncounter.username,
         });
       } else {
         allEncounters.push({
           ...encounter,
 
-          username: copiedUserEncounter.username
+          username: copiedUserEncounter.username,
         });
       }
     }

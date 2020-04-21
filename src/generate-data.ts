@@ -8,7 +8,7 @@ import { INTERVENTIONS } from './patient-interventions';
 import { sample, sampleSize, times } from 'lodash';
 
 function doctors() {
-  return sampleSize(DOCTORS, Math.random() > 0.75 ? 2 : 1).map(doctor => doctor.value);
+  return sampleSize(DOCTORS, Math.random() > 0.75 ? 2 : 1).map((doctor) => doctor.value);
 }
 
 function location() {
@@ -36,9 +36,9 @@ function diagnosis() {
       'Tongue',
       'Hepatocellular',
       'CLL',
-      'ALL'
+      'ALL',
     ]),
-    diagnosisStage: sample(['Unknown', 'Early', 'Advanced'])
+    diagnosisStage: sample(['Unknown', 'Early', 'Advanced']),
   };
 }
 
@@ -56,21 +56,17 @@ function fakePatient() {
 
     md: doctors(),
 
-    mrn: `100${Math.random()
-      .toString()
-      .slice(2, 9)}`,
+    mrn: `100${Math.random().toString().slice(2, 9)}`,
 
-    providenceMrn: `600${Math.random()
-      .toString()
-      .slice(2, 10)}`,
+    providenceMrn: `600${Math.random().toString().slice(2, 10)}`,
 
     limitedEnglishProficiency: sample([false, true]),
-    transplant: sample([false, true])
+    transplant: sample([false, true]),
   };
 }
 
 export function insertExamples(encounters: Nedb) {
-  const records = 2500;
+  const records = 250;
 
   // pre-generate fake patients so we can have multiple encounters per patient
   const patients = times(records, fakePatient);
@@ -85,15 +81,15 @@ export function insertExamples(encounters: Nedb) {
       interventionValues[intervention.fieldName] = true;
     }
 
-    if (sampledInterventions.some(i => i.fieldName === 'gad')) {
+    if (sampledInterventions.some((i) => i.fieldName === 'gad')) {
       interventionValues.gadScore = sample([`${Math.floor(Math.random() * 20)}`, 'n/a']);
     }
 
-    if (sampledInterventions.some(i => i.fieldName === 'moca')) {
+    if (sampledInterventions.some((i) => i.fieldName === 'moca')) {
       interventionValues.mocaScore = sample([`${Math.floor(Math.random() * 50)}`, 'n/a']);
     }
 
-    if (sampledInterventions.some(i => i.fieldName === 'phq')) {
+    if (sampledInterventions.some((i) => i.fieldName === 'phq')) {
       interventionValues.phqScore = sample([`${Math.floor(Math.random() * 25)}`, 'n/a']);
     }
 
@@ -126,7 +122,7 @@ export function insertExamples(encounters: Nedb) {
 
       numberOfTasks: `${1 + Math.floor(sampledInterventions.length * Math.random())}`,
 
-      timeSpent: `${Math.ceil((Math.random() * sampledInterventions.length * 10) / 5) * 5}`
+      timeSpent: `${Math.ceil((Math.random() * sampledInterventions.length * 10) / 5) * 5}`,
     };
 
     encounters.insert(doc);

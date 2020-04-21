@@ -1,19 +1,9 @@
 import './App.scss';
 
+import className from 'classnames';
 import moment from 'moment';
 import React from 'react';
-import {
-  Button,
-  Confirm,
-  Divider,
-  Dropdown,
-  Header,
-  Icon,
-  Input,
-  Segment,
-  Statistic,
-  Table
-} from 'semantic-ui-react';
+import { Button, Confirm, Dropdown, Icon, Input, Statistic, Table } from 'semantic-ui-react';
 import { chain, escapeRegExp, sumBy } from 'lodash';
 import { CommunityEncounterForm } from './forms/CommunityEncounterForm';
 import { CrisisReport } from './reporting/CrisisReport';
@@ -30,6 +20,7 @@ import { InteractiveReport, ReportAudience } from './reporting/InteractiveReport
 import { LinkMrnReport } from './reporting/LinkMrnReport';
 import { MENTAL_HEALTH_FIELD_NAMES } from './patient-interventions';
 import { openEncounters } from './data';
+import { PageLoader } from './components/PageLoader';
 import { PatientEncounter, PatientEncounterForm } from './forms/PatientEncounterForm';
 import { StaffEncounterForm } from './forms/StaffEncounterForm';
 import { transformEncounter, transformEncounters } from './reporting/data';
@@ -40,32 +31,56 @@ function currentUserIn(users: string[]) {
   return users.indexOf(username.sync().toLowerCase()) !== -1;
 }
 
-const canSeeFakeEncounters = () => currentUserIn(['beau', 'carynstewart']);
 const canSeeAuditReport = () => currentUserIn(['beau', 'carynstewart', 'lindce2']);
 const canSeeReporting = () =>
   currentUserIn(['beau', 'carynstewart', 'johnss1', 'lindce2', 'nejash1', 'valejd1']);
 
 const DELETE_BUTTON = <Button negative>Delete</Button>;
 
+enum Page {
+  Encounters = 0,
+  EncounterFormPatient,
+  EncounterFormCommunity,
+  EncounterFormStaff,
+  EncounterFormOther,
+  FirstTimeSetupPage,
+  ReportAudit,
+  ReportCrisis,
+  ReportGrid,
+  ReportInteractive,
+  ReportLink,
+}
+
+// const FORM_PAGES = [
+//   Page.EncounterFormCommunity,
+//   Page.EncounterFormOther,
+//   Page.EncounterFormPatient,
+//   Page.EncounterFormStaff,
+// ];
+
+const REPORT_PAGES = [
+  Page.ReportAudit,
+  Page.ReportCrisis,
+  Page.ReportGrid,
+  Page.ReportInteractive,
+  Page.ReportLink,
+];
+
 type AppState = {
   confirmDeletion: string | null;
-  crisisReporting: boolean;
-  dataAuditReporting: boolean;
   encounter: any;
-  encounterForm: string | null;
   encounters: any[];
   encounterSearchDate: string;
   encounterSearchPatientName: string;
   encounterSearchType: string;
   error?: string | Error;
-  firstTimeSetup: boolean;
   gads: number;
-  gridReporting: boolean;
   interventions?: number;
-  linkMrnReporting: boolean;
   mocas: number;
+  page: Page;
   phqs: number;
-  reporting: boolean;
+  // showFormNavigation: boolean;
+  showReportNavigation: boolean;
 };
 
 export class App extends React.Component<{}, AppState> {
@@ -73,26 +88,44 @@ export class App extends React.Component<{}, AppState> {
 
   state: AppState = {
     confirmDeletion: null,
-    crisisReporting: false,
-    dataAuditReporting: false,
     encounter: null,
-    encounterForm: null,
     encounters: [],
     encounterSearchDate: '',
     encounterSearchPatientName: '',
     encounterSearchType: 'All',
-    firstTimeSetup: !rootPathExists(),
-    gridReporting: false,
+    page: rootPathExists() ? Page.Encounters : Page.FirstTimeSetupPage,
     interventions: 0,
-    linkMrnReporting: false,
     gads: 0,
     mocas: 0,
     phqs: 0,
-    reporting: false
+    // showFormNavigation: false,
+    showReportNavigation: false,
   };
 
+  handleReportsClick = () =>
+    this.setState((state) => ({ showReportNavigation: !state.showReportNavigation }));
+
+  encounterToPage(encounter: any): Page {
+    switch (encounter.encounterType) {
+      case 'patient':
+        return Page.EncounterFormPatient;
+
+      case 'community':
+        return Page.EncounterFormCommunity;
+
+      case 'staff':
+        return Page.EncounterFormStaff;
+
+      case 'other':
+        return Page.EncounterFormOther;
+
+      default:
+        throw new Error(`Unknown encounter type: ${encounter.encounterType}`);
+    }
+  }
+
   editEncounter = (encounter: any) =>
-    this.setState({ encounterForm: encounter.encounterType, encounter });
+    this.setState({ page: this.encounterToPage(encounter), encounter });
 
   searchPatients = () => {
     if (!this.encounters) {
@@ -102,7 +135,7 @@ export class App extends React.Component<{}, AppState> {
     const { encounterSearchDate, encounterSearchPatientName, encounterSearchType } = this.state;
 
     const criteria: any = {
-      encounterType: { $exists: true }
+      encounterType: { $exists: true },
     };
 
     if (encounterSearchType !== 'All') {
@@ -144,16 +177,16 @@ export class App extends React.Component<{}, AppState> {
       const monthStart = moment().startOf('month');
       const monthEnd = moment().endOf('month');
 
-      const monthEncounters = transformEncounters(results).filter(encounter => {
+      const monthEncounters = transformEncounters(results).filter((encounter) => {
         return encounter.parsedEncounterDate.isBetween(monthStart, monthEnd, undefined, '[]');
       });
 
-      const gads = monthEncounters.filter(encounter => !!encounter.gad).length;
-      const mocas = monthEncounters.filter(encounter => !!encounter.moca).length;
-      const phqs = monthEncounters.filter(encounter => !!encounter.phq).length;
+      const gads = monthEncounters.filter((encounter) => !!encounter.gad).length;
+      const mocas = monthEncounters.filter((encounter) => !!encounter.moca).length;
+      const phqs = monthEncounters.filter((encounter) => !!encounter.phq).length;
 
-      const interventions = sumBy(monthEncounters, encounter =>
-        sumBy(MENTAL_HEALTH_FIELD_NAMES, field => (encounter[field] ? 1 : 0))
+      const interventions = sumBy(monthEncounters, (encounter) =>
+        sumBy(MENTAL_HEALTH_FIELD_NAMES, (field) => (encounter[field] ? 1 : 0))
       );
 
       this.setState({ gads, mocas, phqs, interventions });
@@ -170,13 +203,16 @@ export class App extends React.Component<{}, AppState> {
 
       this.encounters = dataStore;
 
+      // @ts-ignore
+      window.createFakeEncounters = () => insertExamples(this.encounters);
+
       this.searchPatients();
       this.updateAssessments();
     });
   }
 
   componentDidMount() {
-    if (this.state.firstTimeSetup) {
+    if (this.state.page === Page.FirstTimeSetupPage) {
       return;
     }
 
@@ -185,16 +221,15 @@ export class App extends React.Component<{}, AppState> {
 
   componentDidUpdate(prevProps: any, prevState: AppState) {
     // scroll to top when we come back
-    if (this.state.encounterForm !== prevState.encounterForm) {
+    if (this.state.page !== prevState.page) {
       window.scroll({
         top: 0,
-        left: 0
+        left: 0,
       });
     }
 
     if (
-      this.state.encounter !== prevState.encounter ||
-      this.state.encounterForm !== prevState.encounterForm ||
+      (this.state.page === Page.Encounters && prevState.page !== Page.Encounters) ||
       this.state.encounterSearchDate !== prevState.encounterSearchDate ||
       this.state.encounterSearchPatientName !== prevState.encounterSearchPatientName ||
       this.state.encounterSearchType !== prevState.encounterSearchType
@@ -204,10 +239,10 @@ export class App extends React.Component<{}, AppState> {
     }
   }
 
-  handleCancel = () => this.setState({ encounter: null, encounterForm: null });
+  handleCancel = () => this.setState({ encounter: null, page: Page.Encounters });
 
   handleComplete = (error?: Error | string) => {
-    this.setState({ encounter: null, encounterForm: null, error });
+    this.setState({ encounter: null, page: Page.Encounters, error });
   };
 
   handleDeleteClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, doc: any) => {
@@ -217,204 +252,276 @@ export class App extends React.Component<{}, AppState> {
     this.setState({ confirmDeletion: doc._id });
   };
 
-  render() {
-    const {
-      confirmDeletion,
-      crisisReporting,
-      dataAuditReporting,
-      encounter,
-      encounterForm,
-      error,
-      firstTimeSetup,
-      gads,
-      gridReporting,
-      interventions,
-      linkMrnReporting,
-      mocas,
-      phqs,
-      reporting
-    } = this.state;
+  handleFirstTimeSetupComplete = () =>
+    this.setState({ page: Page.Encounters }, () => this.initialize());
+
+  renderPage() {
+    const { encounter, page, error } = this.state;
 
     if (error) {
       return <ErrorMessage error={error} />;
     }
 
-    if (firstTimeSetup) {
-      return (
-        <FirstTimeSetup
-          onComplete={() => this.setState({ firstTimeSetup: false }, () => this.initialize())}
-        />
-      );
-    }
-
     if (!this.encounters) {
-      return null;
+      return <PageLoader />;
     }
 
-    if (crisisReporting) {
-      return <CrisisReport onComplete={() => this.setState({ crisisReporting: false })} />;
-    }
+    switch (page) {
+      case Page.FirstTimeSetupPage:
+        return <FirstTimeSetup onComplete={this.handleFirstTimeSetupComplete} />;
 
-    if (dataAuditReporting) {
-      return <DataAuditReport onComplete={() => this.setState({ dataAuditReporting: false })} />;
-    }
+      case Page.ReportCrisis:
+        return <CrisisReport />;
 
-    if (gridReporting) {
-      return (
-        <GridReport onComplete={err => this.setState({ error: err, gridReporting: false })} />
-      );
-    }
+      case Page.ReportAudit:
+        return <DataAuditReport />;
 
-    if (linkMrnReporting) {
-      return (
-        <LinkMrnReport
-          onComplete={err => this.setState({ error: err, linkMrnReporting: false })}
-        />
-      );
-    }
+      case Page.ReportGrid:
+        return <GridReport />;
 
-    if (reporting) {
-      return (
-        <InteractiveReport
-          audience={canSeeReporting() ? ReportAudience.ADMINISTRATOR : ReportAudience.INDIVIDUAL}
-          onComplete={() => this.setState({ reporting: false })}
-          username={username.sync().toLowerCase()}
-        />
-      );
-    }
+      case Page.ReportLink:
+        return <LinkMrnReport />;
 
-    if (encounterForm === 'patient') {
-      return (
-        <PatientEncounterForm
-          encounter={encounter}
-          encounters={this.encounters}
-          onCancel={this.handleCancel}
-          onComplete={this.handleComplete}
-        />
-      );
-    }
+      case Page.ReportInteractive:
+        return (
+          <InteractiveReport
+            audience={canSeeReporting() ? ReportAudience.ADMINISTRATOR : ReportAudience.INDIVIDUAL}
+            username={username.sync().toLowerCase()}
+          />
+        );
 
-    if (encounterForm === 'community') {
-      return (
-        <CommunityEncounterForm
-          encounter={encounter}
-          encounters={this.encounters}
-          onCancel={this.handleCancel}
-          onComplete={this.handleComplete}
-        />
-      );
-    }
+      case Page.EncounterFormPatient:
+        return (
+          <PatientEncounterForm
+            encounter={encounter}
+            encounters={this.encounters}
+            onCancel={this.handleCancel}
+            onComplete={this.handleComplete}
+          />
+        );
 
-    if (encounterForm === 'staff') {
-      return (
-        <StaffEncounterForm
-          encounter={encounter}
-          encounters={this.encounters}
-          onCancel={this.handleCancel}
-          onComplete={this.handleComplete}
-        />
-      );
-    }
+      case Page.EncounterFormCommunity:
+        return (
+          <CommunityEncounterForm
+            encounter={encounter}
+            encounters={this.encounters}
+            onCancel={this.handleCancel}
+            onComplete={this.handleComplete}
+          />
+        );
 
-    if (encounterForm === 'other') {
-      return (
-        <OtherEncounterForm
-          encounter={encounter}
-          encounters={this.encounters}
-          onCancel={this.handleCancel}
-          onComplete={this.handleComplete}
-        />
-      );
+      case Page.EncounterFormStaff:
+        return (
+          <StaffEncounterForm
+            encounter={encounter}
+            encounters={this.encounters}
+            onCancel={this.handleCancel}
+            onComplete={this.handleComplete}
+          />
+        );
+
+      case Page.EncounterFormOther:
+        return (
+          <OtherEncounterForm
+            encounter={encounter}
+            encounters={this.encounters}
+            onCancel={this.handleCancel}
+            onComplete={this.handleComplete}
+          />
+        );
+
+      default:
+        return this.renderEncounters();
     }
+  }
+
+  // TODO: add switching logic here (e.g. if form has been touched require confirmation)
+  handlePageChange = (page: Page) => {
+    this.setState({
+      page,
+      // showFormNavigation: FORM_PAGES.includes(page),
+      showReportNavigation: REPORT_PAGES.includes(page),
+    });
+  };
+
+  handlePatientEncounterFormClick = () => this.handlePageChange(Page.EncounterFormPatient);
+  handleCommunityEncounterFormClick = () => this.handlePageChange(Page.EncounterFormCommunity);
+  handleStaffEncounterFormClick = () => this.handlePageChange(Page.EncounterFormStaff);
+  handleOtherEncounterFormClick = () => this.handlePageChange(Page.EncounterFormOther);
+
+  handleEncountersClick = () => this.handlePageChange(Page.Encounters);
+
+  handleAuditReportClick = () => this.handlePageChange(Page.ReportAudit);
+  handleCrisisReportClick = () => this.handlePageChange(Page.ReportCrisis);
+  handleGridReportClick = () => this.handlePageChange(Page.ReportGrid);
+  handleInteracticeReportClick = () => this.handlePageChange(Page.ReportInteractive);
+  handleLinkMrnReportClick = () => this.handlePageChange(Page.ReportLink);
+
+  render() {
+    const { page, showReportNavigation } = this.state;
 
     return (
       <>
-        <Segment className="big-section" inverted textAlign="center">
-          <Header as="h1">Create an Encounter</Header>
+        <div
+          id="page-body"
+          className={className({
+            // 'show-sub-navigation': showFormNavigation || showReportNavigation,
+            'show-sub-navigation': showReportNavigation,
+          })}
+        >
+          {this.renderPage()}
+        </div>
 
-          <Divider hidden />
+        <div id="navigation-wrapper">
+          <div id="navigation">
+            <div
+              className={className('navigation-button', {
+                active: page === Page.Encounters,
+              })}
+              onClick={this.handleEncountersClick}
+            >
+              <Icon name="calendar alternate outline" />
+              Encounters
+            </div>
 
-          <Button
-            icon
-            labelPosition="left"
-            onClick={() => this.setState({ encounterForm: 'patient' })}
-            size="big"
-          >
-            <Icon name="user" />
-            Patient
-          </Button>
+            <div className="spacer" />
 
-          <Button
-            icon
-            labelPosition="left"
-            onClick={() => this.setState({ encounterForm: 'community' })}
-            size="big"
-          >
-            <Icon name="phone" />
-            Community
-          </Button>
+            <div
+              className={className('navigation-button', {
+                active: page === Page.EncounterFormPatient,
+              })}
+              onClick={this.handlePatientEncounterFormClick}
+            >
+              <Icon name="user" />
+              Patient
+            </div>
 
-          <Button
-            icon
-            labelPosition="left"
-            onClick={() => this.setState({ encounterForm: 'staff' })}
-            size="big"
-          >
-            <Icon name="user md" />
-            Staff
-          </Button>
+            <div
+              className={className('navigation-button', {
+                active: page === Page.EncounterFormCommunity,
+              })}
+              onClick={this.handleCommunityEncounterFormClick}
+            >
+              <Icon name="phone" />
+              Community
+            </div>
 
-          <Button
-            icon
-            labelPosition="left"
-            onClick={() => this.setState({ encounterForm: 'other' })}
-            size="big"
-          >
-            <Icon name="clock" />
-            Other
-          </Button>
+            <div
+              className={className('navigation-button', {
+                active: page === Page.EncounterFormStaff,
+              })}
+              onClick={this.handleStaffEncounterFormClick}
+            >
+              <Icon name="user md" />
+              Staff
+            </div>
 
-          <Divider hidden />
+            <div
+              className={className('navigation-button', {
+                active: page === Page.EncounterFormOther,
+              })}
+              onClick={this.handleOtherEncounterFormClick}
+            >
+              <Icon name="clock" />
+              Other
+            </div>
 
-          <Button onClick={() => this.setState({ reporting: true })} size="big">
-            Interactive Report
-          </Button>
+            <div className="spacer" />
 
-          {canSeeReporting() && (
-            <>
-              <Button onClick={() => this.setState({ crisisReporting: true })} size="big">
-                Crisis Report
-              </Button>
+            <div
+              className={className('navigation-button', { active: showReportNavigation })}
+              onClick={this.handleReportsClick}
+            >
+              <Icon name="paperclip" />
+              Reports
+            </div>
+          </div>
 
-              {canSeeAuditReport() && (
-                <Button onClick={() => this.setState({ dataAuditReporting: true })} size="big">
-                  Data Audit Report
-                </Button>
+          {/* TODO: is this preferable to the buttons at the bottom? */}
+          {/* {showFormNavigation && !showReportNavigation && (
+            <div id="form-navigation">
+              <div className="spacer" />
+
+              <div className="navigation-button save" onClick={() => null}>
+                Save Encounter
+              </div>
+
+              <div className="navigation-button reset" onClick={() => null}>
+                Reset
+              </div>
+
+              <div className="spacer" />
+            </div>
+          )} */}
+
+          {showReportNavigation && (
+            <div id="report-navigation">
+              <div className="spacer" />
+
+              <div
+                className={className('navigation-button', {
+                  active: page === Page.ReportInteractive,
+                })}
+                onClick={this.handleInteracticeReportClick}
+              >
+                Interactive Report
+              </div>
+
+              {canSeeReporting() && (
+                <>
+                  <div
+                    className={className('navigation-button', {
+                      active: page === Page.ReportCrisis,
+                    })}
+                    onClick={this.handleCrisisReportClick}
+                  >
+                    Crisis Report
+                  </div>
+
+                  {canSeeAuditReport() && (
+                    <div
+                      className={className('navigation-button', {
+                        active: page === Page.ReportAudit,
+                      })}
+                      onClick={this.handleAuditReportClick}
+                    >
+                      Data Audit Report
+                    </div>
+                  )}
+
+                  <div
+                    className={className('navigation-button', {
+                      active: page === Page.ReportGrid,
+                    })}
+                    onClick={this.handleGridReportClick}
+                  >
+                    Monthly Report
+                  </div>
+
+                  <div
+                    className={className('navigation-button', {
+                      active: page === Page.ReportLink,
+                    })}
+                    onClick={this.handleLinkMrnReportClick}
+                  >
+                    Link MRN Report
+                  </div>
+                </>
               )}
 
-              <Button onClick={() => this.setState({ gridReporting: true })} size="big">
-                Monthly Report
-              </Button>
-
-              <Button onClick={() => this.setState({ linkMrnReporting: true })} size="big">
-                Link MRN Report
-              </Button>
-
-              {canSeeFakeEncounters() && (
-                <Button
-                  icon
-                  labelPosition="left"
-                  onClick={() => insertExamples(this.encounters)}
-                  size="big"
-                >
-                  <Icon name="plus circle" />
-                  Add fake encounters
-                </Button>
-              )}
-            </>
+              <div className="spacer" />
+            </div>
           )}
-        </Segment>
+        </div>
+      </>
+    );
+  }
 
+  renderEncounters() {
+    const { confirmDeletion, gads, interventions, mocas, phqs } = this.state;
+
+    return (
+      <>
         <Statistic.Group widths="4">
           <Statistic>
             <Statistic.Value>{phqs}</Statistic.Value>
@@ -437,101 +544,94 @@ export class App extends React.Component<{}, AppState> {
           </Statistic>
         </Statistic.Group>
 
-        <Segment className="big-section last-section" inverted textAlign="center">
-          <Header as="h1">Edit an Encounter</Header>
+        <Table id="encounter-table" selectable unstackable>
+          <Table.Header>
+            <Table.Row>
+              <Table.HeaderCell width={1} />
+              <Table.HeaderCell width={1}>
+                <Input
+                  id="encounter-date-input"
+                  onChange={(e, { value }) =>
+                    this.setState({ encounterSearchDate: value as string })
+                  }
+                  type="date"
+                  value={this.state.encounterSearchDate}
+                />
+              </Table.HeaderCell>
+              <Table.HeaderCell width={2}>
+                <Dropdown
+                  id="encounter-type-dropdown"
+                  fluid
+                  onChange={(e, { value }) =>
+                    this.setState({ encounterSearchType: value as string })
+                  }
+                  options={ENCOUNTER_TYPES}
+                  placeholder="Encounter Type"
+                  selection
+                  value={this.state.encounterSearchType}
+                />
+              </Table.HeaderCell>
+              <Table.HeaderCell width={3}>
+                <Input
+                  icon={
+                    <Icon
+                      link
+                      name="delete"
+                      onClick={() => this.setState({ encounterSearchPatientName: '' })}
+                    />
+                  }
+                  id="encounter-patient-input"
+                  fluid
+                  onChange={(e, { value }) => this.setState({ encounterSearchPatientName: value })}
+                  placeholder="Search..."
+                  value={this.state.encounterSearchPatientName}
+                />
+              </Table.HeaderCell>
+              <Table.HeaderCell width={2}>Clinic or Activity</Table.HeaderCell>
+              <Table.HeaderCell width={2}>Time / Tasks</Table.HeaderCell>
+            </Table.Row>
+          </Table.Header>
 
-          <Divider hidden />
+          <Table.Body>
+            {this.state.encounters.map((doc: any, i: number) => {
+              const transformed = transformEncounter(doc);
 
-          <Table id="encounter-table" selectable unstackable>
-            <Table.Header>
-              <Table.Row>
-                <Table.HeaderCell width={1} />
-                <Table.HeaderCell width={1}>
-                  <Input
-                    id="encounter-date-input"
-                    onChange={(e, { value }) =>
-                      this.setState({ encounterSearchDate: value as string })
-                    }
-                    type="date"
-                    value={this.state.encounterSearchDate}
-                  />
-                </Table.HeaderCell>
-                <Table.HeaderCell width={2}>
-                  <Dropdown
-                    id="encounter-type-dropdown"
-                    fluid
-                    onChange={(e, { value }) =>
-                      this.setState({ encounterSearchType: value as string })
-                    }
-                    options={ENCOUNTER_TYPES}
-                    placeholder="Encounter Type"
-                    selection
-                    value={this.state.encounterSearchType}
-                  />
-                </Table.HeaderCell>
-                <Table.HeaderCell width={3}>
-                  <Input
-                    icon={
-                      <Icon
-                        link
-                        name="delete"
-                        onClick={() => this.setState({ encounterSearchPatientName: '' })}
-                      />
-                    }
-                    id="encounter-patient-input"
-                    fluid
-                    onChange={(e, { value }) =>
-                      this.setState({ encounterSearchPatientName: value })
-                    }
-                    placeholder="Search..."
-                    value={this.state.encounterSearchPatientName}
-                  />
-                </Table.HeaderCell>
-                <Table.HeaderCell width={2}>Clinic or Activity</Table.HeaderCell>
-                <Table.HeaderCell width={2}>Time / Tasks</Table.HeaderCell>
-              </Table.Row>
-            </Table.Header>
-
-            <Table.Body>
-              {this.state.encounters.map((doc: any, i: number) => {
-                const transformed = transformEncounter(doc);
-
-                return (
-                  <Table.Row key={i} onClick={() => this.editEncounter(doc)}>
-                    <Table.Cell className="delete-cell" textAlign="center">
-                      <Button
-                        size="mini"
-                        color="red"
-                        onClick={(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) =>
-                          this.handleDeleteClick(e, doc)
-                        }
-                      >
-                        Delete
-                      </Button>
-                    </Table.Cell>
-                    <Table.Cell>
-                      {transformed.parsedEncounterDate.format(DATE_FORMAT_DISPLAY)}
-                    </Table.Cell>
-                    <Table.Cell>
-                      {ENCOUNTER_TYPE_NAMES[doc.encounterType] || 'Patient'}
-                      &nbsp;&nbsp;&nbsp;
-                      {(doc.encounterType === 'patient' || doc.encounterType === 'community') &&
-                        !transformed.numberOfInterventions && (
-                          <Icon color="orange" name="warning sign" />
-                        )}
-                      {(doc.gad || doc.phq || doc.moca) && <Icon name="clipboard check" />}
-                    </Table.Cell>
-                    <Table.Cell>{doc.patientName}</Table.Cell>
-                    <Table.Cell>{doc.clinic || fieldNameToName(doc.activity)}</Table.Cell>
-                    <Table.Cell>
-                      {doc.timeSpent} {doc.numberOfTasks && `/ ${doc.numberOfTasks}`}
-                    </Table.Cell>
-                  </Table.Row>
-                );
-              })}
-            </Table.Body>
-          </Table>
-        </Segment>
+              return (
+                <Table.Row key={i} onClick={() => this.editEncounter(doc)}>
+                  <Table.Cell className="delete-cell" textAlign="center">
+                    <Button
+                      color="red"
+                      icon
+                      onClick={(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) =>
+                        this.handleDeleteClick(e, doc)
+                      }
+                      size="mini"
+                    >
+                      <Icon name="delete" />
+                    </Button>
+                  </Table.Cell>
+                  <Table.Cell>
+                    {transformed.parsedEncounterDate.format(DATE_FORMAT_DISPLAY)}
+                  </Table.Cell>
+                  <Table.Cell>
+                    {ENCOUNTER_TYPE_NAMES[doc.encounterType] || 'Patient'}
+                    &nbsp;&nbsp;&nbsp;
+                    {(doc.encounterType === 'patient' || doc.encounterType === 'community') &&
+                      !transformed.numberOfInterventions && (
+                        <Icon color="orange" name="warning sign" />
+                      )}
+                    {(doc.gad || doc.phq || doc.moca) && <Icon name="clipboard check" />}
+                  </Table.Cell>
+                  <Table.Cell>{doc.patientName}</Table.Cell>
+                  <Table.Cell>{doc.clinic || fieldNameToName(doc.activity)}</Table.Cell>
+                  <Table.Cell>
+                    {doc.timeSpent} {doc.numberOfTasks && `/ ${doc.numberOfTasks}`}
+                  </Table.Cell>
+                </Table.Row>
+              );
+            })}
+          </Table.Body>
+        </Table>
 
         <Confirm
           confirmButton={DELETE_BUTTON}
