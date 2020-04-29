@@ -1295,6 +1295,28 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
           <div className="clear" />
         </div>
 
+        <div>
+          <div id="location-chart">
+            <strong>Tasks per Location</strong>
+            <div className="clear" />
+          </div>
+
+          <div id="clinic-chart">
+            <strong>Tasks per Clinic</strong>
+            <div className="clear" />
+          </div>
+
+          <div id="user-chart">
+            <strong>
+              Tasks per Social Worker &nbsp;&nbsp;&nbsp;
+              <Checkbox label="Hide" onChange={this.handleHideSocialWorkersChange} />
+            </strong>
+            <div className="clear" />
+          </div>
+
+          <div className="clear" />
+        </div>
+
         <div id="test-chart">
           <strong>Tests Given</strong>
           <div className="clear" />
@@ -1357,35 +1379,8 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
 
         <div className="clear" />
 
-        <div>
-          <div id="location-chart">
-            <strong>Tasks per Location</strong>
-            <div className="clear" />
-          </div>
-
-          <div id="clinic-chart">
-            <strong>Tasks per Clinic</strong>
-            <div className="clear" />
-          </div>
-
-          <div id="user-chart">
-            <strong>
-              Tasks per Social Worker &nbsp;&nbsp;&nbsp;
-              <Checkbox label="Hide" onChange={this.handleHideSocialWorkersChange} />
-            </strong>
-            <div className="clear" />
-          </div>
-
-          <div className="clear" />
-        </div>
-
         <div id="doctor-chart">
           <strong>Primary Provider (unique MRNs)</strong>
-          <div className="clear" />
-        </div>
-
-        <div id="intervention-chart">
-          <strong>Intervention (entries)</strong>
           <div className="clear" />
         </div>
 
@@ -1393,6 +1388,11 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
           <strong>
             Intervention techniques (entries): <span id="total-intervention-techniques" />
           </strong>
+          <div className="clear" />
+        </div>
+
+        <div id="intervention-chart">
+          <strong>Intervention (entries)</strong>
           <div className="clear" />
         </div>
       </div>
