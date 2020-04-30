@@ -25,13 +25,14 @@ type InterventionGroup = {
   interventions: Intervention[];
 };
 
-function withFieldNames(interventions: UnprocessedIntervention[]): Intervention[] {
-  return interventions.map(intervention => ({
-    ...intervention,
+function nameToFieldName(name: string) {
+  return camelcase(slugify(name, { lower: true, remove: /[^a-zA-Z0-9 -]/, strict: true }));
+}
 
-    fieldName:
-      intervention.fieldName ||
-      camelcase(slugify(intervention.name, { lower: true, remove: /[^a-zA-Z0-9 -]/ }))
+function withFieldNames(interventions: UnprocessedIntervention[]): Intervention[] {
+  return interventions.map((intervention) => ({
+    ...intervention,
+    fieldName: intervention.fieldName || nameToFieldName(intervention.name),
   }));
 }
 
@@ -41,19 +42,19 @@ const ENCOUNTER_TYPE = {
     {
       name: 'Distress Screen',
       description:
-        'Initial contact on DS (1st/2nd call, letter, letter only, clinic visit), not for subsequent follow-up'
+        'Initial contact on DS (1st/2nd call, letter, letter only, clinic visit), not for subsequent follow-up',
     },
     {
       name: 'Documentation',
       description:
-        'When tracking an encounter where time/tasks includes documentation mark all categories that apply including Documentation. If completing documentation on the following day, enter a new encounter, mark Documentation only'
+        'When tracking an encounter where time/tasks includes documentation mark all categories that apply including Documentation. If completing documentation on the following day, enter a new encounter, mark Documentation only',
     },
     {
       name: 'Transplant Assessment',
       description:
-        'Coordination, assessment for consideration for transplant, including coordination with solid organ transplant team in support of their assessment'
-    }
-  ])
+        'Coordination, assessment for consideration for transplant, including coordination with solid organ transplant team in support of their assessment',
+    },
+  ]),
 };
 
 const CRISIS = {
@@ -63,45 +64,45 @@ const CRISIS = {
       name: 'Severe Mental Illness',
       description:
         'Schizophrenia, bipolar, major depression, anxiety, etc. Any mental health issue severe enough to need social work to support patient through treatment',
-      community: true
+      community: true,
     },
     {
       name: 'Suicide/Homicide',
       description: 'Assessment for suicidal, homicidal ideation',
-      community: true
+      community: true,
     },
     {
       name: 'Substance Use',
       description:
         'Assessment, support, referral for patient with SUD, including smoking cessation, AA',
-      community: true
+      community: true,
     },
     {
       name: 'Homelessness',
       description: 'Imminent/chronic homelessness assessment, referral, coordination',
-      community: true
+      community: true,
     },
     {
       name: 'Adult Protection',
       description: 'Referral to, coordination with APS',
-      community: true
+      community: true,
     },
     {
       name: 'Child Protection',
       description: 'Referral to, coordination with CPS',
-      community: true
+      community: true,
     },
     {
       name: 'Interpersonal Violence',
       description: 'Assessment, support, referral related to domestic violence',
-      community: true
+      community: true,
     },
     {
       name: 'M&M (Mortality and Morbidity)',
       description:
-        'Create encounter, mark M&M upon patient’s death in cases where severe MH, SUD, homelessness are thought to have contributed to patient’s death regardless of if you actually had an encounter that would typically be tracked'
-    }
-  ])
+        'Create encounter, mark M&M upon patient’s death in cases where severe MH, SUD, homelessness are thought to have contributed to patient’s death regardless of if you actually had an encounter that would typically be tracked',
+    },
+  ]),
 };
 
 const SUPPORT_GROUP = {
@@ -110,9 +111,9 @@ const SUPPORT_GROUP = {
     {
       name: 'Assessment, Referral',
       description: 'Research, discussion of, referral to support groups',
-      community: true
-    }
-  ])
+      community: true,
+    },
+  ]),
 };
 
 const SOCIAL_PRACTICAL = {
@@ -121,7 +122,7 @@ const SOCIAL_PRACTICAL = {
     {
       name: 'Food',
       description: 'Food banks, Meals on Wheels, Chicken Soup Brigade',
-      community: true
+      community: true,
     },
     {
       name: 'Transportation',
@@ -134,29 +135,29 @@ const SOCIAL_PRACTICAL = {
           </strong>
         </>
       ),
-      community: true
+      community: true,
     },
     {
       name: 'Lodging, Housing, Shelter',
       description: 'Information, referrals related to short-, long-term housing',
-      community: true
+      community: true,
     },
     {
       name: 'Managing Work, Home Life, Illness',
       description: 'Cleaning for a Reason, home care, chore services, Caring Bridge, childcare',
-      community: true
+      community: true,
     },
     {
       name: 'Holiday Families',
       description:
-        'Communication, coordination with, or about patients for Holiday Families Program'
+        'Communication, coordination with, or about patients for Holiday Families Program',
     },
     {
       name: 'Other Community Resources',
       description: 'Choose if referrals do not match other more specific categories',
-      community: true
-    }
-  ])
+      community: true,
+    },
+  ]),
 };
 
 const ADVANCED_CARE_PLANNING = {
@@ -168,14 +169,14 @@ const ADVANCED_CARE_PLANNING = {
         'End of life discussions, including hospice/palliative care, Death with Dignity, activity related to advance directives; ' +
         'Assessment of patient values to aid in treatment, end of life planning; ' +
         'Emotional, educational counseling related to advanced stage disease; ' +
-        'Providing patient with advance directives, or related education and assistance'
+        'Providing patient with advance directives, or related education and assistance',
     },
     {
       name: 'Death with Dignity',
       description:
-        'Discussion, education, referrals, coordination with physicians, related to Death with Dignity'
-    }
-  ])
+        'Discussion, education, referrals, coordination with physicians, related to Death with Dignity',
+    },
+  ]),
 };
 
 const FAMILY = {
@@ -185,26 +186,26 @@ const FAMILY = {
       name: 'Caregiver: Supportive Counseling, Education',
       description:
         'Meeting with caregiver (with or without patient) for emotional, psychological support, information re caregiver role, resources',
-      community: true
+      community: true,
     },
     {
       name: 'Family Meeting',
       description:
-        'Facilitate communication amongst patient and two or more family, caregivers, and healthcare providers where discussion is focused on issues related to treatment, care, decision-making'
+        'Facilitate communication amongst patient and two or more family, caregivers, and healthcare providers where discussion is focused on issues related to treatment, care, decision-making',
     },
     {
       name: 'Respite Care',
       description:
         'When caregiver is in need of services (if patient, use other categories), including in-home help with short-term custodial care placement, short-term assisted living placement, day program',
-      community: true
+      community: true,
     },
     {
       name: 'Support for Children',
       description:
         'Coaching, support for patient around communication with and resources for children under 18 years old. Choose this instead of "Support Groups - Assessment, Referral" when talking with patients about CLIMB. CLIMB Facilitators should track under "Other" encounter category when screening, preparing, and facilitating',
-      community: true
-    }
-  ])
+      community: true,
+    },
+  ]),
 };
 
 const PSYCHOLOGICAL = {
@@ -212,7 +213,7 @@ const PSYCHOLOGICAL = {
   interventions: withFieldNames([
     {
       name: 'New Diagnosis',
-      description: 'Interventions surrounding a new diagnosis, acute'
+      description: 'Interventions surrounding a new diagnosis, acute',
     },
     {
       name: 'Patient: Supportive Counseling, Education',
@@ -221,44 +222,44 @@ const PSYCHOLOGICAL = {
           Interactions involving supportive listening, validation, encouragement, other therapeutic
           interventions. <strong>Excludes survivorship, caregiver support</strong>
         </>
-      )
+      ),
     },
     {
       name: 'Sexuality, Intimacy, Fertility',
-      description: 'Assessment, information, referral related to sexuality, intimacy, fertility'
+      description: 'Assessment, information, referral related to sexuality, intimacy, fertility',
     },
     {
       name: 'Spiritual, Existential',
       description:
-        'Spiritual assessment, including spirituality, belief systems, faith, religion, existential issues related to meaning/purpose, referrals to chaplain, spiritual leader, faith community'
+        'Spiritual assessment, including spirituality, belief systems, faith, religion, existential issues related to meaning/purpose, referrals to chaplain, spiritual leader, faith community',
     },
     {
       name: 'Survivorship',
       description:
-        'Supportive counseling, education, referrals for programs focused on survivorship issues, primarily for post-treatment, maintenance'
+        'Supportive counseling, education, referrals for programs focused on survivorship issues, primarily for post-treatment, maintenance',
     },
 
     {
       name: 'PHQ',
       description:
         'Mark when you have completed a PHQ with the patient in the encounter you are tracking, input the score',
-      scored: true
+      scored: true,
     },
 
     {
       name: 'GAD',
       description:
         'Mark when you have completed a GAD with the patient in the encounter you are tracking, input the score',
-      scored: true
+      scored: true,
     },
 
     {
       name: 'MoCA',
       description:
         'Mark when you have completed a MoCA with the patient in the encounter you are tracking, input the score',
-      scored: true
-    }
-  ])
+      scored: true,
+    },
+  ]),
 };
 
 const CARE_COORDINATION = {
@@ -270,7 +271,7 @@ const CARE_COORDINATION = {
       fieldName: 'customerService',
       description:
         'Introducing support services, quick check-ins, service recovery, patient relations',
-      community: true
+      community: true,
     },
     {
       name: 'Care Coordination',
@@ -286,19 +287,19 @@ const CARE_COORDINATION = {
           </strong>
         </>
       ),
-      community: true
+      community: true,
     },
     {
       name: 'Home Care, Facility',
       description:
         'Referrals, coordination, communication with home health, private duty caregiving, and facility, includes pre-discharge planning',
-      community: true
+      community: true,
     },
     {
       name: 'Palliative Care, Hospice',
       description:
         'Referral, coordination with palliative care/hospice agency, including internal care coordination with Swedish Palliative Care team',
-      community: true
+      community: true,
     },
     {
       name: 'Neuro-Cognitive Testing',
@@ -309,7 +310,7 @@ const CARE_COORDINATION = {
             Excludes completion of MoCA, which should be tracked using the more specific category
           </strong>
         </>
-      )
+      ),
     },
     {
       name: 'Psychiatry, Psychotherapy',
@@ -319,20 +320,20 @@ const CARE_COORDINATION = {
           preparation for case presentations given in Psych Rounds or Team Meeting.
           <strong>Excludes quick resource/patient questions</strong>
         </>
-      )
+      ),
     },
     {
       name: 'Behavioral, Safety Plan',
       description:
-        'Patient behavior challenges, including consult with staff, patient, family member, drafting behavioral agreement'
+        'Patient behavior challenges, including consult with staff, patient, family member, drafting behavioral agreement',
     },
     {
       name: 'SCI Supportive Care',
       description:
         'SCI Nutrition Counseling, Northwest Natural Health, Monroe Massage at SCI, Cancer Rehabilitation, Art & Music Therapy',
-      community: true
-    }
-  ])
+      community: true,
+    },
+  ]),
 };
 
 const FINANCIAL = {
@@ -342,53 +343,53 @@ const FINANCIAL = {
       name: 'SCI Grant Funds',
       description:
         'Discussion, facilitation of SCI grant funds, including SCI Parking Assistance and SCI Rx Assistance',
-      community: true
+      community: true,
     },
     {
       name: 'SCI Rx Assistance',
       description:
-        'For person who is approving/denying Rx Assistance, not for the OSW requesting it. Can be selected whenever discussing Rx Assistance with an OSW about a specific patient'
+        'For person who is approving/denying Rx Assistance, not for the OSW requesting it. Can be selected whenever discussing Rx Assistance with an OSW about a specific patient',
     },
     {
       name: 'Community Grant Funds',
       description:
         'Cancer Lifeline, LLS, other organizations providing direct funding to patients',
-      community: true
+      community: true,
     },
     {
       name: 'Insurance Access, Assistance',
       description:
         'Education, advocacy, referral on Medicare, Medicaid, Medicare Savings, COBRA, Healthcare Exchange, referral to PFA, SHIBA',
-      community: true
+      community: true,
     },
     {
       name: 'Swedish Financial Assistance',
       description:
-        'Information re financial assistance, providing application, coordination, advocacy'
+        'Information re financial assistance, providing application, coordination, advocacy',
     },
     {
       name: 'Other Medical Bills',
       description:
-        'Helping patients with financial assistance and medical bills outside the Swedish system'
+        'Helping patients with financial assistance and medical bills outside the Swedish system',
     },
     {
       name: 'Employment',
       description:
         'Employment concerns, FMLA, talking with HR, work accommodations, referrals to Cancer & Careers, Bureau of Labor, career or job assistance, scholarships',
-      community: true
+      community: true,
     },
     {
       name: 'State/Federal Income',
       description: 'Benefits consultation, assistance with SSI, SSDI, Food Stamps, LIHEAP, TANF',
-      community: true
+      community: true,
     },
     {
       name: 'Legal',
       description:
         'For discussions, referrals related to legal concerns, including estate planning, immigration letters, coordination with legal systems, etc.',
-      community: true
-    }
-  ])
+      community: true,
+    },
+  ]),
 };
 
 const HEALTH_LITERACY = {
@@ -397,18 +398,19 @@ const HEALTH_LITERACY = {
     {
       name: 'Accessing Accurate Medical Information',
       description:
-        'Talking to patient re where to find reputable resources for medical information'
+        'Talking to patient re where to find reputable resources for medical information',
     },
     {
       name: 'Assessment: Understanding Treatment Options, Diagnosis',
-      description: 'Understanding of illness, if it is a values assessment track under ACP instead'
+      description:
+        'Understanding of illness, if it is a values assessment track under ACP instead',
     },
     {
       name: 'Assisting: Talking to Healthcare Team',
       description:
-        'Communication assistance between patient and MD, RN, MA, PSC, etc. to clarify treatment plan or other needs, including coaching, informing, strategizing communication with clinical team, helping patient to formulate questions'
-    }
-  ])
+        'Communication assistance between patient and MD, RN, MA, PSC, etc. to clarify treatment plan or other needs, including coaching, informing, strategizing communication with clinical team, helping patient to formulate questions',
+    },
+  ]),
 };
 
 const MENTAL_HEALTH = {
@@ -417,62 +419,62 @@ const MENTAL_HEALTH = {
     {
       name: 'ACT',
       description:
-        'Metaphors, reflective listening, identifying feelings and feelings are not defining, "and" not "but," mindfulness techniques for noticing feelings'
+        'Metaphors, reflective listening, identifying feelings and feelings are not defining, "and" not "but," mindfulness techniques for noticing feelings',
     },
     {
       name: 'CBT',
       description:
-        'Worksheets, behavioral activation, connecting thought/emotion and behaviors, education regarding cognitive distortions, insomnia/pain/relaxation techniques, cognitive reframing'
+        'Worksheets, behavioral activation, connecting thought/emotion and behaviors, education regarding cognitive distortions, insomnia/pain/relaxation techniques, cognitive reframing',
     },
     {
       name: 'Grief',
       description:
-        'Validation of feelings/loss, reflective listening, coping/adapting, rituals, narrative, many types of loss, can be anticipatory, legacy work, meaning making, remembering, holding space'
+        'Validation of feelings/loss, reflective listening, coping/adapting, rituals, narrative, many types of loss, can be anticipatory, legacy work, meaning making, remembering, holding space',
     },
     {
       name: 'Mindfulness',
       description:
-        'Skill building, guided imagery, relaxation response, body scan, breathing techniques, meditation, noticing/acknowledging, non-judgmental awareness, present-based, anxiety reduction'
+        'Skill building, guided imagery, relaxation response, body scan, breathing techniques, meditation, noticing/acknowledging, non-judgmental awareness, present-based, anxiety reduction',
     },
     {
       name: 'Motivational Interviewing',
       description:
-        'Reflections, scaling, change, SMART goals, patient-led, Listening for Change: Desire for change, Ability to change, Reasons to change, Needing to change, Commitment to change, Activation re willingness to change, Taking steps toward change, identifying barriers and strengths'
+        'Reflections, scaling, change, SMART goals, patient-led, Listening for Change: Desire for change, Ability to change, Reasons to change, Needing to change, Commitment to change, Activation re willingness to change, Taking steps toward change, identifying barriers and strengths',
     },
     {
       name: 'Narrative',
       description:
-        'Meaning/value/purpose, life review, acknowledge rich history, telling cancer story, understanding of illness, palliative, goals of care, exploration of values, cultural context, reframing the story and offering alternative narrative via externalizing'
+        'Meaning/value/purpose, life review, acknowledge rich history, telling cancer story, understanding of illness, palliative, goals of care, exploration of values, cultural context, reframing the story and offering alternative narrative via externalizing',
     },
     {
       name: 'Psycho-Education',
       description:
-        'Educational information, grief versus depression, inflammatory process, parenting and aging developmental stages, sleep hygiene, practical, pain, normalizing, support groups/counseling, social work intro, suicide awareness, PHQ/GAD review, evaluating understanding'
+        'Educational information, grief versus depression, inflammatory process, parenting and aging developmental stages, sleep hygiene, practical, pain, normalizing, support groups/counseling, social work intro, suicide awareness, PHQ/GAD review, evaluating understanding',
     },
     {
       name: 'SMART',
       description:
-        'SMART participants should mark when using SMART techniques one on one with a patient'
+        'SMART participants should mark when using SMART techniques one on one with a patient',
     },
     {
       name: 'Solution-Focused',
       description:
-        'Present/future focused, goal oriented, identifying strengths/barriers to goals, scaling, miracle question, brief, prioritizing, problem-solving, specific to identified problem, measurable outcomes'
+        'Present/future focused, goal oriented, identifying strengths/barriers to goals, scaling, miracle question, brief, prioritizing, problem-solving, specific to identified problem, measurable outcomes',
     },
     {
       name: 'Other Psychotherapy Techniques',
       description: '',
-      fieldName: 'otherMentalHealthIntervention'
-    }
-  ])
+      fieldName: 'otherMentalHealthIntervention',
+    },
+  ]),
 };
 
 export const MENTAL_HEALTH_INTERVENTION_NAMES = MENTAL_HEALTH.interventions.map(
-  intervention => intervention.name
+  (intervention) => intervention.name
 );
 
 export const MENTAL_HEALTH_FIELD_NAMES = MENTAL_HEALTH.interventions.map(
-  intervention => intervention.fieldName
+  (intervention) => intervention.fieldName
 );
 
 export const interventionGroups: Array<Array<InterventionGroup>> = [
@@ -480,21 +482,23 @@ export const interventionGroups: Array<Array<InterventionGroup>> = [
 
   [ADVANCED_CARE_PLANNING, FAMILY, PSYCHOLOGICAL, MENTAL_HEALTH],
 
-  [CARE_COORDINATION, FINANCIAL, HEALTH_LITERACY]
+  [CARE_COORDINATION, FINANCIAL, HEALTH_LITERACY],
 ];
+
+console.log({ interventionGroups });
 
 export const _communityInterventionGroups: Array<Array<InterventionGroup>> = [
   [CRISIS, SUPPORT_GROUP],
 
   [SOCIAL_PRACTICAL, FAMILY],
 
-  [CARE_COORDINATION, FINANCIAL]
+  [CARE_COORDINATION, FINANCIAL],
 ];
 
-export const communityInterventionGroups = _communityInterventionGroups.map(column =>
-  column.map(group => ({
+export const communityInterventionGroups = _communityInterventionGroups.map((column) =>
+  column.map((group) => ({
     ...group,
-    interventions: group.interventions.filter(intervention => intervention.community)
+    interventions: group.interventions.filter((intervention) => intervention.community),
   }))
 );
 
@@ -506,9 +510,9 @@ export const interventionOptions: InterventionOption[] = [];
 
 export const communityInterventionOptions: InterventionOption[] = [];
 
-interventionGroups.forEach(column => {
-  column.forEach(group => {
-    group.interventions.forEach(intervention => {
+interventionGroups.forEach((column) => {
+  column.forEach((group) => {
+    group.interventions.forEach((intervention) => {
       const option = {
         content: (
           <>
@@ -517,7 +521,7 @@ interventionGroups.forEach(column => {
           </>
         ),
         text: `${intervention.name} ${intervention.description}`,
-        value: intervention.fieldName
+        value: intervention.fieldName,
       };
 
       _interventions.push(intervention);
@@ -639,7 +643,7 @@ export const initialInterventionValues: InitialInterventionValues = {} as Initia
 
 export const communityInitialInterventionValues: InitialCommunityInterventionValues = {} as InitialCommunityInterventionValues;
 
-INTERVENTIONS.forEach(intervention => {
+INTERVENTIONS.forEach((intervention) => {
   if (intervention.scored) {
     initialInterventionValues[`${intervention.fieldName}Score`] = '';
   }
