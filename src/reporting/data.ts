@@ -352,15 +352,15 @@ export function transformEncounter(
     swedishMrn = providenceMapping[providenceMrn];
   }
 
-  const interventions = TYPES_WITH_INTERVENTIONS.includes(encounter.encounterType)
-    ? INTERVENTIONS.reduce(
-        (accumulator: string[], intervention) =>
-          encounter[intervention.fieldName]
-            ? accumulator.concat([intervention.name])
-            : accumulator,
-        []
-      )
-    : [];
+  const interventions: string[] = [];
+
+  if (TYPES_WITH_INTERVENTIONS.includes(encounter.encounterType)) {
+    for (const intervention of INTERVENTIONS) {
+      if (encounter[intervention.fieldName]) {
+        interventions.push(intervention.name);
+      }
+    }
+  }
 
   return {
     ...encounter,
