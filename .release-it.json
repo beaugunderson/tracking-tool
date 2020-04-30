@@ -10,5 +10,7 @@
   "hooks": {
     "before:release": "yarn dist"
   },
-  "npm": false
+  "npm": {
+    "publsh": false
+  }
 }
