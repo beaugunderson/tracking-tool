@@ -1,6 +1,4 @@
-import camelcase from 'camelcase';
 import React from 'react';
-import slugify from 'slugify';
 import { Divider, Form, Header, Radio } from 'semantic-ui-react';
 import {
   EncounterDateField,
@@ -12,10 +10,11 @@ import { EncounterFormProps } from '../types';
 import { find, isEmpty } from 'lodash';
 import { FormikErrors, FormikProps, withFormik } from 'formik';
 import { InfoButtonLabel } from '../InfoButtonLabel';
+import { nameToFieldName } from '../patient-interventions';
 
 function addFieldNames(options: any) {
   return options.map((option: any) => {
-    const fieldName = camelcase(slugify(option.name, { lower: true, remove: /[^a-zA-Z0-9 -]/ }));
+    const fieldName = nameToFieldName(option.name);
 
     return { ...option, fieldName, key: fieldName };
   });
