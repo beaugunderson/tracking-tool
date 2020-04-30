@@ -35,7 +35,7 @@ export const USERNAMES = {
 
   // development users
   beau: 'Beau Gunderson',
-  carynstewart: 'Caryn Stewart'
+  carynstewart: 'Caryn Stewart',
 };
 
 export const INTERNS = [
@@ -49,7 +49,7 @@ export const INTERNS = [
   'n7867222',
   'pughat1',
   'rodney.antonson',
-  'smithk'
+  'smithk',
 ];
 
 export function usernameToName(username: string) {

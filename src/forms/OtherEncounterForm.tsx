@@ -6,7 +6,7 @@ import {
   EncounterDateField,
   EncounterTimeSpentField,
   SubmitButtons,
-  today
+  today,
 } from '../shared-fields';
 import { EncounterFormProps } from '../types';
 import { find, isEmpty } from 'lodash';
@@ -31,7 +31,7 @@ export const OTHER_ENCOUNTER_OPTIONS: Option[] = addFieldNames([
   {
     name: 'Rounding/Tumor Board',
     description:
-      'Rounding with provider(s) when not specific to any one patient; attending tumor board; chart review on multiple patients as part of rounding. If you round with your clinics and later with your pod, or attend tumor board and later round with your clinics, these should be two separate entries'
+      'Rounding with provider(s) when not specific to any one patient; attending tumor board; chart review on multiple patients as part of rounding. If you round with your clinics and later with your pod, or attend tumor board and later round with your clinics, these should be two separate entries',
   },
 
   {
@@ -39,7 +39,7 @@ export const OTHER_ENCOUNTER_OPTIONS: Option[] = addFieldNames([
     description:
       'Use for auditing distress screens for radiation, radiosurgery, or when covering for ' +
       'another clinician if you are dispersing them without following up on any of them. Do not ' +
-      'track this for your own audit'
+      'track this for your own audit',
   },
 
   {
@@ -49,26 +49,26 @@ export const OTHER_ENCOUNTER_OPTIONS: Option[] = addFieldNames([
       '(versus your work on a board), track time spent in preparation for, giving, and in ' +
       'wrap-up of your presentation. This could include presentations for Swedish symposiums, ' +
       'donor groups like Harvey Marine or MI Rotary, at AOSW or SSWLHC conferences, or on a ' +
-      'panel for organizations like PanCan and LLS'
+      'panel for organizations like PanCan and LLS',
   },
 
   {
     name: 'Committee Work',
     description:
-      'Schedules, Share Drive, Meetings on Meetings, Distress Screening, Epic/Documentation, Safety'
+      'Schedules, Share Drive, Meetings on Meetings, Distress Screening, Epic/Documentation, Safety',
   },
 
   { name: 'Project', description: 'Holiday Families, Intern Orientation' },
 
   {
     name: 'SMART Group Facilitation',
-    description: 'To be used for the direct facilitation of a SMART Group'
+    description: 'To be used for the direct facilitation of a SMART Group',
   },
 
   {
     name: 'SMART Planning/Development',
     description:
-      'To be used for program planning and development related to SMART; excludes SMART training'
+      'To be used for program planning and development related to SMART; excludes SMART training',
   },
 
   {
@@ -76,13 +76,13 @@ export const OTHER_ENCOUNTER_OPTIONS: Option[] = addFieldNames([
     description:
       'Includes time in preparation for and participation in Living with Cancer, Caregiver, ' +
       'diagnosis specific groups, CLIMB, Tea for the Soul. Do not include external support ' +
-      'groups unless you facilitate them as part of your job at SCI'
+      'groups unless you facilitate them as part of your job at SCI',
   },
 
   {
     name: 'Community Event/Fundraiser',
-    description: 'Only those you attend as a representative of SCI'
-  }
+    description: 'Only those you attend as a representative of SCI',
+  },
 ]);
 
 export function fieldNameToName(fieldName: string) {
@@ -109,7 +109,7 @@ const INITIAL_VALUES = (): OtherEncounter => ({
   encounterType: 'other',
   location: '',
   timeSpent: '',
-  activity: ''
+  activity: '',
 });
 
 const NUMERIC_FIELDS = ['timeSpent'];
@@ -129,7 +129,7 @@ class UnwrappedOtherEncounterForm extends React.Component<
   OtherEncounterFormState
 > {
   state = {
-    activeInfoButton: null
+    activeInfoButton: null,
   };
 
   handleBlur = (e, data) => this.props.setFieldTouched((data && data.name) || e.target.name, true);
@@ -145,14 +145,14 @@ class UnwrappedOtherEncounterForm extends React.Component<
     this.props.setFieldValue('activity', data.value);
   };
 
-  handleOptionOnMouseEnter = e => {
+  handleOptionOnMouseEnter = (e) => {
     e.persist();
     this.setState({ activeInfoButton: e.target.parentElement.firstChild.name });
   };
 
-  handleOptionOnMouseLeave = e => {
+  handleOptionOnMouseLeave = (e) => {
     e.persist();
-    this.setState(state => {
+    this.setState((state) => {
       if (state.activeInfoButton === e.target.parentElement.firstChild.name) {
         return { activeInfoButton: null } as OtherEncounterFormState;
       }
@@ -182,7 +182,7 @@ class UnwrappedOtherEncounterForm extends React.Component<
 
   render() {
     const { dirty, errors, isSubmitting, onCancel, submitForm, touched, values } = this.props;
-    const options = OTHER_ENCOUNTER_OPTIONS.map(option => this.renderField(option));
+    const options = OTHER_ENCOUNTER_OPTIONS.map((option) => this.renderField(option));
 
     return (
       <Form size="large">
@@ -220,7 +220,7 @@ class UnwrappedOtherEncounterForm extends React.Component<
 }
 
 export const OtherEncounterForm = withFormik<OtherEncounterFormProps, OtherEncounter>({
-  mapPropsToValues: props => {
+  mapPropsToValues: (props) => {
     if (props.encounter) {
       return props.encounter;
     }
@@ -228,16 +228,16 @@ export const OtherEncounterForm = withFormik<OtherEncounterFormProps, OtherEncou
     return INITIAL_VALUES();
   },
 
-  validate: values => {
+  validate: (values) => {
     const errors: FormikErrors<OtherEncounter> = {};
 
-    NUMERIC_FIELDS.forEach(field => {
+    NUMERIC_FIELDS.forEach((field) => {
       if (!/^\d+$/.test(values[field])) {
         errors[field] = 'Field must be a valid number';
       }
     });
 
-    REQUIRED_FIELDS.forEach(field => {
+    REQUIRED_FIELDS.forEach((field) => {
       if (isEmpty(values[field])) {
         errors[field] = 'Field is required';
       }
@@ -264,9 +264,9 @@ export const OtherEncounterForm = withFormik<OtherEncounterFormProps, OtherEncou
       );
     }
 
-    encounters.insert(values, err => {
+    encounters.insert(values, (err) => {
       setSubmitting(false);
       onComplete(err);
     });
-  }
+  },
 })(UnwrappedOtherEncounterForm);

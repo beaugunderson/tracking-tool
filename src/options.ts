@@ -6,7 +6,7 @@ export type option = {
 };
 
 function makeOptions(options: string[]): option[] {
-  return options.map(option => ({ value: option, text: option }));
+  return options.map((option) => ({ value: option, text: option }));
 }
 
 const BREAST_SURGERY = 'Breast Surgery';
@@ -39,7 +39,7 @@ export const CLINICS = [
   PALLIATIVE_CARE,
   RADIATION_ONCOLOGY,
   RADIOSURGERY,
-  THORACIC_SURGERY
+  THORACIC_SURGERY,
 ];
 
 export const CLINIC_OPTIONS = makeOptions(CLINICS);
@@ -56,7 +56,7 @@ export const ENCOUNTER_TYPE_NAMES: EncounterTypeNames = {
   patient: 'Patient',
   community: 'Community',
   staff: 'Staff',
-  other: 'Other'
+  other: 'Other',
 };
 
 const BALLARD = 'Ballard';
@@ -71,7 +71,7 @@ export const LOCATIONS = [BALLARD, CHERRY_HILL, EDMONDS, ISSAQUAH, FIRST_HILL, T
 export const LOCATION_OPTIONS = makeOptions(LOCATIONS);
 
 export const COMMUNITY_LOCATION_OPTIONS = makeOptions(
-  LOCATIONS.filter(location => location !== TRUE_CANCER_CENTER)
+  LOCATIONS.filter((location) => location !== TRUE_CANCER_CENTER)
 );
 
 export const STAGES = makeOptions(['Unknown', 'Early', 'Advanced']);
@@ -87,7 +87,7 @@ export const CLINIC_LOCATIONS = {
     INPATIENT,
     MEDICAL_ONCOLOGY,
     NON_SCI_MD,
-    RADIATION_ONCOLOGY
+    RADIATION_ONCOLOGY,
   ],
 
   [ISSAQUAH]: [
@@ -97,7 +97,7 @@ export const CLINIC_LOCATIONS = {
     MEDICAL_ONCOLOGY,
     NON_SCI_MD,
     RADIATION_ONCOLOGY,
-    THORACIC_SURGERY
+    THORACIC_SURGERY,
   ],
 
   [FIRST_HILL]: [
@@ -111,7 +111,7 @@ export const CLINIC_LOCATIONS = {
     NON_SCI_MD,
     PALLIATIVE_CARE,
     RADIATION_ONCOLOGY,
-    THORACIC_SURGERY
+    THORACIC_SURGERY,
   ],
 
   [TRUE_CANCER_CENTER]: [
@@ -120,11 +120,11 @@ export const CLINIC_LOCATIONS = {
     MEDICAL_ONCOLOGY,
     NON_SCI_MD,
     PALLIATIVE_CARE,
-    RADIATION_ONCOLOGY
-  ]
+    RADIATION_ONCOLOGY,
+  ],
 };
 
-export const CLINIC_LOCATION_OPTIONS = mapValues(CLINIC_LOCATIONS, locations =>
+export const CLINIC_LOCATION_OPTIONS = mapValues(CLINIC_LOCATIONS, (locations) =>
   makeOptions(locations)
 );
 
@@ -141,7 +141,7 @@ export const COMMUNITY = 'Community';
 export enum ROW_TYPE {
   OSW = 'OSW',
   INTERNS = 'Interns',
-  STAFF_SUPPORT = 'Staff Support'
+  STAFF_SUPPORT = 'Staff Support',
 }
 
 export const MONTHLY_REPORT_OPTIONS: [string, string, ROW_TYPE[]][] = [
@@ -198,6 +198,6 @@ export const MONTHLY_REPORT_OPTIONS: [string, string, ROW_TYPE[]][] = [
   [
     TRUE_CANCER_CENTER,
     RADIATION_ONCOLOGY,
-    [ROW_TYPE.OSW, ROW_TYPE.INTERNS, ROW_TYPE.STAFF_SUPPORT]
-  ]
+    [ROW_TYPE.OSW, ROW_TYPE.INTERNS, ROW_TYPE.STAFF_SUPPORT],
+  ],
 ];

@@ -5,7 +5,7 @@ import {
   communityInitialInterventionValues,
   communityInterventionGroups,
   communityInterventionOptions,
-  InitialCommunityInterventionValues
+  InitialCommunityInterventionValues,
 } from '../patient-interventions';
 import {
   EncounterDateField,
@@ -13,7 +13,7 @@ import {
   EncounterNumberOfTasksField,
   EncounterTimeSpentField,
   SubmitButtons,
-  today
+  today,
 } from '../shared-fields';
 import { EncounterFormProps, Intervention } from '../types';
 import { FormikErrors, FormikProps, withFormik } from 'formik';
@@ -37,7 +37,7 @@ const INITIAL_VALUES = (): CommunityEncounter => ({
   location: '',
   numberOfTasks: '',
   timeSpent: '',
-  ...communityInitialInterventionValues
+  ...communityInitialInterventionValues,
 });
 
 const NUMERIC_FIELDS = ['numberOfTasks', 'timeSpent'];
@@ -57,7 +57,7 @@ class UnwrappedCommunityEncounterForm extends React.Component<
   CommunityEncounterFormState
 > {
   state = {
-    activeInfoButton: null
+    activeInfoButton: null,
   };
 
   handleBlur = (e, data) => this.props.setFieldTouched((data && data.name) || e.target.name, true);
@@ -77,13 +77,13 @@ class UnwrappedCommunityEncounterForm extends React.Component<
     e.persist();
     this.setState({
       activeInfoButton: ((e.target as HTMLDivElement).parentElement.firstChild as HTMLInputElement)
-        .name
+        .name,
     });
   };
 
   handleInterventionOnMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
     e.persist();
-    this.setState(state => {
+    this.setState((state) => {
       if (
         state.activeInfoButton ===
         ((e.target as HTMLDivElement).parentElement.firstChild as HTMLInputElement).name
@@ -125,7 +125,7 @@ class UnwrappedCommunityEncounterForm extends React.Component<
               <Form.Group grouped key={`${i}-${j}`}>
                 <label>{group.label}</label>
 
-                {group.interventions.map(intervention => this.renderField(intervention))}
+                {group.interventions.map((intervention) => this.renderField(intervention))}
               </Form.Group>
             );
           })}
@@ -207,7 +207,7 @@ class UnwrappedCommunityEncounterForm extends React.Component<
 }
 
 export const CommunityEncounterForm = withFormik<CommunityEncounterFormProps, CommunityEncounter>({
-  mapPropsToValues: props => {
+  mapPropsToValues: (props) => {
     if (props.encounter) {
       return props.encounter;
     }
@@ -215,16 +215,16 @@ export const CommunityEncounterForm = withFormik<CommunityEncounterFormProps, Co
     return INITIAL_VALUES();
   },
 
-  validate: values => {
+  validate: (values) => {
     const errors: FormikErrors<CommunityEncounter> = {};
 
-    NUMERIC_FIELDS.forEach(field => {
+    NUMERIC_FIELDS.forEach((field) => {
       if (!/^\d+$/.test(values[field])) {
         errors[field] = 'Field must be a number';
       }
     });
 
-    REQUIRED_FIELDS.forEach(field => {
+    REQUIRED_FIELDS.forEach((field) => {
       if (isEmpty(values[field])) {
         errors[field] = 'Field is required';
       }
@@ -251,9 +251,9 @@ export const CommunityEncounterForm = withFormik<CommunityEncounterFormProps, Co
       );
     }
 
-    encounters.insert(values, err => {
+    encounters.insert(values, (err) => {
       setSubmitting(false);
       onComplete(err);
     });
-  }
+  },
 })(UnwrappedCommunityEncounterForm);
