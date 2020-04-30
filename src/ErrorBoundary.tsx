@@ -3,7 +3,7 @@ import { ErrorMessage } from './ErrorMessage';
 
 export class ErrorBoundary extends React.Component<any> {
   state = {
-    error: null
+    error: null,
   };
 
   static getDerivedStateFromError(error: Error) {

@@ -17,7 +17,7 @@
     plugin/declaration-block-no-ignored-properties: true
     plugin/no-unsupported-browser-features:
       - true
-      - browsers: ['Electron 4.0']
+      - browsers: ['Electron 8.0']
         severity: warning
     property-no-vendor-prefix: true
     shorthand-property-no-redundant-values: null

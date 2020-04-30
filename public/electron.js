@@ -3,6 +3,8 @@ const path = require('path');
 const { app, BrowserWindow, dialog, ipcMain, Menu, shell } = require('electron');
 const defaultMenu = require('electron-default-menu');
 
+app.allowRendererProcessReuse = true;
+
 require('electron-context-menu')({ showSaveImageAs: true });
 
 let mainWindow;
@@ -14,10 +16,10 @@ const createWindow = () => {
     minWidth: 400,
     show: false,
     webPreferences: {
-      nodeIntegration: true
+      nodeIntegration: true,
     },
     height: 860,
-    width: 1280
+    width: 1280,
   });
 
   mainWindow.loadURL(
@@ -36,7 +38,7 @@ const createWindow = () => {
     mainWindow = null;
   });
 
-  mainWindow.on('close', async e => {
+  mainWindow.on('close', async (e) => {
     if (!showExitPrompt) {
       return;
     }
@@ -50,7 +52,7 @@ const createWindow = () => {
       cancelId: 1,
       defaultId: 0,
       title: 'Confirm',
-      message: 'Are you sure you want to quit?'
+      message: 'Are you sure you want to quit?',
     });
 
     if (response.response === 0) {

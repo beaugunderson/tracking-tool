@@ -1,16 +1,15 @@
 import './CrisisReport.css';
 import React from 'react';
-import { Button, Icon, Table } from 'semantic-ui-react';
 import { DATE_FORMAT_DISPLAY } from '../constants';
 import { EXCLUDE_STRING_VALUE, transform, TransformedEncounter } from './data';
+import { Icon, Table } from 'semantic-ui-react';
+import { PageLoader } from '../components/PageLoader';
 import { sortBy } from 'lodash';
 import { usernameToName } from '../usernames';
 
 const { clipboard } = window.require('electron');
 
-interface CrisisReportProps {
-  onComplete: () => void;
-}
+interface CrisisReportProps {}
 
 interface CrisisReportState {
   encounters: TransformedEncounter[] | null;
@@ -18,7 +17,7 @@ interface CrisisReportState {
 
 export class CrisisReport extends React.Component<CrisisReportProps, CrisisReportState> {
   state: CrisisReportState = {
-    encounters: null
+    encounters: null,
   };
 
   async componentDidMount() {
@@ -29,11 +28,11 @@ export class CrisisReport extends React.Component<CrisisReportProps, CrisisRepor
     const { encounters } = this.state;
 
     if (!encounters) {
-      return null;
+      return <PageLoader />;
     }
 
     const crisisEncounters = sortBy(
-      encounters.filter(encounter => {
+      encounters.filter((encounter) => {
         if (encounter.encounterType !== 'patient') {
           return false;
         }
@@ -59,10 +58,6 @@ export class CrisisReport extends React.Component<CrisisReportProps, CrisisRepor
 
     return (
       <>
-        <div>
-          <Button onClick={() => this.props.onComplete()}>Back</Button>
-        </div>
-
         <Table>
           <Table.Header>
             <Table.Row>

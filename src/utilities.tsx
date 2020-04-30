@@ -20,7 +20,7 @@ export function metaphones(name: string): string[] {
     .replace(/,/g, '')
     .replace(/\s+/g, ' ')
     .split(' ')
-    .map(part => doubleMetaphone(part)[0]);
+    .map((part) => doubleMetaphone(part)[0]);
 }
 
 function randomInRange(min: number, max: number): number {
@@ -87,7 +87,5 @@ export function obfuscateNumber(number: number | string): string {
 }
 
 export function obfuscateDate(date: string): string {
-  return moment(date)
-    .subtract(DATE_OFFSET, 'days')
-    .format(DATE_FORMAT_DISPLAY);
+  return moment(date).subtract(DATE_OFFSET, 'days').format(DATE_FORMAT_DISPLAY);
 }

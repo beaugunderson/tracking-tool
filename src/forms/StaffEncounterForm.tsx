@@ -7,7 +7,7 @@ import {
   EncounterNumberOfTasksField,
   EncounterTimeSpentField,
   SubmitButtons,
-  today
+  today,
 } from '../shared-fields';
 import { EncounterFormProps } from '../types';
 import { FormikErrors, FormikProps, withFormik } from 'formik';
@@ -33,7 +33,7 @@ const INITIAL_VALUES = (): StaffEncounter => ({
   encounterType: 'staff',
   location: '',
   numberOfTasks: '',
-  timeSpent: ''
+  timeSpent: '',
 });
 
 const NUMERIC_FIELDS = ['numberOfTasks', 'timeSpent'];
@@ -119,7 +119,7 @@ class UnwrappedStaffEncounterForm extends React.Component<
 }
 
 export const StaffEncounterForm = withFormik<StaffEncounterFormProps, StaffEncounter>({
-  mapPropsToValues: props => {
+  mapPropsToValues: (props) => {
     if (props.encounter) {
       return props.encounter;
     }
@@ -127,16 +127,16 @@ export const StaffEncounterForm = withFormik<StaffEncounterFormProps, StaffEncou
     return INITIAL_VALUES();
   },
 
-  validate: values => {
+  validate: (values) => {
     const errors: FormikErrors<StaffEncounter> = {};
 
-    NUMERIC_FIELDS.forEach(field => {
+    NUMERIC_FIELDS.forEach((field) => {
       if (!/^\d+$/.test(values[field])) {
         errors[field] = 'Field must be a number';
       }
     });
 
-    REQUIRED_FIELDS.forEach(field => {
+    REQUIRED_FIELDS.forEach((field) => {
       if (isEmpty(values[field])) {
         errors[field] = 'Field is required';
       }
@@ -163,9 +163,9 @@ export const StaffEncounterForm = withFormik<StaffEncounterFormProps, StaffEncou
       );
     }
 
-    encounters.insert(values, err => {
+    encounters.insert(values, (err) => {
       setSubmitting(false);
       onComplete(err);
     });
-  }
+  },
 })(UnwrappedStaffEncounterForm);

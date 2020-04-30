@@ -7,7 +7,7 @@ const path = electron.remote.require('path');
 
 export const DEFAULT_PATHS = [
   'S:\\PublicWorkGroups\\Social Workers\\Staff\\Tracking tool and Instructions\\2019',
-  'G:\\SCI\\PublicWorkGroups\\Social Workers\\Staff\\Tracking tool and Instructions\\2019'
+  'G:\\SCI\\PublicWorkGroups\\Social Workers\\Staff\\Tracking tool and Instructions\\2019',
 ];
 
 export const store = new Store();

@@ -1,17 +1,16 @@
 import moment from 'moment';
 import React from 'react';
-import { Button, Icon, Table } from 'semantic-ui-react';
 import { DATE_FORMAT_DISPLAY, FIRST_TRACKING_DATE, OLDEST_POSSIBLE_AGE } from '../constants';
 import { ENCOUNTER_TYPE_NAMES } from '../options';
 import { EXCLUDE_STRING_VALUE, transform, TransformedEncounter } from './data';
+import { Icon, Table } from 'semantic-ui-react';
+import { PageLoader } from '../components/PageLoader';
 import { sortBy } from 'lodash';
 import { usernameToName } from '../usernames';
 
 const { clipboard } = window.require('electron');
 
-interface DataAuditReportProps {
-  onComplete: () => void;
-}
+interface DataAuditReportProps {}
 
 interface DataAuditReportState {
   encounters: TransformedEncounter[] | null;
@@ -19,7 +18,7 @@ interface DataAuditReportState {
 
 export class DataAuditReport extends React.Component<DataAuditReportProps, DataAuditReportState> {
   state: DataAuditReportState = {
-    encounters: null
+    encounters: null,
   };
 
   async componentDidMount() {
@@ -30,7 +29,7 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
     const { encounters } = this.state;
 
     if (!encounters) {
-      return null;
+      return <PageLoader />;
     }
 
     const now = moment();
@@ -66,7 +65,7 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
     }
 
     const abnormalEncounters = sortBy(
-      encounters.filter(encounter => {
+      encounters.filter((encounter) => {
         if (encounter.encounterType !== 'patient' && encounter.encounterType !== 'other') {
           return false;
         }
@@ -84,10 +83,6 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
 
     return (
       <>
-        <div>
-          <Button onClick={() => this.props.onComplete()}>Back</Button>
-        </div>
-
         <h2>{abnormalEncounters.length} abnormal entries</h2>
 
         <Table>

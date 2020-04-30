@@ -115,10 +115,10 @@ export const RAW_DOCTORS = [
   { text: 'Yan, Fengting' },
   { text: 'Zhao, Song' },
   { text: 'Zucker, David' },
-  { text: 'Unassigned' }
+  { text: 'Unassigned' },
 ];
 
-export const DOCTORS: Doctor[] = RAW_DOCTORS.map(doctor => ({
+export const DOCTORS: Doctor[] = RAW_DOCTORS.map((doctor) => ({
   ...doctor,
-  value: doctor.value || doctor.text
+  value: doctor.value || doctor.text,
 }));

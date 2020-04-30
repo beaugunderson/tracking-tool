@@ -6,7 +6,7 @@ import {
   metaphones,
   obfuscateDate,
   obfuscateNumber,
-  obfuscateString
+  obfuscateString,
 } from '../utilities';
 import { Button, Checkbox, Input, Radio, Table } from 'semantic-ui-react';
 import { copyFixFile, EXCLUDE_STRING_VALUE, transform, TransformedEncounter } from './data';
@@ -15,6 +15,7 @@ import { each, sortBy } from 'lodash';
 import { ensureFixesDirectoryExists } from '../store';
 import { ErrorMessage } from '../ErrorMessage';
 import { Fix, getFixes, openFixes } from '../data';
+import { PageLoader } from '../components/PageLoader';
 import { usernameToName } from '../usernames';
 
 function needsMatching(encounters: TransformedEncounter[]) {
@@ -58,12 +59,10 @@ function needsMatching(encounters: TransformedEncounter[]) {
 
 enum MODE {
   MAKE_FIXES = 'MAKE_FIXES',
-  SHOW_FIXES = 'SHOW_FIXES'
+  SHOW_FIXES = 'SHOW_FIXES',
 }
 
-interface LinkMrnReportProps {
-  onComplete: (err?: Error) => void;
-}
+interface LinkMrnReportProps {}
 
 interface LinkMrnReportState {
   changedRows: {};
@@ -72,7 +71,6 @@ interface LinkMrnReportState {
   fixes: Fix[];
   mode: MODE;
   mrnInferenceEnabled: boolean;
-  loading: boolean;
   obfuscated: boolean;
 }
 
@@ -86,22 +84,21 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
     fixes: [],
     mode: MODE.MAKE_FIXES,
     mrnInferenceEnabled: true,
-    loading: true,
-    obfuscated: false
+    obfuscated: false,
   };
 
   async loadEncounters(mapMrns: boolean) {
-    const allEncounters = await transform(mapMrns);
-    const encounters = allEncounters.filter(encounter => encounter.encounterType === 'patient');
+    this.setState({ encounters: null, fixes: null }, async () => {
+      const allEncounters = await transform(mapMrns);
+      const encounters = allEncounters.filter(
+        (encounter) => encounter.encounterType === 'patient'
+      );
 
-    const fixFile = await copyFixFile();
-    const fixes = await getFixes(fixFile.file);
+      const fixFile = await copyFixFile();
+      const fixes = await getFixes(fixFile.file);
 
-    try {
-      this.setState({ encounters, fixes, loading: false });
-    } catch (e) {
-      this.props.onComplete(e);
-    }
+      this.setState({ encounters, fixes });
+    });
   }
 
   async componentDidMount() {
@@ -113,20 +110,18 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
   }
 
   render() {
-    const { error, loading, mode, mrnInferenceEnabled, obfuscated } = this.state;
+    const { encounters, error, mode, mrnInferenceEnabled, obfuscated } = this.state;
 
     if (error) {
       return <ErrorMessage error={error} />;
     }
 
-    if (loading) {
-      return <h1>Loading encounters...</h1>;
+    if (!encounters) {
+      return <PageLoader />;
     }
 
     const header = (
       <div>
-        <Button onClick={() => this.props.onComplete()}>Back</Button>
-        &nbsp;&nbsp;&nbsp;
         <Checkbox
           checked={obfuscated}
           label="Obfuscate results"
@@ -138,9 +133,8 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
           label="Enable MRN inference"
           onClick={() => {
             this.setState(
-              state => ({
+              (state) => ({
                 mrnInferenceEnabled: !state.mrnInferenceEnabled,
-                loading: true
               }),
               async () => {
                 await this.loadEncounters(this.state.mrnInferenceEnabled);
@@ -199,7 +193,7 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
 
     const pendingMatches: TransformedEncounter[][] = [];
 
-    each(byDOB, dobEncounters => {
+    each(byDOB, (dobEncounters) => {
       const sets = [];
       const encountersCopy = dobEncounters.slice();
 
@@ -231,7 +225,7 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
         sets.push(currentSet);
       }
 
-      sets.forEach(set => {
+      sets.forEach((set) => {
         if (needsMatching(set)) {
           pendingMatches.push(set);
         }
@@ -255,7 +249,7 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
                   <Table.HeaderCell width={2}>Date of Birth</Table.HeaderCell>
                   <Table.HeaderCell width={2}>Providence MRN</Table.HeaderCell>
                   <Table.HeaderCell width={2}>Swedish MRN</Table.HeaderCell>
-                  <Table.HeaderCell width={1}></Table.HeaderCell>
+                  <Table.HeaderCell width={1} />
                 </Table.Row>
               </Table.Header>
 
@@ -291,9 +285,9 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
                                   ...changedRows,
                                   [match.uniqueId]: {
                                     ...changedRows[match.uniqueId],
-                                    providenceMrn: data.value
-                                  }
-                                }
+                                    providenceMrn: data.value,
+                                  },
+                                },
                               })
                             }
                           />
@@ -311,9 +305,9 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
                                   ...changedRows,
                                   [match.uniqueId]: {
                                     ...changedRows[match.uniqueId],
-                                    mrn: data.value
-                                  }
-                                }
+                                    mrn: data.value,
+                                  },
+                                },
                               })
                             }
                           />
@@ -345,7 +339,7 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
                                 record.providenceMrn = changedRows[match.uniqueId].providenceMrn;
                               }
 
-                              this.fixes.insert(record, err => this.setState({ error: err }));
+                              this.fixes.insert(record, (err) => this.setState({ error: err }));
                             }}
                             primary
                           >

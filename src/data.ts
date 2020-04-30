@@ -42,9 +42,9 @@ const migrations: Migration[] = [
           encounter.valuesAssessment ||
           encounter.advancedIllness ||
           encounter.formCompletion ||
-          false
+          false,
       };
-    }
+    },
   },
 
   {
@@ -59,12 +59,12 @@ const migrations: Migration[] = [
           ...encounter,
 
           // then subtract 100 years, as it was likely specified in ambiguous two-digit format
-          dateOfBirth: dateOfBirth.subtract(100, 'years').format(DATE_FORMAT_DATABASE)
+          dateOfBirth: dateOfBirth.subtract(100, 'years').format(DATE_FORMAT_DATABASE),
         };
       }
 
       return encounter;
-    }
+    },
   },
 
   {
@@ -75,12 +75,12 @@ const migrations: Migration[] = [
       if (encounter.externalSupportiveCare && !encounter.otherCommunityResources) {
         return {
           ...encounter,
-          otherCommunityResources: true
+          otherCommunityResources: true,
         };
       }
 
       return encounter;
-    }
+    },
   },
 
   {
@@ -91,13 +91,13 @@ const migrations: Migration[] = [
       if (encounter.externalSupportiveCare && !encounter.otherCommunityResources) {
         return {
           ...encounter,
-          otherCommunityResources: true
+          otherCommunityResources: true,
         };
       }
 
       return encounter;
-    }
-  }
+    },
+  },
 ];
 
 export const openEncounters = (cb: (err: Error, dataStore: Nedb) => void): void => {
@@ -107,7 +107,7 @@ export const openEncounters = (cb: (err: Error, dataStore: Nedb) => void): void 
       return a.toLowerCase().localeCompare(b.toLowerCase());
     },
     filename: userFilePath('encounters.json'),
-    timestampData: true
+    timestampData: true,
   });
 
   applyMigrations(dataStore, cb);
@@ -120,7 +120,7 @@ export const openFixes = () => {
       return a.toLowerCase().localeCompare(b.toLowerCase());
     },
     filename: fixesFilePath('fixes.json'),
-    timestampData: true
+    timestampData: true,
   });
 };
 
@@ -130,7 +130,7 @@ export async function getFixes(filename: string): Promise<Fix[]> {
   const dataStore: Nedb = new DataStore({
     autoload: true,
     filename,
-    timestampData: true
+    timestampData: true,
   });
 
   return new Promise((resolve, reject) => {
@@ -180,7 +180,7 @@ function applyMigration(
         cbEachEncounter();
       }
     },
-    encounterError => {
+    (encounterError) => {
       if (encounterError) {
         return cbEachMigration(encounterError);
       }
@@ -219,7 +219,7 @@ export function applyMigrations(dataStore: Nedb, cb: (err: Error, dataStore: Ned
         );
       });
     },
-    migrationError => {
+    (migrationError) => {
       cb(migrationError, dataStore);
     }
   );

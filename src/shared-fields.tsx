@@ -4,7 +4,7 @@ import {
   CLINIC_LOCATION_OPTIONS,
   CLINIC_LOCATION_STAFF_OPTIONS,
   LOCATION_OPTIONS,
-  option
+  option,
 } from './options';
 import { DATE_FORMAT_DATABASE } from './constants';
 import { Dropdown, Form, Input, Popup } from 'semantic-ui-react';
@@ -48,7 +48,7 @@ type EncounterLocationFieldProps = FieldProps & {
 
 export class EncounterLocationField extends React.Component<EncounterLocationFieldProps> {
   static defaultProps = {
-    locations: LOCATION_OPTIONS
+    locations: LOCATION_OPTIONS,
   };
 
   render() {

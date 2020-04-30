@@ -33,7 +33,7 @@ export class FirstTimeSetup extends React.Component<FirstTimeSetupProps, FirstTi
   handleChooseClick = () => {
     const selectedPaths = electron.remote.dialog.showOpenDialog({
       buttonLabel: 'Choose Directory',
-      properties: ['openDirectory']
+      properties: ['openDirectory'],
     });
 
     if (isEmpty(selectedPaths)) {
