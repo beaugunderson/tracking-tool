@@ -159,6 +159,13 @@ body {
   }
 }
 
+$button-color: #bbb;
+
+$button-hover: darken($button-color, 10%);
+$button-active: darken($button-color, 50%);
+
+$button-spacer: lighten($button-color, 10%);
+
 #navigation,
 #form-navigation,
 #report-navigation {
@@ -171,17 +178,17 @@ body {
     width: 10em;
     padding: 1.5em 1.5em;
     text-align: center;
-    background-color: #999;
+    background-color: $button-color;
     white-space: nowrap;
     cursor: pointer;
 
     &:hover {
-      background-color: #666;
+      background-color: $button-hover;
     }
 
     &.active {
+      background-color: $button-active;
       color: #fff;
-      background-color: #333;
 
       &:hover {
         background-color: #333;
@@ -194,7 +201,7 @@ body {
   }
 
   .spacer {
-    background-color: #aaa;
+    background-color: $button-spacer;
     flex-grow: 0.5;
   }
 }
