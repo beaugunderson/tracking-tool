@@ -25,7 +25,7 @@ type InterventionGroup = {
   interventions: Intervention[];
 };
 
-function nameToFieldName(name: string) {
+export function nameToFieldName(name: string) {
   return camelcase(slugify(name, { lower: true, remove: /[^a-zA-Z0-9 -]/, strict: true }));
 }
 
@@ -484,8 +484,6 @@ export const interventionGroups: Array<Array<InterventionGroup>> = [
 
   [CARE_COORDINATION, FINANCIAL, HEALTH_LITERACY],
 ];
-
-console.log({ interventionGroups });
 
 export const _communityInterventionGroups: Array<Array<InterventionGroup>> = [
   [CRISIS, SUPPORT_GROUP],
