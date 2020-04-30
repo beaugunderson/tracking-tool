@@ -9,5 +9,6 @@
   },
   "hooks": {
     "before:release": "yarn dist"
-  }
+  },
+  "npm": false
 }
