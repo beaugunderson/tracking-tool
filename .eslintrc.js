@@ -4,7 +4,7 @@ module.exports = {
   env: {
     browser: true,
     jest: true,
-    node: true
+    node: true,
   },
 
   parser: '@typescript-eslint/parser',
@@ -16,7 +16,7 @@ module.exports = {
     'react',
     'react-perf',
     'sort-imports-es6-autofix',
-    '@typescript-eslint'
+    '@typescript-eslint',
   ],
 
   extends: ['airbnb', 'prettier', 'prettier/react'],
@@ -24,9 +24,7 @@ module.exports = {
   rules: {
     'array-callback-return': 'off',
     'arrow-body-style': 'off',
-    'arrow-parens': 'off',
     'class-methods-use-this': 'off',
-    'comma-dangle': 'off',
     'consistent-return': 'off',
     'filenames/match-exported': 'error',
     'import/default': 'error',
@@ -50,8 +48,8 @@ module.exports = {
       {
         props: true,
         // allow reassigning evt.target.value
-        ignorePropertyModificationsFor: ['evt']
-      }
+        ignorePropertyModificationsFor: ['evt'],
+      },
     ],
     'no-plusplus': 'off',
     'no-return-assign': 'off',
@@ -66,18 +64,18 @@ module.exports = {
       {
         selector: 'ForInStatement',
         message:
-          'for..in loops iterate over the entire prototype chain, which is virtually never what you want. Use Object.{keys,values,entries}, and iterate over the resulting array.'
+          'for..in loops iterate over the entire prototype chain, which is virtually never what you want. Use Object.{keys,values,entries}, and iterate over the resulting array.',
       },
       {
         selector: 'LabeledStatement',
         message:
-          'Labels are a form of GOTO; using them makes code confusing and hard to maintain and understand'
+          'Labels are a form of GOTO; using them makes code confusing and hard to maintain and understand',
       },
       {
         selector: 'WithStatement',
         message:
-          '`with` is disallowed in strict mode because it makes code impossible to predict and optimize.'
-      }
+          '`with` is disallowed in strict mode because it makes code impossible to predict and optimize.',
+      },
     ],
 
     // JSX
@@ -126,7 +124,7 @@ module.exports = {
     // preferable to built in 'sort-imports' because it handles default imports better and has better auto-fix
     'sort-imports-es6-autofix/sort-imports-es6': [
       'error',
-      { ignoreCase: true, memberSyntaxSortOrder: ['none', 'all', 'single', 'multiple'] }
-    ]
-  }
+      { ignoreCase: true, memberSyntaxSortOrder: ['none', 'all', 'single', 'multiple'] },
+    ],
+  },
 };
