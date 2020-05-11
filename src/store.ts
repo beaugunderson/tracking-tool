@@ -45,19 +45,24 @@ export const ensureFixesDirectoryExists = () => {
   }
 };
 
-export const ensureUserDirectoryExists = () => {
+export const ensureUserDirectoryExists = (statusCb = (line: string) => console.log(line)) => {
+  statusCb(`Checking that "${userDirectoryPath()}" exists`);
   if (!userDirectoryExists()) {
+    statusCb(`Creating "${userDirectoryPath()}"`);
     fs.mkdirSync(userDirectoryPath());
   }
 
+  statusCb(`Checking that "${userBackupPath()}" exists`);
   if (!fs.existsSync(userBackupPath())) {
+    statusCb(`Creating "${userBackupPath()}"`);
     fs.mkdirSync(userBackupPath());
   }
 
+  statusCb(`Checking that "${userFilePath('encounters.json')}" exists`);
   if (fs.existsSync(userFilePath('encounters.json'))) {
-    fs.copyFileSync(
-      userFilePath('encounters.json'),
-      userFilePath('backups', `${new Date().valueOf()}.json`)
-    );
+    const filename = `${new Date().valueOf()}.json`;
+
+    statusCb(`Backing up encounters.json to "${filename}"`);
+    fs.copyFileSync(userFilePath('encounters.json'), userFilePath('backups', filename));
   }
 };

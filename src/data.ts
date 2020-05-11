@@ -100,17 +100,23 @@ const migrations: Migration[] = [
   },
 ];
 
-export const openEncounters = (cb: (err: Error, dataStore: Nedb) => void): void => {
+export const openEncounters = (cb: (err: Error, dataStore: Nedb) => void, statusCb): void => {
+  const filename = userFilePath('encounters.json');
+
+  statusCb(`Opening "${filename}"`);
+
   const dataStore: Nedb = new DataStore({
     autoload: true,
     compareStrings: (a: string, b: string) => {
       return a.toLowerCase().localeCompare(b.toLowerCase());
     },
-    filename: userFilePath('encounters.json'),
+    filename,
     timestampData: true,
   });
 
-  applyMigrations(dataStore, cb);
+  applyMigrations(dataStore, cb, statusCb);
+
+  statusCb('Completed opening encounters');
 };
 
 export const openFixes = () => {
@@ -190,10 +196,17 @@ function applyMigration(
   );
 }
 
-export function applyMigrations(dataStore: Nedb, cb: (err: Error, dataStore: Nedb) => void) {
+export function applyMigrations(
+  dataStore: Nedb,
+  cb: (err: Error, dataStore: Nedb) => void,
+  statusCb = (line: string) => console.log(line)
+) {
+  statusCb(`Applying ${migrations.length} data migrations`);
+
   async.eachSeries(
     migrations,
     (migration, cbEachMigration) => {
+      statusCb(`Applying migration "${migration.id}"`);
       debug('Applying migration "%s"', migration.id);
 
       dataStore.findOne({ migration: migration.id }, {}, (findMigrationError, foundMigration) => {
@@ -202,7 +215,9 @@ export function applyMigrations(dataStore: Nedb, cb: (err: Error, dataStore: Ned
         }
 
         if (foundMigration) {
+          statusCb(`Skipping migration "${migration.id}", already applied`);
           debug('Skipping migration "%s", already applied', migration.id);
+
           return cbEachMigration();
         }
 
@@ -220,6 +235,7 @@ export function applyMigrations(dataStore: Nedb, cb: (err: Error, dataStore: Ned
       });
     },
     (migrationError) => {
+      statusCb(`Migrations complete`);
       cb(migrationError, dataStore);
     }
   );

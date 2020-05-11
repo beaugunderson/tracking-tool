@@ -81,6 +81,7 @@ type AppState = {
   phqs: number;
   // showFormNavigation: boolean;
   showReportNavigation: boolean;
+  status: string[];
 };
 
 export class App extends React.Component<{}, AppState> {
@@ -100,6 +101,7 @@ export class App extends React.Component<{}, AppState> {
     phqs: 0,
     // showFormNavigation: false,
     showReportNavigation: false,
+    status: [],
   };
 
   handleReportsClick = () =>
@@ -193,22 +195,32 @@ export class App extends React.Component<{}, AppState> {
     });
   }
 
+  appendStatus = (line: string) =>
+    this.setState((state) => ({
+      status: [...state.status, line],
+    }));
+
   initialize() {
-    ensureUserDirectoryExists();
+    ensureUserDirectoryExists(this.appendStatus);
 
     openEncounters((error, dataStore) => {
       if (error) {
         return this.setState({ error });
       }
 
+      this.appendStatus('Setting encounters');
+
       this.encounters = dataStore;
 
       // @ts-ignore
       window.createFakeEncounters = () => insertExamples(this.encounters);
 
+      this.appendStatus('Initializing search state');
       this.searchPatients();
+
+      this.appendStatus('Updating assessments');
       this.updateAssessments();
-    });
+    }, this.appendStatus);
   }
 
   componentDidMount() {
@@ -256,14 +268,14 @@ export class App extends React.Component<{}, AppState> {
     this.setState({ page: Page.Encounters }, () => this.initialize());
 
   renderPage() {
-    const { encounter, page, error } = this.state;
+    const { encounter, page, error, status } = this.state;
 
     if (error) {
       return <ErrorMessage error={error} />;
     }
 
     if (!this.encounters) {
-      return <PageLoader />;
+      return <PageLoader status={status} />;
     }
 
     switch (page) {
