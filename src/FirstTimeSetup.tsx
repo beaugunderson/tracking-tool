@@ -30,17 +30,17 @@ type FirstTimeSetupState = {
 export class FirstTimeSetup extends React.Component<FirstTimeSetupProps, FirstTimeSetupState> {
   state: FirstTimeSetupState = {};
 
-  handleChooseClick = () => {
-    const selectedPaths = electron.remote.dialog.showOpenDialog({
+  handleChooseClick = async () => {
+    const dialogResult = await electron.remote.dialog.showOpenDialog({
       buttonLabel: 'Choose Directory',
       properties: ['openDirectory'],
     });
 
-    if (isEmpty(selectedPaths)) {
+    if (dialogResult.canceled || isEmpty(dialogResult.filePaths)) {
       return;
     }
 
-    const [selectedPath] = selectedPaths;
+    const [selectedPath] = dialogResult.filePaths;
 
     const rootFilePath = path.join(selectedPath, ROOT_DIRECTORY_FILE);
 

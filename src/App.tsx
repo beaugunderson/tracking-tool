@@ -200,7 +200,7 @@ export class App extends React.Component<{}, AppState> {
       status: [...state.status, line],
     }));
 
-  initialize() {
+  initialize(cb = () => {}) {
     ensureUserDirectoryExists(this.appendStatus);
 
     openEncounters((error, dataStore) => {
@@ -220,6 +220,8 @@ export class App extends React.Component<{}, AppState> {
 
       this.appendStatus('Updating assessments');
       this.updateAssessments();
+
+      cb();
     }, this.appendStatus);
   }
 
@@ -265,7 +267,7 @@ export class App extends React.Component<{}, AppState> {
   };
 
   handleFirstTimeSetupComplete = () =>
-    this.setState({ page: Page.Encounters }, () => this.initialize());
+    this.initialize(() => this.setState({ page: Page.Encounters }));
 
   renderPage() {
     const { encounter, page, error, status } = this.state;
@@ -279,9 +281,6 @@ export class App extends React.Component<{}, AppState> {
     }
 
     switch (page) {
-      case Page.FirstTimeSetupPage:
-        return <FirstTimeSetup onComplete={this.handleFirstTimeSetupComplete} />;
-
       case Page.ReportCrisis:
         return <CrisisReport />;
 
@@ -371,6 +370,10 @@ export class App extends React.Component<{}, AppState> {
 
   render() {
     const { page, showReportNavigation } = this.state;
+
+    if (page === Page.FirstTimeSetupPage) {
+      return <FirstTimeSetup onComplete={this.handleFirstTimeSetupComplete} />;
+    }
 
     return (
       <>
