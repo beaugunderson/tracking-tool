@@ -5,7 +5,17 @@ import moment from 'moment';
 import React from 'react';
 import { ageYears, parseDate } from '../reporting/data';
 import { chain, escapeRegExp, isEmpty, isNaN } from 'lodash';
-import { Checkbox, Divider, Dropdown, Form, Grid, Header, Input, Ref } from 'semantic-ui-react';
+import {
+  Checkbox,
+  Confirm,
+  Divider,
+  Dropdown,
+  Form,
+  Grid,
+  Header,
+  Input,
+  Ref,
+} from 'semantic-ui-react';
 import {
   DATE_FORMAT_DATABASE,
   DATE_FORMAT_DISPLAY,
@@ -13,7 +23,7 @@ import {
   OLDEST_POSSIBLE_AGE,
 } from '../constants';
 import { DIAGNOSES, STAGES } from '../options';
-import { DOCTORS } from '../doctors';
+import { DOCTORS, isInactive } from '../doctors';
 import {
   EncounterClinicField,
   EncounterDateField,
@@ -188,6 +198,7 @@ type PatientEncounterFormProps = {
 
 type PatientEncounterFormState = {
   activeInfoButton: string | null;
+  confirmingInactiveMd: boolean;
   patientNameIndex: string;
   loadingSearchOptions: boolean;
   patientOptions: {
@@ -207,6 +218,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
 
   state: PatientEncounterFormState = {
     activeInfoButton: null,
+    confirmingInactiveMd: false,
     patientNameIndex: '',
     loadingSearchOptions: false,
     patientOptions: [],
@@ -488,8 +500,20 @@ class UnwrappedPatientEncounterForm extends React.Component<
   handleDateOfBirthRef = (ref) => (this.dateOfBirthRef = ref);
   handlePatientRef = (ref) => (this.patientNameRef = ref);
 
+  cancelConfirmation = () => this.setState({ confirmingInactiveMd: false });
+
+  submit = () => {
+    const { isValid, submitForm, values } = this.props;
+
+    if (values.md.some(isInactive) && isValid) {
+      this.setState({ confirmingInactiveMd: true });
+    } else {
+      submitForm();
+    }
+  };
+
   render() {
-    const { loadingSearchOptions, patientOptions } = this.state;
+    const { confirmingInactiveMd, loadingSearchOptions, patientOptions } = this.state;
     const {
       dirty,
       encounter,
@@ -774,11 +798,20 @@ class UnwrappedPatientEncounterForm extends React.Component<
 
         <Divider hidden />
 
+        <Confirm
+          cancelButton="Change"
+          confirmButton="Continue"
+          content="This provider has been marked as inactive. Do you want to continue or change providers?"
+          onCancel={this.cancelConfirmation}
+          onConfirm={submitForm}
+          open={confirmingInactiveMd}
+        />
+
         <SubmitButtons
           isClean={!dirty}
           isSubmitting={isSubmitting}
           onCancel={onCancel}
-          submitForm={submitForm}
+          submitForm={this.submit}
         />
       </Form>
     );

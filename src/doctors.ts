@@ -1,6 +1,7 @@
 type Doctor = {
   text: string;
   value: string;
+  inactive?: boolean;
 };
 
 export const RAW_DOCTORS = [
@@ -32,7 +33,7 @@ export const RAW_DOCTORS = [
   { text: 'Ellis, Erin' },
   { text: 'Eulau, Stephen' },
   { text: 'Farivar, Alexander' },
-  { text: 'Fer, Mehmet' },
+  { text: 'Fer, Mehmet', inactive: true },
   { text: 'Gilbert, Christopher' },
   { text: 'Glennie, Sonia' },
   { text: 'Gold, Philip' },
@@ -50,7 +51,7 @@ export const RAW_DOCTORS = [
   { text: 'Herbert Aliea' },
   { text: 'Holdread, Heather' },
   { text: 'Johnston, Eileen' },
-  { text: 'Kaplan, Henry (Hank)' },
+  { text: 'Kaplan, Henry (Hank)', inactive: true },
   { text: 'Kim, Namou' },
   { text: 'Kim, Patricia' },
   { text: 'Kratz, Rodney' },
@@ -90,7 +91,7 @@ export const RAW_DOCTORS = [
   { text: 'Pollock, Darren' },
   { text: 'Press, Joshua' },
   { text: 'Ranker, Elizabeth' },
-  { text: 'Rinn, Kristine' },
+  { text: 'Rinn, Kristine', inactive: true },
   { text: 'Robin, Jeffrey' },
   { text: 'Ryu, Lio' },
   { text: 'Shah, Chirag' },
@@ -124,3 +125,11 @@ export const DOCTORS: Doctor[] = RAW_DOCTORS.map((doctor) => ({
   ...doctor,
   value: doctor.value || doctor.text,
 }));
+
+export function isInactive(value: string) {
+  if (DOCTORS.find((doctor) => doctor.value === value && doctor.inactive)) {
+    return true;
+  }
+
+  return false;
+}
