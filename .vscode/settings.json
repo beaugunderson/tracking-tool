@@ -15,5 +15,8 @@
         "dist/**": true,
         "build/**": true,
         "assets/**": true,
+        "tmp/**": true,
+        "**/*.p12": true,
+        "yarn-error.log": true
     }
 }
