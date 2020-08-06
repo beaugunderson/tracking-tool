@@ -11,14 +11,14 @@ import {
 import { Button, Checkbox, Input, Radio, Table } from 'semantic-ui-react';
 import { copyFixFile, EXCLUDE_STRING_VALUE, transform, TransformedEncounter } from './data';
 import { DATE_FORMAT_DISPLAY } from '../constants';
-import { each, sortBy } from 'lodash';
+import { each, groupBy, map, sortBy } from 'lodash';
 import { ensureFixesDirectoryExists } from '../store';
 import { ErrorMessage } from '../ErrorMessage';
 import { Fix, getFixes, openFixes } from '../data';
 import { PageLoader } from '../components/PageLoader';
 import { usernameToName } from '../usernames';
 
-function needsMatching(encounters: TransformedEncounter[]) {
+function hasMultipleMrns(encounters: TransformedEncounter[]) {
   if (encounters.length < 2) {
     return false;
   }
@@ -26,7 +26,7 @@ function needsMatching(encounters: TransformedEncounter[]) {
   const providenceMrns = new Set();
   const swedishMrns = new Set();
 
-  const matches = [];
+  const cooccurrences = [];
 
   for (const encounter of encounters) {
     if (encounter.mrn) {
@@ -38,7 +38,7 @@ function needsMatching(encounters: TransformedEncounter[]) {
     }
 
     if (encounter.mrn && encounter.providenceMrn) {
-      matches.push([encounter.mrn, encounter.providenceMrn]);
+      cooccurrences.push([encounter.mrn, encounter.providenceMrn]);
     }
   }
 
@@ -50,17 +50,141 @@ function needsMatching(encounters: TransformedEncounter[]) {
     return true;
   }
 
-  if (providenceMrns.size === 1 && swedishMrns.size === 1 && !matches.length) {
+  if (providenceMrns.size === 1 && swedishMrns.size === 1 && !cooccurrences.length) {
     return true;
   }
 
   return false;
 }
 
+function hasSingleMrn(encounters: TransformedEncounter[]) {
+  if (encounters.length < 2) {
+    return false;
+  }
+
+  return true;
+}
+
+const similarNames = (a: TransformedEncounter, b: TransformedEncounter) =>
+  arraySimilarity(metaphones(a.patientName), metaphones(b.patientName)) >= 0.6;
+
+const differentBirthDatesOrDissimilarNames = (a: TransformedEncounter, b: TransformedEncounter) =>
+  a.formattedDateOfBirth !== b.formattedDateOfBirth || !similarNames(a, b);
+
+function makeGroups(
+  group: { [name: string]: TransformedEncounter[] },
+  similarityFn: (a: TransformedEncounter, b: TransformedEncounter) => boolean,
+  needsMatchingFn: (encounters: TransformedEncounter[]) => boolean
+) {
+  const pendingMatches: TransformedEncounter[][] = [];
+
+  each(group, (encounters) => {
+    const sets: TransformedEncounter[][] = [];
+    const encountersCopy = encounters.slice();
+
+    while (encountersCopy.length) {
+      const currentSet = [encountersCopy.shift()];
+
+      for (let i = 0; i < encountersCopy.length; i++) {
+        if (!encountersCopy[i]) {
+          continue;
+        }
+
+        if (similarityFn(currentSet[0], encountersCopy[i])) {
+          currentSet.push(encountersCopy[i]);
+          encountersCopy[i] = null;
+        }
+      }
+
+      for (let i = encountersCopy.length - 1; i >= 0; i--) {
+        if (!encountersCopy[i]) {
+          encountersCopy.splice(i, 1);
+        }
+      }
+
+      sets.push(currentSet);
+    }
+
+    sets.forEach((set) => {
+      if (needsMatchingFn(set)) {
+        pendingMatches.push(set);
+      }
+    });
+  });
+
+  return pendingMatches;
+}
+
+function groupName(encounters: TransformedEncounter[]): string {
+  return encounters.map((encounter) => encounter.uniqueId).join('-');
+}
+
+function formatGroups(groups: TransformedEncounter[][], type: string) {
+  return groups.map((encounters) => ({ id: groupName(encounters), encounters, type }));
+}
+
+interface Group {
+  encounters: TransformedEncounter[];
+  id: string;
+  type: string;
+}
+
+export function constructPendingMatchGroups(encounters: TransformedEncounter[]): Group[] {
+  const byDOB = groupBy(
+    encounters.filter((encounter) => encounter.formattedDateOfBirth),
+    'formattedDateOfBirth'
+  );
+
+  const bySwedishMrn = groupBy(
+    encounters.filter((encounter) => encounter.mrn),
+    'mrn'
+  );
+
+  const byProvidenceMrn = groupBy(
+    encounters.filter((encounter) => encounter.providenceMrn),
+    'providenceMrn'
+  );
+
+  const samePatientDifferentMrns = formatGroups(
+    makeGroups(byDOB, similarNames, hasMultipleMrns),
+    'same-patient-different-mrns'
+  );
+
+  const sameSwedishMrnDifferentPatients = formatGroups(
+    makeGroups(bySwedishMrn, differentBirthDatesOrDissimilarNames, hasSingleMrn),
+    'same-swedish-mrn-different-patients'
+  );
+
+  const sameProvidenceMrnDifferentPatients = formatGroups(
+    makeGroups(byProvidenceMrn, differentBirthDatesOrDissimilarNames, hasSingleMrn),
+    'same-providence-mrn-different-patients'
+  );
+
+  const pendingMatches = [
+    ...samePatientDifferentMrns,
+    ...sameSwedishMrnDifferentPatients,
+    ...sameProvidenceMrnDifferentPatients,
+  ];
+
+  const uniqueMatches = {};
+
+  for (const group of pendingMatches) {
+    uniqueMatches[group.id] = group;
+  }
+
+  return Object.values(uniqueMatches);
+}
+
 enum MODE {
   MAKE_FIXES = 'MAKE_FIXES',
   SHOW_FIXES = 'SHOW_FIXES',
 }
+
+const TYPE_MAP = {
+  'same-patient-different-mrns': 'Same patient, different MRNs',
+  'same-swedish-mrn-different-patients': 'Same Swedish MRN, different patients',
+  'same-providence-mrn-different-patients': 'Same Providence MRN, different patients',
+};
 
 interface LinkMrnReportProps {}
 
@@ -168,7 +292,7 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
     return this.renderShowFixes(header);
   }
 
-  renderMakeFixes(header) {
+  renderMakeFixes(header: JSX.Element) {
     const { changedRows, encounters, obfuscated } = this.state;
 
     if (!encounters || encounters.length === 0) {
@@ -181,179 +305,135 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
       );
     }
 
-    const byDOB: { [dob: string]: TransformedEncounter[] } = {};
-
-    for (const encounter of encounters) {
-      if (!byDOB[encounter.formattedDateOfBirth]) {
-        byDOB[encounter.formattedDateOfBirth] = [];
-      }
-
-      byDOB[encounter.formattedDateOfBirth].push(encounter);
-    }
-
-    const pendingMatches: TransformedEncounter[][] = [];
-
-    each(byDOB, (dobEncounters) => {
-      const sets = [];
-      const encountersCopy = dobEncounters.slice();
-
-      while (encountersCopy.length) {
-        const currentSet = [encountersCopy.shift()];
-
-        for (let i = 0; i < encountersCopy.length; i++) {
-          if (!encountersCopy[i]) {
-            continue;
-          }
-
-          const similarity = arraySimilarity(
-            metaphones(currentSet[0].patientName),
-            metaphones(encountersCopy[i].patientName)
-          );
-
-          if (similarity >= 0.6) {
-            currentSet.push(encountersCopy[i]);
-            encountersCopy[i] = null;
-          }
-        }
-
-        for (let i = encountersCopy.length - 1; i >= 0; i--) {
-          if (!encountersCopy[i]) {
-            encountersCopy.splice(i, 1);
-          }
-        }
-
-        sets.push(currentSet);
-      }
-
-      sets.forEach((set) => {
-        if (needsMatching(set)) {
-          pendingMatches.push(set);
-        }
-      });
-    });
+    const pendingMatchGroups = constructPendingMatchGroups(encounters);
+    const pendingMatchGroupsByType = groupBy(pendingMatchGroups, 'type');
 
     return (
       <>
         {header}
 
-        <h2>{pendingMatches.length} groups to match</h2>
+        <h2>{pendingMatchGroups.length} groups to match</h2>
 
-        {pendingMatches.map((matches, i) => {
-          return (
-            <Table key={i}>
-              <Table.Header>
-                <Table.Row>
-                  <Table.HeaderCell width={2}>Social Worker</Table.HeaderCell>
-                  <Table.HeaderCell width={3}>Name</Table.HeaderCell>
-                  <Table.HeaderCell width={2}>Encounter Date</Table.HeaderCell>
-                  <Table.HeaderCell width={2}>Date of Birth</Table.HeaderCell>
-                  <Table.HeaderCell width={2}>Providence MRN</Table.HeaderCell>
-                  <Table.HeaderCell width={2}>Swedish MRN</Table.HeaderCell>
-                  <Table.HeaderCell width={1} />
-                </Table.Row>
-              </Table.Header>
+        {map(pendingMatchGroupsByType, (groups, type) => (
+          <>
+            <h3>{TYPE_MAP[type]}</h3>
 
-              <Table.Body>
-                {sortBy(matches, 'encounterDate').map((match, j) => {
-                  const providenceMrn =
-                    match.providenceMrn === EXCLUDE_STRING_VALUE ? '' : match.providenceMrn;
-                  const mrn = match.mrn === EXCLUDE_STRING_VALUE ? '' : match.mrn;
+            {groups.map((group, i) => (
+              <Table key={i}>
+                <Table.Header>
+                  <Table.Row>
+                    <Table.HeaderCell width={2}>Social Worker</Table.HeaderCell>
+                    <Table.HeaderCell width={3}>Name</Table.HeaderCell>
+                    <Table.HeaderCell width={2}>Encounter Date</Table.HeaderCell>
+                    <Table.HeaderCell width={2}>Date of Birth</Table.HeaderCell>
+                    <Table.HeaderCell width={2}>Providence MRN</Table.HeaderCell>
+                    <Table.HeaderCell width={2}>Swedish MRN</Table.HeaderCell>
+                    <Table.HeaderCell width={1} />
+                  </Table.Row>
+                </Table.Header>
 
-                  return (
-                    <Table.Row key={j}>
-                      <Table.Cell>{usernameToName(match.username)}</Table.Cell>
-                      <Table.Cell>
-                        {obfuscated ? obfuscateString(match.patientName) : match.patientName}
-                      </Table.Cell>
-                      <Table.Cell>
-                        {match.parsedEncounterDate.format(DATE_FORMAT_DISPLAY)}
-                      </Table.Cell>
-                      <Table.Cell>
-                        {obfuscated
-                          ? obfuscateDate(match.formattedDateOfBirth)
-                          : match.formattedDateOfBirth}
-                      </Table.Cell>
-                      <Table.Cell>
-                        {obfuscated ? (
-                          obfuscateNumber(providenceMrn)
-                        ) : (
-                          <Input
-                            defaultValue={providenceMrn}
-                            onChange={(e, data) =>
-                              this.setState({
-                                changedRows: {
-                                  ...changedRows,
-                                  [match.uniqueId]: {
-                                    ...changedRows[match.uniqueId],
-                                    providenceMrn: data.value,
+                <Table.Body>
+                  {sortBy(group.encounters, 'encounterDate').map((match, j) => {
+                    const providenceMrn =
+                      match.providenceMrn === EXCLUDE_STRING_VALUE ? '' : match.providenceMrn;
+                    const mrn = match.mrn === EXCLUDE_STRING_VALUE ? '' : match.mrn;
+
+                    return (
+                      <Table.Row key={j}>
+                        <Table.Cell>{usernameToName(match.username)}</Table.Cell>
+                        <Table.Cell>
+                          {obfuscated ? obfuscateString(match.patientName) : match.patientName}
+                        </Table.Cell>
+                        <Table.Cell>
+                          {match.parsedEncounterDate.format(DATE_FORMAT_DISPLAY)}
+                        </Table.Cell>
+                        <Table.Cell>
+                          {obfuscated
+                            ? obfuscateDate(match.formattedDateOfBirth)
+                            : match.formattedDateOfBirth}
+                        </Table.Cell>
+                        <Table.Cell>
+                          {obfuscated ? (
+                            obfuscateNumber(providenceMrn)
+                          ) : (
+                            <Input
+                              defaultValue={providenceMrn}
+                              onChange={(e, data) =>
+                                this.setState({
+                                  changedRows: {
+                                    ...changedRows,
+                                    [match.uniqueId]: {
+                                      ...changedRows[match.uniqueId],
+                                      providenceMrn: data.value,
+                                    },
                                   },
-                                },
-                              })
-                            }
-                          />
-                        )}
-                      </Table.Cell>
-                      <Table.Cell>
-                        {obfuscated ? (
-                          obfuscateNumber(mrn)
-                        ) : (
-                          <Input
-                            defaultValue={mrn}
-                            onChange={(e, data) =>
-                              this.setState({
-                                changedRows: {
-                                  ...changedRows,
-                                  [match.uniqueId]: {
-                                    ...changedRows[match.uniqueId],
-                                    mrn: data.value,
+                                })
+                              }
+                            />
+                          )}
+                        </Table.Cell>
+                        <Table.Cell>
+                          {obfuscated ? (
+                            obfuscateNumber(mrn)
+                          ) : (
+                            <Input
+                              defaultValue={mrn}
+                              onChange={(e, data) =>
+                                this.setState({
+                                  changedRows: {
+                                    ...changedRows,
+                                    [match.uniqueId]: {
+                                      ...changedRows[match.uniqueId],
+                                      mrn: data.value,
+                                    },
                                   },
-                                },
-                              })
-                            }
-                          />
-                        )}
-                      </Table.Cell>
-                      <Table.Cell>
-                        {!obfuscated && (
-                          <Button
-                            disabled={
-                              !(match.uniqueId in changedRows) ||
-                              ((!('mrn' in changedRows[match.uniqueId]) ||
-                                changedRows[match.uniqueId].mrn === match.mrn) &&
-                                (!('providenceMrn' in changedRows[match.uniqueId]) ||
-                                  changedRows[match.uniqueId].providenceMrn ===
-                                    match.providenceMrn))
-                            }
-                            onClick={() => {
-                              if (!changedRows[match.uniqueId]) {
-                                return;
+                                })
                               }
-
-                              const record: Fix = { uniqueId: match.uniqueId };
-
-                              if (changedRows[match.uniqueId].mrn) {
-                                record.mrn = changedRows[match.uniqueId].mrn;
+                            />
+                          )}
+                        </Table.Cell>
+                        <Table.Cell>
+                          {!obfuscated && (
+                            <Button
+                              disabled={
+                                !(match.uniqueId in changedRows) ||
+                                ((!('mrn' in changedRows[match.uniqueId]) ||
+                                  changedRows[match.uniqueId].mrn === match.mrn) &&
+                                  (!('providenceMrn' in changedRows[match.uniqueId]) ||
+                                    changedRows[match.uniqueId].providenceMrn ===
+                                      match.providenceMrn))
                               }
+                              onClick={() => {
+                                if (!changedRows[match.uniqueId]) {
+                                  return;
+                                }
 
-                              if (changedRows[match.uniqueId].providenceMrn) {
-                                record.providenceMrn = changedRows[match.uniqueId].providenceMrn;
-                              }
+                                const record: Fix = { uniqueId: match.uniqueId };
 
-                              this.fixes.insert(record, (err) => this.setState({ error: err }));
-                            }}
-                            primary
-                          >
-                            Save
-                          </Button>
-                        )}
-                      </Table.Cell>
-                    </Table.Row>
-                  );
-                })}
-              </Table.Body>
-            </Table>
-          );
-        })}
+                                if (changedRows[match.uniqueId].mrn) {
+                                  record.mrn = changedRows[match.uniqueId].mrn;
+                                }
+
+                                if (changedRows[match.uniqueId].providenceMrn) {
+                                  record.providenceMrn = changedRows[match.uniqueId].providenceMrn;
+                                }
+
+                                this.fixes.insert(record, (err) => this.setState({ error: err }));
+                              }}
+                              primary
+                            >
+                              Save
+                            </Button>
+                          )}
+                        </Table.Cell>
+                      </Table.Row>
+                    );
+                  })}
+                </Table.Body>
+              </Table>
+            ))}
+          </>
+        ))}
       </>
     );
   }
