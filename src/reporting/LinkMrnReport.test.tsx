@@ -1,5 +1,5 @@
 import { constructPendingMatchGroups } from './LinkMrnReport';
-import { TransformedEncounter } from './data';
+import { EXCLUDE_STRING_VALUE, TransformedEncounter } from './data';
 
 describe('constructPendingMatches', () => {
   it('should find different MRNs for the same patient', () => {
@@ -51,12 +51,70 @@ describe('constructPendingMatches', () => {
         providenceMrn: 'providence-2',
         patientName: 'Jane Doe',
       },
+
+      {
+        uniqueId: '7',
+        formattedDateOfBirth: '01/01/2008',
+        mrn: EXCLUDE_STRING_VALUE,
+        providenceMrn: 'providence-3',
+        patientName: 'Grumpy Bits',
+      },
+
+      {
+        uniqueId: '8',
+        formattedDateOfBirth: '01/01/2004',
+        mrn: EXCLUDE_STRING_VALUE,
+        providenceMrn: 'providence-4',
+        patientName: 'Jon Jon',
+      },
+
+      {
+        uniqueId: '9',
+        formattedDateOfBirth: '01/01/2003',
+        mrn: 'swedish-3',
+        providenceMrn: EXCLUDE_STRING_VALUE,
+        patientName: 'Jon Bits',
+      },
+
+      {
+        uniqueId: '10',
+        formattedDateOfBirth: '01/01/2000',
+        mrn: 'swedish-4',
+        providenceMrn: EXCLUDE_STRING_VALUE,
+        patientName: 'Jim Grasslawn',
+      },
+
+      {
+        uniqueId: '11',
+        formattedDateOfBirth: '01/01/1998',
+        mrn: 'swedish-5',
+        providenceMrn: EXCLUDE_STRING_VALUE,
+        patientName: 'Buck Challenger',
+      },
+
+      {
+        uniqueId: '12',
+        formattedDateOfBirth: '01/01/1998',
+        mrn: 'swedish-5',
+        providenceMrn: 'providence-5',
+        patientName: 'Buck Challenger',
+      },
+
+      {
+        uniqueId: '13',
+        formattedDateOfBirth: '01/01/1998',
+        mrn: EXCLUDE_STRING_VALUE,
+        providenceMrn: 'providence-5',
+        patientName: 'Buck Challenger',
+      },
     ] as TransformedEncounter[];
 
     const pendingMatches = constructPendingMatchGroups(encounters);
 
     expect(pendingMatches).toEqual([
       {
+        canonicalProvidenceMrn: 'providence-1',
+        canonicalSwedishMrn: 'swedish-1',
         encounters: [
           {
             uniqueId: '1',
@@ -177,6 +235,8 @@ describe('constructPendingMatches', () => {
     expect(pendingMatches).toEqual([
       // same `mrn`
       {
+        canonicalProvidenceMrn: 'providence-1',
+        canonicalSwedishMrn: 'swedish-1',
         encounters: [
           {
             uniqueId: '1',
@@ -200,6 +260,8 @@ describe('constructPendingMatches', () => {
 
       // same `mrn` and `providenceMrn`
       {
+        canonicalProvidenceMrn: 'providence-5',
+        canonicalSwedishMrn: 'swedish-5',
         encounters: [
           {
             uniqueId: '5',
@@ -223,6 +285,8 @@ describe('constructPendingMatches', () => {
 
       // same `providenceMrn`
       {
+        canonicalProvidenceMrn: 'providence-3',
+        canonicalSwedishMrn: 'swedish-3',
         encounters: [
           {
             uniqueId: '3',
@@ -246,6 +310,8 @@ describe('constructPendingMatches', () => {
 
       // same `providenceMrn`, missing swedish `mrn`
       {
+        canonicalProvidenceMrn: 'providence-8',
+        canonicalSwedishMrn: undefined,
         encounters: [
           {
             uniqueId: '9',

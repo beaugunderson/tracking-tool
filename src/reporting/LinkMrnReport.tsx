@@ -9,9 +9,9 @@ import {
   obfuscateString,
 } from '../utilities';
 import { Button, Checkbox, Input, Radio, Table } from 'semantic-ui-react';
+import { chain, countBy, each, groupBy, map, sortBy } from 'lodash';
 import { copyFixFile, EXCLUDE_STRING_VALUE, transform, TransformedEncounter } from './data';
 import { DATE_FORMAT_DISPLAY } from '../constants';
-import { each, groupBy, map, sortBy } from 'lodash';
 import { ensureFixesDirectoryExists } from '../store';
 import { ErrorMessage } from '../ErrorMessage';
 import { Fix, getFixes, openFixes } from '../data';
@@ -19,38 +19,42 @@ import { PageLoader } from '../components/PageLoader';
 import { usernameToName } from '../usernames';
 
 function hasMultipleMrns(encounters: TransformedEncounter[]) {
-  if (encounters.length < 2) {
-    return false;
-  }
-
-  const providenceMrns = new Set();
   const swedishMrns = new Set();
+  const providenceMrns = new Set();
 
   const cooccurrences = [];
 
   for (const encounter of encounters) {
-    if (encounter.mrn) {
-      swedishMrns.add(encounter.mrn);
+    const swedishMrn =
+      encounter.mrn && encounter.mrn !== EXCLUDE_STRING_VALUE ? encounter.mrn : null;
+
+    const providenceMrn =
+      encounter.providenceMrn && encounter.providenceMrn !== EXCLUDE_STRING_VALUE
+        ? encounter.providenceMrn
+        : null;
+
+    if (swedishMrn) {
+      swedishMrns.add(swedishMrn);
     }
 
-    if (encounter.providenceMrn) {
-      providenceMrns.add(encounter.providenceMrn);
+    if (providenceMrn) {
+      providenceMrns.add(providenceMrn);
     }
 
-    if (encounter.mrn && encounter.providenceMrn) {
-      cooccurrences.push([encounter.mrn, encounter.providenceMrn]);
+    if (swedishMrn && providenceMrn) {
+      cooccurrences.push([swedishMrn, providenceMrn]);
     }
-  }
-
-  if (providenceMrns.size > 1) {
-    return true;
   }
 
   if (swedishMrns.size > 1) {
     return true;
   }
 
-  if (providenceMrns.size === 1 && swedishMrns.size === 1 && !cooccurrences.length) {
+  if (providenceMrns.size > 1) {
+    return true;
+  }
+
+  if (swedishMrns.size === 1 && providenceMrns.size === 1 && !cooccurrences.length) {
     return true;
   }
 
@@ -58,11 +62,32 @@ function hasMultipleMrns(encounters: TransformedEncounter[]) {
 }
 
 function hasSingleMrn(encounters: TransformedEncounter[]) {
-  if (encounters.length < 2) {
-    return false;
+  const swedishMrns = new Set();
+  const providenceMrns = new Set();
+
+  for (const encounter of encounters) {
+    const swedishMrn =
+      encounter.mrn && encounter.mrn !== EXCLUDE_STRING_VALUE ? encounter.mrn : null;
+
+    const providenceMrn =
+      encounter.providenceMrn && encounter.providenceMrn !== EXCLUDE_STRING_VALUE
+        ? encounter.providenceMrn
+        : null;
+
+    if (swedishMrn) {
+      swedishMrns.add(swedishMrn);
+    }
+
+    if (providenceMrn) {
+      providenceMrns.add(providenceMrn);
+    }
   }
 
-  return true;
+  if (swedishMrns.size === 1 || providenceMrns.size === 1) {
+    return true;
+  }
+
+  return false;
 }
 
 const similarNames = (a: TransformedEncounter, b: TransformedEncounter) =>
@@ -106,7 +131,7 @@ function makeGroups(
     }
 
     sets.forEach((set) => {
-      if (needsMatchingFn(set)) {
+      if (set.length > 1 && needsMatchingFn(set)) {
         pendingMatches.push(set);
       }
     });
@@ -119,11 +144,40 @@ function groupName(encounters: TransformedEncounter[]): string {
   return encounters.map((encounter) => encounter.uniqueId).join('-');
 }
 
-function formatGroups(groups: TransformedEncounter[][], type: string) {
-  return groups.map((encounters) => ({ id: groupName(encounters), encounters, type }));
+function countByProperty(
+  encounters: TransformedEncounter[],
+  property: 'mrn' | 'providenceMrn'
+): string | null {
+  const top = chain(encounters)
+    .filter((encounter) => encounter[property] && encounter[property] !== EXCLUDE_STRING_VALUE)
+    .countBy(property)
+    .toPairs()
+    .sortBy((pair) => -pair[1])
+    .first()
+    .value();
+
+  if (top) {
+    return top[0] as string;
+  }
+}
+
+function formatGroup(encounters: TransformedEncounter[], type: string): Group {
+  return {
+    canonicalSwedishMrn: countByProperty(encounters, 'mrn'),
+    canonicalProvidenceMrn: countByProperty(encounters, 'providenceMrn'),
+    encounters,
+    id: groupName(encounters),
+    type,
+  };
+}
+
+function formatGroups(groups: TransformedEncounter[][], type: string): Group[] {
+  return groups.map((encounters) => formatGroup(encounters, type));
 }
 
 interface Group {
+  canonicalSwedishMrn: string | null;
+  canonicalProvidenceMrn: string | null;
   encounters: TransformedEncounter[];
   id: string;
   type: string;
@@ -352,7 +406,11 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
                             ? obfuscateDate(match.formattedDateOfBirth)
                             : match.formattedDateOfBirth}
                         </Table.Cell>
-                        <Table.Cell>
+                        <Table.Cell
+                          negative={
+                            providenceMrn && providenceMrn !== group.canonicalProvidenceMrn
+                          }
+                        >
                           {obfuscated ? (
                             obfuscateNumber(providenceMrn)
                           ) : (
@@ -372,7 +430,7 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
                             />
                           )}
                         </Table.Cell>
-                        <Table.Cell>
+                        <Table.Cell negative={mrn && mrn !== group.canonicalSwedishMrn}>
                           {obfuscated ? (
                             obfuscateNumber(mrn)
                           ) : (
