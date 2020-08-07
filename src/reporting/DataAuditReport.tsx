@@ -39,10 +39,12 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
         return false;
       }
 
-      return encounter.parsedEncounterDate
-        .clone()
-        .subtract(OLDEST_POSSIBLE_AGE, 'years')
-        .isAfter(encounter.parsedDateOfBirth);
+      return (
+        encounter.parsedEncounterDate
+          .clone()
+          .subtract(OLDEST_POSSIBLE_AGE, 'years')
+          .isAfter(encounter.parsedDateOfBirth) || encounter.parsedEncounterDate.isAfter(now)
+      );
     }
 
     function abnormalEncounterDate(encounter: TransformedEncounter) {
