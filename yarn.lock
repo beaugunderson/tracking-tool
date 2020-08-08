@@ -2317,6 +2317,11 @@
   dependencies:
     "@types/node" "*"
 
+"@types/levenshtein-edit-distance@^2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@types/levenshtein-edit-distance/-/levenshtein-edit-distance-2.0.1.tgz#4325b322d7d88f1e06038b50525534c64321344a"
+  integrity sha512-qmK5fFd4XOA24jJHmdt9os2LK3Pz2mhb1JNDBz4pxiJvtmCpF2E9HG8dOgwSQOnUYdnWXQRkpVjH2CDZGCe9FA==
+
 "@types/lodash@^4.14.159":
   version "4.14.159"
   resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.159.tgz#61089719dc6fdd9c5cb46efc827f2571d1517065"
@@ -2358,6 +2363,11 @@
   version "2.4.0"
   resolved "https://registry.yarnpkg.com/@types/normalize-package-data/-/normalize-package-data-2.4.0.tgz#e486d0d97396d79beedd0a6e33f4534ff6b4973e"
   integrity sha512-f5j5b/Gf71L+dbqxIpQ4Z2WlmI/mPJ0fOkGGmFgtb6sAu97EPczzbS3/tJKxmcYDj55OX6ssqwDAWOHIYDRDGA==
+
+"@types/parse-full-name@^1.2.0":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@types/parse-full-name/-/parse-full-name-1.2.0.tgz#b604e3f1459ed7c1e66c8e4d7cc233ca9cbf7ceb"
+  integrity sha512-gb5dtds63W80iZWJfDr12qTAoNZ3gnrnRtRvoQWO9n3+ugtcBZmMxa1sam3JtLjc4lNvsl9ma7ujCJmAgBMAbw==
 
 "@types/parse-json@^4.0.0":
   version "4.0.0"
@@ -2415,6 +2425,11 @@
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/@types/unist/-/unist-2.0.3.tgz#9c088679876f374eb5983f150d4787aa6fb32d7e"
   integrity sha512-FvUupuM3rlRsRtCN+fDudtmytGO6iHJuuRKS1Ss0pG5z8oX0diNEw94UEL7hgDbpN94rgaK5R7sWm6RrSkZuAQ==
+
+"@types/xregexp@^4.3.0":
+  version "4.3.0"
+  resolved "https://registry.yarnpkg.com/@types/xregexp/-/xregexp-4.3.0.tgz#e981c9b7281579019cc5740e08d206f3403e029f"
+  integrity sha512-3gJTS9gt27pS7U9q5IVqo4YvKSlkf2ck8ish6etuDj6LIRxkL/2Y8RMUtK/QzvE1Yv2zwWV5yemI2BS0GGGFnA==
 
 "@types/yargs-parser@*":
   version "15.0.0"
@@ -9832,6 +9847,11 @@ levenary@^1.1.1:
   dependencies:
     leven "^3.1.0"
 
+levenshtein-edit-distance@^2.0.5:
+  version "2.0.5"
+  resolved "https://registry.yarnpkg.com/levenshtein-edit-distance/-/levenshtein-edit-distance-2.0.5.tgz#a066eca8afb350e4d9054aed9ffeef66e78ffc83"
+  integrity sha512-Yuraz7QnMX/JENJU1HA6UtdsbhRzoSFnGpVGVryjQgHtl2s/YmVgmNYkVs5yzVZ9aAvQR9wPBUH3lG755ylxGA==
+
 levn@^0.3.0, levn@~0.3.0:
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/levn/-/levn-0.3.0.tgz#3b09924edf9f083c0490fdd4c0bc4421e04764ee"
@@ -11361,6 +11381,11 @@ parse-entities@^2.0.0:
     is-alphanumerical "^1.0.0"
     is-decimal "^1.0.0"
     is-hexadecimal "^1.0.0"
+
+parse-full-name@^1.2.4:
+  version "1.2.4"
+  resolved "https://registry.yarnpkg.com/parse-full-name/-/parse-full-name-1.2.4.tgz#257ce2dfd0393f6b0e8c510a0e4193fb337b5ef9"
+  integrity sha512-Xr1BN+SN97BkcPuqbn/2x5If+ae1eUTX9VE1LqycY9zXxEcOCYqRenw7lh5kX7bNxJnMLEMQOjHGHmmlj8BgmQ==
 
 parse-headers@^2.0.0:
   version "2.0.3"

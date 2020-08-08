@@ -1,6 +1,145 @@
 import doubleMetaphone from 'double-metaphone';
+import levenshtein from 'levenshtein-edit-distance';
 import moment from 'moment';
+import XRegExp from 'xregexp';
 import { DATE_FORMAT_DISPLAY } from './constants';
+import { deburr, endsWith, isString, mapValues, startsWith } from 'lodash';
+import { Name, parseFullName } from 'parse-full-name';
+
+const RE_NON_LETTERS = XRegExp('[^\\pL -]', 'g');
+
+function simplify(string: string) {
+  return deburr(string).toLowerCase().replace(RE_NON_LETTERS, '');
+}
+
+export function nameToParts(name: string): Name {
+  const parsed = parseFullName(name.replace(/,\s*/g, ', '), 'all', false, false);
+  return mapValues(parsed, (value) => (isString(value) ? simplify(value) : value)) as Name;
+}
+
+function substringMatch(a: string, b: string): boolean {
+  return startsWith(a, b) || startsWith(b, a);
+}
+
+function firstNamesMatch(a: Name, b: Name): boolean {
+  return (
+    !a.first ||
+    !b.first ||
+    // handle shortened names like Tim/Timothy
+    startsWith(a.first, b.first) ||
+    startsWith(b.first, a.first) ||
+    // handle when a nickname is used as a first name or vice versa
+    (a.nick && substringMatch(a.nick, b.first)) ||
+    (b.nick && substringMatch(a.first, b.nick)) ||
+    // handle small typos e.g. Jones == Jonas, Jonnes
+    levenshtein(a.first, b.first) < 2
+  );
+}
+
+function middleNamesMatch(a: string, b: string): boolean {
+  const aMiddles = a.split(' ');
+  const bMiddles = b.split(' ');
+
+  if (aMiddles.length === 0 || bMiddles.length === 0) {
+    return true;
+  }
+
+  for (const aMiddle of aMiddles) {
+    for (const bMiddle of bMiddles) {
+      // handle middle initial vs. full middle name
+      if (substringMatch(aMiddle, bMiddle)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+function lastNamesMatch(a: string, b: string) {
+  const aLasts = a.split('-');
+  const bLasts = b.split('-');
+
+  for (const aLast of aLasts) {
+    for (const bLast of bLasts) {
+      if (levenshtein(aLast, bLast) < 2) {
+        return true;
+      }
+    }
+  }
+}
+
+export function _namesRepresentSamePerson(a: string, b: string) {
+  const x = nameToParts(a);
+  const y = nameToParts(b);
+
+  // if no first name, require both to specify nickname or first name to match nickname
+  if (
+    (!x.first && x.nick && !y.nick && !substringMatch(x.nick, y.first)) ||
+    (!y.first && y.nick && !x.nick && !substringMatch(y.nick, x.first))
+  ) {
+    return false;
+  }
+
+  if (
+    firstNamesMatch(x, y) &&
+    middleNamesMatch(x.middle, y.middle) &&
+    lastNamesMatch(x.last, y.last)
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+// const RE_STRICT_NON_LETTERS = XRegExp('(?=[^\\pL]+)', 'g');
+
+const RE_SPLIT_CAPS = XRegExp('(?<=[a-z])(?=[A-Z])', 'g');
+
+function splitSmooshedNames(name: string) {
+  const parts = name.split(RE_SPLIT_CAPS);
+  let unsmooshed = '';
+
+  for (const part of parts) {
+    unsmooshed += part;
+
+    if (!endsWith(part.toLowerCase(), 'mc') && !endsWith(part.toLowerCase(), 'mac')) {
+      unsmooshed += ' ';
+    }
+  }
+
+  return unsmooshed.trim();
+}
+
+const RE_TWO_LAST_NAMES = XRegExp('^\\pL+\\s+\\pL+,');
+const RE_TWO_LAST_NAMES_REPLACE = XRegExp('^(\\pL+)\\s+(\\pL+)(?=,)');
+
+export function getPermutations(name: string) {
+  const permutations = [name];
+  const unsmooshed = splitSmooshedNames(name);
+
+  if (unsmooshed) {
+    permutations.push(unsmooshed);
+
+    if (RE_TWO_LAST_NAMES.test(unsmooshed)) {
+      permutations.push(XRegExp.replace(unsmooshed, RE_TWO_LAST_NAMES_REPLACE, '$1-$2'));
+    }
+  }
+
+  return new Set(permutations);
+}
+
+export function namesRepresentSamePerson(a: string, b: string): boolean {
+  for (const aPermutation of getPermutations(a)) {
+    for (const bPermutation of getPermutations(b)) {
+      if (_namesRepresentSamePerson(aPermutation, bPermutation)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
 
 export function arraySimilarity(a: any[], b: any[]): number {
   let matches = 0;

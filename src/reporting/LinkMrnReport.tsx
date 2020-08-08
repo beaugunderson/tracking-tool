@@ -1,20 +1,19 @@
 import './GridReport.css';
 import moment from 'moment';
 import React from 'react';
-import {
-  arraySimilarity,
-  metaphones,
-  obfuscateDate,
-  obfuscateNumber,
-  obfuscateString,
-} from '../utilities';
 import { Button, Checkbox, Input, Radio, Table } from 'semantic-ui-react';
-import { chain, countBy, each, groupBy, map, sortBy } from 'lodash';
+import { chain, each, groupBy, map, sortBy } from 'lodash';
 import { copyFixFile, EXCLUDE_STRING_VALUE, transform, TransformedEncounter } from './data';
 import { DATE_FORMAT_DISPLAY } from '../constants';
 import { ensureFixesDirectoryExists } from '../store';
 import { ErrorMessage } from '../ErrorMessage';
 import { Fix, getFixes, openFixes } from '../data';
+import {
+  namesRepresentSamePerson,
+  obfuscateDate,
+  obfuscateNumber,
+  obfuscateString,
+} from '../utilities';
 import { PageLoader } from '../components/PageLoader';
 import { usernameToName } from '../usernames';
 
@@ -91,7 +90,7 @@ function hasSingleMrn(encounters: TransformedEncounter[]) {
 }
 
 const similarNames = (a: TransformedEncounter, b: TransformedEncounter) =>
-  arraySimilarity(metaphones(a.patientName), metaphones(b.patientName)) >= 0.6;
+  namesRepresentSamePerson(a.patientName, b.patientName);
 
 const differentBirthDatesOrDissimilarNames = (a: TransformedEncounter, b: TransformedEncounter) =>
   a.formattedDateOfBirth !== b.formattedDateOfBirth || !similarNames(a, b);
