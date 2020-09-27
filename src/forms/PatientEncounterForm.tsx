@@ -262,7 +262,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
         const patientOptions = chain(docs)
           .sortBy('encounterDate')
           .reverse()
-          .uniqBy('mrn')
+          .uniqBy((doc) => doc.providenceMrn || doc.mrn)
           .sortBy('patientName')
           .map(docToOption)
           .value();
