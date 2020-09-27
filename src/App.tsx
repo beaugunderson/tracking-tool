@@ -4,7 +4,7 @@ import className from 'classnames';
 import moment from 'moment';
 import React from 'react';
 import { Button, Confirm, Dropdown, Icon, Input, Statistic, Table } from 'semantic-ui-react';
-import { chain, escapeRegExp, sumBy } from 'lodash';
+import { chain, escapeRegExp, isEqual, sumBy } from 'lodash';
 import { CommunityEncounterForm } from './forms/CommunityEncounterForm';
 import { CrisisReport } from './reporting/CrisisReport';
 import { DataAuditReport } from './reporting/DataAuditReport';
@@ -36,6 +36,10 @@ const canSeeReporting = () =>
   currentUserIn(['beau', 'carynstewart', 'johnss1', 'lindce2', 'nejash1', 'valejd1']);
 
 const DELETE_BUTTON = <Button negative>Delete</Button>;
+
+const DEFAULT_SEARCH_CRITERIA = {
+  encounterType: { $exists: true },
+};
 
 enum Page {
   Encounters = 0,
@@ -136,8 +140,12 @@ export class App extends React.Component<{}, AppState> {
 
     const { encounterSearchDate, encounterSearchPatientName, encounterSearchType } = this.state;
 
-    const criteria: any = {
-      encounterType: { $exists: true },
+    const criteria: {
+      encounterType?: string | { $exists: boolean };
+      patientName?: RegExp;
+      encounterDate?: string;
+    } = {
+      ...DEFAULT_SEARCH_CRITERIA,
     };
 
     if (encounterSearchType !== 'All') {
@@ -157,13 +165,15 @@ export class App extends React.Component<{}, AppState> {
       criteria.encounterDate = encounterSearchMoment.format(DATE_FORMAT_DATABASE);
     }
 
+    const resultsToReturn = isEqual(DEFAULT_SEARCH_CRITERIA, criteria) ? 50 : 500;
+
     this.encounters.find(criteria).exec((err, docs) => {
       const encounters = chain(docs)
         .sortBy('patientName')
         .reverse()
         .sortBy(['encounterDate', 'createdAt'])
         .reverse()
-        .slice(0, 50)
+        .slice(0, resultsToReturn)
         .value();
 
       this.setState({ encounters });
