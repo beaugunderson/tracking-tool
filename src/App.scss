@@ -131,6 +131,12 @@ body {
   right: 0;
 }
 
+@media print {
+  #navigation-wrapper {
+     visibility: hidden;
+  }
+}
+
 #form-navigation,
 #report-navigation {
   border-top: 1px solid #000;
