@@ -135,6 +135,14 @@ body {
   #navigation-wrapper {
      visibility: hidden;
   }
+
+  #page-body {
+    margin-top: 0;
+  }
+
+  #page-body.show-sub-navigation {
+    margin-top: 0;
+  }
 }
 
 #form-navigation,
