@@ -1,10 +1,10 @@
 import './form.css';
-import * as Mousetrap from 'mousetrap';
 import Debug from 'debug';
 import moment from 'moment';
+import Mousetrap from 'mousetrap';
 import React from 'react';
 import { ageYears, parseDate } from '../reporting/data';
-import { chain, escapeRegExp, isEmpty, isNaN } from 'lodash';
+import { chain, escapeRegExp, isEmpty, isNaN, pick } from 'lodash';
 import {
   Checkbox,
   Confirm,
@@ -45,6 +45,8 @@ import {
 } from '../patient-interventions';
 
 const debug = Debug('tracking-tool:patient-encounter-form');
+
+const DOCTOR_OPTIONS = DOCTORS.map((doctor) => pick(doctor, ['text', 'value']));
 
 export type PatientEncounter = InitialInterventionValues & {
   _id?: string;
@@ -656,7 +658,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
           onBlur={this.handleBlur}
           onChange={this.handleChange}
           onClose={this.handleBlur}
-          options={DOCTORS}
+          options={DOCTOR_OPTIONS}
           search
           selection
           value={values.md}

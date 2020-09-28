@@ -389,16 +389,17 @@ export class App extends React.Component<{}, AppState> {
     return (
       <>
         <div
-          id="page-body"
           className={className({
             // 'show-sub-navigation': showFormNavigation || showReportNavigation,
             'show-sub-navigation': showReportNavigation,
           })}
+          key="page-body"
+          id="page-body"
         >
           {this.renderPage()}
         </div>
 
-        <div id="navigation-wrapper">
+        <div id="navigation-wrapper" key="navigation-wrapper">
           <div id="navigation">
             <div
               className={className('navigation-button', {

@@ -14,7 +14,7 @@ export class PageLoader extends React.Component<PageLoaderProps> {
         <Dimmer active inverted>
           <Loader indeterminate inverted size="large">
             Loading encounters...
-            {status && status.map((line) => <div>{line}</div>)}
+            {status && status.map((line, i) => <div key={i}>{line}</div>)}
           </Loader>
         </Dimmer>
       </Segment>

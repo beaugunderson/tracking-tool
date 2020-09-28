@@ -41,6 +41,7 @@ export const USERNAMES = {
 export const INTERNS = [
   'goodmx1',
   'john.d.gonzales',
+  // TODO: will need to add an intern/employee date for interns that become employees
   'jonasa1',
   'kanedp2',
   'maysam1',
