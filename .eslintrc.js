@@ -78,6 +78,10 @@ module.exports = {
       },
     ],
 
+    // https://github.com/typescript-eslint/typescript-eslint/issues/2471
+    'no-shadow': 'off', // replaced by ts-eslint rule below
+    '@typescript-eslint/no-shadow': 'error',
+
     // JSX
     'jsx-a11y/anchor-is-valid': 'off',
     'jsx-a11y/click-events-have-key-events': 'off',
@@ -108,7 +112,7 @@ module.exports = {
     'react/sort-prop-types': ['warn', { ignoreCase: true }],
     'react/state-in-constructor': ['error', 'never'],
 
-    //react-perf
+    // react-perf
     'react-perf/jsx-no-new-object-as-prop': 'warn',
     'react-perf/jsx-no-new-array-as-prop': 'warn',
     'react-perf/jsx-no-new-function-as-prop': 'warn',

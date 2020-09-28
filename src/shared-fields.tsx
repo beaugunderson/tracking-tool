@@ -1,10 +1,12 @@
+/* eslint-disable max-classes-per-file */
+
 import moment from 'moment';
 import React from 'react';
 import {
   CLINIC_LOCATION_OPTIONS,
   CLINIC_LOCATION_STAFF_OPTIONS,
   LOCATION_OPTIONS,
-  option,
+  Option,
 } from './options';
 import { DATE_FORMAT_DATABASE } from './constants';
 import { Dropdown, Form, Input, Popup } from 'semantic-ui-react';
@@ -43,10 +45,11 @@ export class EncounterDateField extends React.Component<FieldProps> {
 }
 
 type EncounterLocationFieldProps = FieldProps & {
-  locations?: option[];
+  locations?: Option[];
 };
 
 export class EncounterLocationField extends React.Component<EncounterLocationFieldProps> {
+  // eslint-disable-next-line react/static-property-placement
   static defaultProps = {
     locations: LOCATION_OPTIONS,
   };

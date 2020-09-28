@@ -1,11 +1,11 @@
 import { mapValues } from 'lodash';
 
-export type option = {
+export type Option = {
   value: string;
   text: string;
 };
 
-function makeOptions(options: string[]): option[] {
+function makeOptions(options: readonly string[]): Option[] {
   return options.map((option) => ({ value: option, text: option }));
 }
 
@@ -40,11 +40,11 @@ export const CLINICS = [
   RADIATION_ONCOLOGY,
   RADIOSURGERY,
   THORACIC_SURGERY,
-];
+] as const;
 
 export const CLINIC_OPTIONS = makeOptions(CLINICS);
 
-export const STAFF_CLINIC_OPTIONS = makeOptions(CLINICS.concat([TREATMENT_CENTER]).sort());
+export const STAFF_CLINIC_OPTIONS = makeOptions([...CLINICS, TREATMENT_CENTER]).sort();
 
 export const DIAGNOSES = makeOptions(['Malignant', 'Benign/Other', 'Unknown']);
 
@@ -57,7 +57,7 @@ export const ENCOUNTER_TYPE_NAMES: EncounterTypeNames = {
   community: 'Community',
   staff: 'Staff',
   other: 'Other',
-};
+} as const;
 
 const BALLARD = 'Ballard';
 const CHERRY_HILL = 'Cherry Hill';
@@ -66,7 +66,14 @@ const ISSAQUAH = 'Issaquah';
 const FIRST_HILL = 'First Hill';
 const TRUE_CANCER_CENTER = 'True Cancer Center';
 
-export const LOCATIONS = [BALLARD, CHERRY_HILL, EDMONDS, ISSAQUAH, FIRST_HILL, TRUE_CANCER_CENTER];
+export const LOCATIONS = [
+  BALLARD,
+  CHERRY_HILL,
+  EDMONDS,
+  ISSAQUAH,
+  FIRST_HILL,
+  TRUE_CANCER_CENTER,
+] as const;
 
 export const LOCATION_OPTIONS = makeOptions(LOCATIONS);
 
@@ -122,7 +129,7 @@ export const CLINIC_LOCATIONS = {
     PALLIATIVE_CARE,
     RADIATION_ONCOLOGY,
   ],
-};
+} as const;
 
 export const CLINIC_LOCATION_OPTIONS = mapValues(CLINIC_LOCATIONS, (locations) =>
   makeOptions(locations)
@@ -131,20 +138,22 @@ export const CLINIC_LOCATION_OPTIONS = mapValues(CLINIC_LOCATIONS, (locations) =
 export const CLINIC_LOCATION_STAFF_OPTIONS = mapValues(CLINIC_LOCATIONS, (locations, clinic) =>
   makeOptions(
     clinic !== CHERRY_HILL && clinic !== TRUE_CANCER_CENTER
-      ? locations.concat([TREATMENT_CENTER])
+      ? [...locations, TREATMENT_CENTER]
       : locations
   )
 );
 
 export const COMMUNITY = 'Community';
 
+// TODO: remove this when we upgrade react-scripts to stable
+// eslint-disable-next-line no-shadow
 export enum ROW_TYPE {
   OSW = 'OSW',
   INTERNS = 'Interns',
   STAFF_SUPPORT = 'Staff Support',
 }
 
-export const MONTHLY_REPORT_OPTIONS: [string, string, ROW_TYPE[]][] = [
+export const MONTHLY_REPORT_OPTIONS = [
   [BALLARD, INPATIENT, [ROW_TYPE.OSW, ROW_TYPE.INTERNS, ROW_TYPE.STAFF_SUPPORT]],
   [BALLARD, MEDICAL_ONCOLOGY, [ROW_TYPE.OSW, ROW_TYPE.INTERNS, ROW_TYPE.STAFF_SUPPORT]],
   [BALLARD, NON_SCI_MD, [ROW_TYPE.OSW, ROW_TYPE.INTERNS, ROW_TYPE.STAFF_SUPPORT]],
@@ -200,4 +209,4 @@ export const MONTHLY_REPORT_OPTIONS: [string, string, ROW_TYPE[]][] = [
     RADIATION_ONCOLOGY,
     [ROW_TYPE.OSW, ROW_TYPE.INTERNS, ROW_TYPE.STAFF_SUPPORT],
   ],
-];
+] as const;

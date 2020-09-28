@@ -57,7 +57,7 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
   rowsForPermutation(
     clinic: string,
     location: string,
-    types: ROW_TYPE[],
+    types: readonly ROW_TYPE[],
     months: Moment.Moment[]
   ) {
     log.debug(`rowsForPemutation: ${clinic}, ${location}, [${types.join(', ')}]`);
@@ -202,8 +202,8 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
           </Table.Header>
 
           <Table.Body>
-            {MONTHLY_REPORT_OPTIONS.map(([location, clinic, type]) =>
-              this.rowsForPermutation(clinic, location, type, months)
+            {MONTHLY_REPORT_OPTIONS.map(([location, clinic, types]) =>
+              this.rowsForPermutation(clinic, location, types, months)
             )}
           </Table.Body>
         </Table>

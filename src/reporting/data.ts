@@ -6,6 +6,7 @@ import { DATE_FORMAT_DATABASE, DATE_FORMAT_DISPLAY } from '../constants';
 import { fixesFilePath, rootPath } from '../store';
 import { INTERVENTIONS } from '../patient-interventions';
 import { PatientEncounter } from '../forms/PatientEncounterForm';
+import type Nedb from 'nedb';
 
 const DataStore = window.require('nedb');
 const fs = window.require('fs');

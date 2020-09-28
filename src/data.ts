@@ -7,6 +7,7 @@ import { fixesFilePath, userFilePath } from './store';
 import { isEqual } from 'lodash';
 import { parseDate } from './reporting/data';
 import { PatientEncounter } from './forms/PatientEncounterForm';
+import type Nedb from 'nedb';
 
 const DataStore = window.require('nedb');
 const debug = Debug('tracking-tool:data');
@@ -196,9 +197,12 @@ function applyMigration(
   );
 }
 
+type MigrationCallback = (err: Error, dataStore: Nedb) => void;
+
 export function applyMigrations(
   dataStore: Nedb,
-  cb: (err: Error, dataStore: Nedb) => void,
+  cb: MigrationCallback,
+  // eslint-disable-next-line no-console
   statusCb = (line: string) => console.log(line)
 ) {
   statusCb(`Applying ${migrations.length} data migrations`);

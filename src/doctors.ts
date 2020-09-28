@@ -1,10 +1,10 @@
 type Doctor = {
   text: string;
-  value: string;
+  value?: string;
   inactive?: boolean;
 };
 
-export const RAW_DOCTORS = [
+export const RAW_DOCTORS: readonly Doctor[] = [
   { text: 'Agena, Joanna' },
   { text: 'Alassas, Mohamed' },
   { text: 'Aye, Ralph' },
@@ -121,7 +121,7 @@ export const RAW_DOCTORS = [
   { text: 'Zhao, Song' },
   { text: 'Zucker, David' },
   { text: 'Unassigned' },
-];
+] as const;
 
 export const DOCTORS: Doctor[] = RAW_DOCTORS.map((doctor) => ({
   ...doctor,

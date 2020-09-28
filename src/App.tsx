@@ -24,6 +24,7 @@ import { PageLoader } from './components/PageLoader';
 import { PatientEncounter, PatientEncounterForm } from './forms/PatientEncounterForm';
 import { StaffEncounterForm } from './forms/StaffEncounterForm';
 import { transformEncounter, transformEncounters } from './reporting/data';
+import type Nedb from 'nedb';
 
 const username = window.require('username');
 

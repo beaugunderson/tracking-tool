@@ -16,6 +16,7 @@ import {
 } from '../utilities';
 import { PageLoader } from '../components/PageLoader';
 import { usernameToName } from '../usernames';
+import type Nedb from 'nedb';
 
 function hasMultipleMrns(encounters: TransformedEncounter[]) {
   const swedishMrns = new Set();
@@ -345,7 +346,7 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
     return this.renderShowFixes(header);
   }
 
-  renderMakeFixes(header: JSX.Element) {
+  renderMakeFixes(header: React.ReactElement) {
     const { changedRows, encounters, obfuscated } = this.state;
 
     if (!encounters || encounters.length === 0) {

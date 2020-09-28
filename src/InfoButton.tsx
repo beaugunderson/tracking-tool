@@ -17,6 +17,7 @@ export class InfoButton extends React.Component<InfoButtonProps> {
     }
 
     return (
+      // eslint-disable-next-line react/jsx-props-no-spreading
       <Popup {...rest} content={content} horizontalOffset={12} on="hover" trigger={HELP_ICON} />
     );
   }

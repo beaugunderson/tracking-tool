@@ -6,6 +6,7 @@ import { DOCTORS } from './doctors';
 import { INITIAL_VALUES, PatientEncounter } from './forms/PatientEncounterForm';
 import { INTERVENTIONS } from './patient-interventions';
 import { sample, sampleSize, times } from 'lodash';
+import type Nedb from 'nedb';
 
 function doctors() {
   return sampleSize(DOCTORS, Math.random() > 0.75 ? 2 : 1).map((doctor) => doctor.value);
