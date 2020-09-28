@@ -2,9 +2,8 @@ import camelcase from 'camelcase';
 import React from 'react';
 import slugify from 'slugify';
 import { Header } from 'semantic-ui-react';
-import { sortBy } from 'lodash';
-
 import { Intervention } from './types';
+import { sortBy } from 'lodash';
 
 type InterventionOption = {
   content: React.ReactNode;

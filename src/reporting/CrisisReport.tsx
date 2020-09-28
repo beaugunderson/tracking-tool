@@ -1,4 +1,3 @@
-import './CrisisReport.css';
 import React from 'react';
 import { DATE_FORMAT_DISPLAY } from '../constants';
 import { EXCLUDE_STRING_VALUE, transform, TransformedEncounter } from './data';
