@@ -42,7 +42,7 @@ export const INTERNS = [
   'goodmx1',
   'john.d.gonzales',
   // TODO: will need to add an intern/employee date for interns that become employees
-  'jonasa1',
+  'jonasa1', // December 7th Sam becomes a non-intern
   'kanedp2',
   'maysam1',
   'montme1',
