@@ -136,7 +136,9 @@ const docToOption = (doc: PatientEncounter) => {
     'data-patient-name': doc.patientName,
 
     // specify a key since Semantic uses the value otherwise and it may not be unique
-    key: `${doc.patientName}-${doc.mrn || doc.providenceMrn}-${doc.dateOfBirth}`,
+    key:
+      doc._id ||
+      `${doc.patientName}-${doc.mrn || 'none'}-${doc.providenceMrn || 'none'}-${doc.dateOfBirth}`,
 
     // the text that's searched by the Dropdown as we type; we add DOB so we can add patients with
     // duplicate names; this is also what's displayed in the Dropdown on change
