@@ -666,14 +666,18 @@ export class App extends React.Component<{}, AppState> {
           onCancel={() => this.setState({ confirmDeletion: null })}
           onConfirm={() => {
             if (this.encounters) {
-              this.encounters.remove({ _id: this.state.confirmDeletion }, {}, (err: Error) => {
-                if (err) {
-                  return this.setState({ error: err });
-                }
+              this.encounters.remove(
+                { _id: this.state.confirmDeletion },
+                {},
+                (err: Error | null) => {
+                  if (err) {
+                    return this.setState({ error: err });
+                  }
 
-                this.searchPatients();
-                this.setState({ confirmDeletion: null });
-              });
+                  this.searchPatients();
+                  this.setState({ confirmDeletion: null });
+                }
+              );
             }
           }}
           open={confirmDeletion !== null}

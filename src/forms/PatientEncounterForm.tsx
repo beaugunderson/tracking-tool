@@ -444,6 +444,8 @@ class UnwrappedPatientEncounterForm extends React.Component<
       if (state.activeInfoButton === e.target.parentElement.firstChild.name) {
         return { activeInfoButton: null } as PatientEncounterFormState;
       }
+
+      return null;
     });
   };
 

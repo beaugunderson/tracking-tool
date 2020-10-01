@@ -11,12 +11,14 @@ const path = electron.remote.require('path');
 
 const ROOT_DIRECTORY_FILE = 'tracking-tool-root.txt';
 
-function firstPathThatExists() {
+function firstPathThatExists(): string | null {
   for (const defaultPath of DEFAULT_PATHS) {
     if (fs.existsSync(defaultPath)) {
       return defaultPath;
     }
   }
+
+  return null;
 }
 
 type FirstTimeSetupProps = {

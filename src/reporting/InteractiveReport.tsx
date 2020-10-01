@@ -334,7 +334,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
 
     renderNumber(
       '#average-minutes-per-entry',
-      ndx.groupAll().reduce(add, remove, init),
+      ndx.groupAll<TransformedEncounter[]>().reduce(add, remove, init),
       (entries: TransformedEncounter[]) => {
         let minuteCount = 0;
         let entryCount = 0;
@@ -356,7 +356,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
 
     renderNumber(
       '#average-tasks-per-entry',
-      ndx.groupAll().reduce(add, remove, init),
+      ndx.groupAll<TransformedEncounter[]>().reduce(add, remove, init),
       (entries: TransformedEncounter[]) => {
         let taskCount = 0;
         let entryCount = 0;
@@ -378,7 +378,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
 
     renderNumber(
       '#average-tasks',
-      ndx.groupAll().reduce(add, remove, init),
+      ndx.groupAll<TransformedEncounter[]>().reduce(add, remove, init),
       (entries: TransformedEncounter[]) => {
         const byMrn = {};
 
@@ -402,7 +402,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
 
     renderNumber(
       '#average-time',
-      ndx.groupAll().reduce(add, remove, init),
+      ndx.groupAll<TransformedEncounter[]>().reduce(add, remove, init),
       (entries: TransformedEncounter[]) => {
         const byMrn = {};
 
@@ -426,7 +426,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
 
     renderNumber(
       '#unique-patients',
-      ndx.groupAll().reduce(add, remove, init),
+      ndx.groupAll<TransformedEncounter[]>().reduce(add, remove, init),
       (entries: TransformedEncounter[]) => {
         const mrns = new Set();
 

@@ -67,6 +67,8 @@ function lastNamesMatch(a: string, b: string) {
       }
     }
   }
+
+  return false;
 }
 
 export function _namesRepresentSamePerson(a: string, b: string) {

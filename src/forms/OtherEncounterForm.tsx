@@ -155,6 +155,8 @@ class UnwrappedOtherEncounterForm extends React.Component<
       if (state.activeInfoButton === e.target.parentElement.firstChild.name) {
         return { activeInfoButton: null } as OtherEncounterFormState;
       }
+
+      return null;
     });
   };
 

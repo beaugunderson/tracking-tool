@@ -35,9 +35,9 @@ moment.parseTwoDigitYear = function parseTwoDigitYear(yearString) {
   return 1900 + year;
 };
 
-export function parseDate(date: string) {
+export function parseDate(date: string): moment.Moment {
   return moment(
-    date.trim(),
+    date ? date.trim() : '',
     [
       // slashes
       'MM/DD/YYYY',
@@ -112,9 +112,9 @@ interface CopyFixFileResult {
   temporaryDirectory: string;
 }
 
-function bucketAge(age?: number): AgeBucket | undefined {
+function bucketAge(age?: number): AgeBucket | null {
   if (isNaN(age) || !isNumber(age)) {
-    return;
+    return null;
   }
 
   if (age <= 39) {

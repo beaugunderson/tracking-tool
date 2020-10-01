@@ -90,6 +90,8 @@ class UnwrappedCommunityEncounterForm extends React.Component<
       ) {
         return { activeInfoButton: null } as CommunityEncounterFormState;
       }
+
+      return null;
     });
   };
 

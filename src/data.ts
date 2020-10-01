@@ -18,17 +18,29 @@ export type Fix = {
   modifiedAt?: Date;
 
   uniqueId: string;
+
   mrn?: string;
   providenceMrn?: string;
+
+  dateOfBirth?: string;
 };
 
-type Migration = {
+type CommunityTransform = (encounter: CommunityEncounter) => CommunityEncounter;
+type PatientTransform = (encounter: PatientEncounter) => PatientEncounter;
+
+type CommunityMigration = {
   id: string;
-  query: { encounterType: string };
-  transform: (
-    encounter: CommunityEncounter | PatientEncounter
-  ) => CommunityEncounter | PatientEncounter;
+  query: { encounterType: 'community' };
+  transform: CommunityTransform;
 };
+
+type PatientMigration = {
+  id: string;
+  query: { encounterType: 'patient' };
+  transform: PatientTransform;
+};
+
+type Migration = CommunityMigration | PatientMigration;
 
 const migrations: Migration[] = [
   {
@@ -101,7 +113,10 @@ const migrations: Migration[] = [
   },
 ];
 
-export const openEncounters = (cb: (err: Error, dataStore: Nedb) => void, statusCb): void => {
+export const openEncounters = (
+  cb: (err: Error | null | undefined, dataStore: Nedb) => void,
+  statusCb: (line: string) => void
+): void => {
   const filename = userFilePath('encounters.json');
 
   statusCb(`Opening "${filename}"`);
@@ -146,7 +161,7 @@ export async function getFixes(filename: string): Promise<Fix[]> {
     dataStore
       .find({})
       .sort({ createdAt: 1 })
-      .exec((err: Error, results: Fix[]) => {
+      .exec((err: Error | null, results: Fix[]) => {
         if (err) {
           log.debug(`getFixes: error in dataStore.find "${err}"`);
           reject(err);
@@ -158,14 +173,16 @@ export async function getFixes(filename: string): Promise<Fix[]> {
 }
 
 function applyMigration(
-  results: (CommunityEncounter | PatientEncounter)[],
+  results: CommunityEncounter[] | PatientEncounter[],
   migration: Migration,
   dataStore: Nedb,
   cbEachMigration: async.ErrorCallback<Error>
 ) {
   async.eachSeries(
+    // @ts-ignore
     results,
     (result, cbEachEncounter) => {
+      // @ts-ignore
       const transformed = migration.transform(result);
 
       if (!isEqual(result, transformed)) {
@@ -197,7 +214,7 @@ function applyMigration(
   );
 }
 
-type MigrationCallback = (err: Error, dataStore: Nedb) => void;
+type MigrationCallback = (err: Error | null | undefined, dataStore: Nedb) => void;
 
 export function applyMigrations(
   dataStore: Nedb,
@@ -228,7 +245,7 @@ export function applyMigrations(
         dataStore.find(
           migration.query,
           {} as PatientEncounter,
-          (findError: Error, results: (CommunityEncounter | PatientEncounter)[]) => {
+          (findError: Error | null, results: CommunityEncounter[] | PatientEncounter[]) => {
             if (findError) {
               return cbEachMigration(findError);
             }
