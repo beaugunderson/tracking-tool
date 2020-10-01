@@ -529,6 +529,7 @@ export async function transform(
 
         const fix: Fix = pick(
           findLast(fixes, { uniqueId }) || { uniqueId },
+          'dateOfBirth',
           'mrn',
           'providenceMrn',
           'uniqueId'
@@ -537,7 +538,7 @@ export async function transform(
         allEncounters.push({
           ...encounter,
 
-          // apply fixes to the patient encounter (to manage MRN linkages)
+          // apply fixes to the patient encounter (to manage MRN linkages and incorrect DOBs)
           ...fix,
 
           username: copiedUserEncounter.username,

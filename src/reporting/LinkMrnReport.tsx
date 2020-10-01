@@ -1,10 +1,17 @@
+/* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import './LinkMrnReport.css';
 import moment from 'moment';
 import React from 'react';
 import { Button, Checkbox, Input, Radio, Table } from 'semantic-ui-react';
 import { chain, Dictionary, each, groupBy, map, sortBy } from 'lodash';
-import { copyFixFile, EXCLUDE_STRING_VALUE, transform, TransformedEncounter } from './data';
-import { DATE_FORMAT_DISPLAY } from '../constants';
+import {
+  copyFixFile,
+  EXCLUDE_STRING_VALUE,
+  parseDate,
+  transform,
+  TransformedEncounter,
+} from './data';
+import { DATE_FORMAT_DATABASE, DATE_FORMAT_DISPLAY } from '../constants';
 import { ensureFixesDirectoryExists } from '../store';
 import { ErrorMessage } from '../ErrorMessage';
 import { Fix, getFixes, openFixes } from '../data';
@@ -144,9 +151,9 @@ function groupName(encounters: TransformedEncounter[]): string {
   return encounters.map((encounter) => encounter.uniqueId).join('-');
 }
 
-function countByProperty(
+function topByProperty(
   encounters: TransformedEncounter[],
-  property: 'mrn' | 'providenceMrn'
+  property: 'formattedDateOfBirth' | 'mrn' | 'providenceMrn'
 ): string | null {
   const top = chain(encounters)
     .filter((encounter) => encounter[property] && encounter[property] !== EXCLUDE_STRING_VALUE)
@@ -159,12 +166,15 @@ function countByProperty(
   if (top) {
     return top[0] as string;
   }
+
+  return null;
 }
 
 function formatGroup(encounters: TransformedEncounter[], type: string): Group {
   return {
-    canonicalSwedishMrn: countByProperty(encounters, 'mrn'),
-    canonicalProvidenceMrn: countByProperty(encounters, 'providenceMrn'),
+    canonicalDateOfBirth: topByProperty(encounters, 'formattedDateOfBirth'),
+    canonicalSwedishMrn: topByProperty(encounters, 'mrn'),
+    canonicalProvidenceMrn: topByProperty(encounters, 'providenceMrn'),
     encounters,
     id: groupName(encounters),
     type,
@@ -176,6 +186,7 @@ function formatGroups(groups: TransformedEncounter[][], type: string): Group[] {
 }
 
 interface Group {
+  canonicalDateOfBirth: string | null;
   canonicalSwedishMrn: string | null;
   canonicalProvidenceMrn: string | null;
   encounters: TransformedEncounter[];
@@ -249,7 +260,13 @@ const TYPE_MAP = {
 interface LinkMrnReportProps {}
 
 interface LinkMrnReportState {
-  changedRows: {};
+  changedRows: {
+    [uniquedId: string]: {
+      dateOfBirth?: string;
+      mrn?: string;
+      providenceMrn?: string;
+    };
+  };
   encounters: TransformedEncounter[];
   error?: Error;
   fixes: Fix[];
@@ -370,6 +387,33 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
     return this.renderShowFixes(header);
   }
 
+  isSaveDisabled(encounter: TransformedEncounter) {
+    const { changedRows } = this.state;
+
+    // row has not been edited
+    if (!(encounter.uniqueId in changedRows)) {
+      return true;
+    }
+
+    // Swedish MRN has not been changed
+    if (
+      'mrn' in changedRows[encounter.uniqueId] &&
+      changedRows[encounter.uniqueId].mrn === encounter.mrn
+    ) {
+      return true;
+    }
+
+    // Providence MRN has not been changed
+    if (
+      'providenceMrn' in changedRows[encounter.uniqueId] &&
+      changedRows[encounter.uniqueId].providenceMrn === encounter.providenceMrn
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
   renderMakeFixes(header: React.ReactElement) {
     const {
       changedRows,
@@ -422,38 +466,66 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
                         : encounter.providenceMrn;
                     const mrn = encounter.mrn === EXCLUDE_STRING_VALUE ? '' : encounter.mrn;
 
-                    const saveDisabled =
-                      // row has not been edited
-                      !(encounter.uniqueId in changedRows) ||
-                      // encounter has no Swedish MRN
-                      ((!('mrn' in changedRows[encounter.uniqueId]) ||
-                        // Swedish MRN has not been changed
-                        changedRows[encounter.uniqueId].mrn === encounter.mrn) &&
-                        // encounter has no Providence MRN
-                        (!('providenceMrn' in changedRows[encounter.uniqueId]) ||
-                          // Provide MRN has not been changed
-                          changedRows[encounter.uniqueId].providenceMrn ===
-                            encounter.providenceMrn));
-
+                    const saveDisabled = this.isSaveDisabled(encounter);
                     const saveStatus = saveStatuses[encounter.uniqueId];
 
                     return (
                       <Table.Row key={j}>
                         <Table.Cell>{usernameToName(encounter.username)}</Table.Cell>
+
                         <Table.Cell>
                           {obfuscated
                             ? obfuscateString(encounter.patientName)
                             : encounter.patientName}
                         </Table.Cell>
+
                         <Table.Cell>
                           {encounter.parsedEncounterDate.format(DATE_FORMAT_DISPLAY)}
                         </Table.Cell>
+
                         <Table.Cell>
-                          {obfuscated
-                            ? obfuscateDate(encounter.formattedDateOfBirth)
-                            : encounter.formattedDateOfBirth}
+                          {obfuscated ? (
+                            obfuscateDate(encounter.formattedDateOfBirth)
+                          ) : (
+                            <Input
+                              defaultValue={encounter.formattedDateOfBirth}
+                              negative={
+                                group.canonicalDateOfBirth &&
+                                encounter.formattedDateOfBirth !== group.canonicalDateOfBirth
+                              }
+                              onChange={(e, data) => {
+                                let dateOfBirth: string;
+
+                                try {
+                                  dateOfBirth = parseDate(data.value).format(DATE_FORMAT_DATABASE);
+                                } catch (parseError) {
+                                  return;
+                                }
+
+                                this.setState((state) => ({
+                                  changedRows: {
+                                    ...state.changedRows,
+                                    [encounter.uniqueId]: {
+                                      ...state.changedRows[encounter.uniqueId],
+                                      dateOfBirth,
+                                    },
+                                  },
+                                  saveStatuses: {
+                                    ...state.saveStatuses,
+                                    [encounter.uniqueId]: SAVE_STATUS.UNSAVED,
+                                  },
+                                }));
+                              }}
+                            />
+                          )}
                         </Table.Cell>
-                        <Table.Cell negative={providenceMrn !== group.canonicalProvidenceMrn}>
+
+                        <Table.Cell
+                          negative={
+                            group.canonicalProvidenceMrn &&
+                            providenceMrn !== group.canonicalProvidenceMrn
+                          }
+                        >
                           {obfuscated ? (
                             obfuscateNumber(providenceMrn)
                           ) : (
@@ -477,7 +549,10 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
                             />
                           )}
                         </Table.Cell>
-                        <Table.Cell negative={mrn !== group.canonicalSwedishMrn}>
+
+                        <Table.Cell
+                          negative={group.canonicalSwedishMrn && mrn !== group.canonicalSwedishMrn}
+                        >
                           {obfuscated ? (
                             obfuscateNumber(mrn)
                           ) : (
@@ -501,6 +576,7 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
                             />
                           )}
                         </Table.Cell>
+
                         <Table.Cell>
                           {!obfuscated && (
                             <Button
@@ -513,16 +589,19 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
                                   return;
                                 }
 
-                                const record: Fix = { uniqueId: encounter.uniqueId };
+                                // TODO: we could instead figure out if the value differs from the
+                                // previous fix instead of from the encounter
+                                const record: Fix = {
+                                  uniqueId: encounter.uniqueId,
 
-                                if (changedRows[encounter.uniqueId].mrn) {
-                                  record.mrn = changedRows[encounter.uniqueId].mrn;
-                                }
+                                  dateOfBirth:
+                                    changedRows[encounter.uniqueId].dateOfBirth ||
+                                    encounter.dateOfBirth,
 
-                                if (changedRows[encounter.uniqueId].providenceMrn) {
-                                  record.providenceMrn =
-                                    changedRows[encounter.uniqueId].providenceMrn;
-                                }
+                                  mrn: changedRows[encounter.uniqueId].mrn || mrn,
+                                  providenceMrn:
+                                    changedRows[encounter.uniqueId].providenceMrn || providenceMrn,
+                                };
 
                                 this.setState(
                                   (state) => ({
@@ -584,8 +663,9 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
             <Table.Row>
               <Table.HeaderCell>Created At</Table.HeaderCell>
               <Table.HeaderCell>Unique ID</Table.HeaderCell>
-              <Table.HeaderCell>Swedish MRN</Table.HeaderCell>
+              <Table.HeaderCell>Date of Birth</Table.HeaderCell>
               <Table.HeaderCell>Providence MRN</Table.HeaderCell>
+              <Table.HeaderCell>Swedish MRN</Table.HeaderCell>
             </Table.Row>
           </Table.Header>
 
@@ -595,8 +675,11 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
                 <Table.Row key={i}>
                   <Table.Cell>{moment(fix.createdAt).format(DATE_FORMAT_DISPLAY)}</Table.Cell>
                   <Table.Cell>{fix.uniqueId}</Table.Cell>
-                  <Table.Cell>{fix.mrn}</Table.Cell>
+                  <Table.Cell>
+                    {fix.dateOfBirth ? parseDate(fix.dateOfBirth).format(DATE_FORMAT_DISPLAY) : ''}
+                  </Table.Cell>
                   <Table.Cell>{fix.providenceMrn}</Table.Cell>
+                  <Table.Cell>{fix.mrn}</Table.Cell>
                 </Table.Row>
               );
             })}
