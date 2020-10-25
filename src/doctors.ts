@@ -54,7 +54,7 @@ export const RAW_DOCTORS: readonly Doctor[] = [
   { text: 'Holdread, Heather' },
   { text: 'Johnston, Eileen' },
   { text: 'Kaplan, Henry (Hank)', inactive: true },
-  { text: 'Kim, Namou', inactive: true },
+  { text: 'Kim, Namou' },
   { text: 'Kim, Patricia' },
   { text: 'Kratz, Rodney' },
   { text: 'Landis, Daniel' },
