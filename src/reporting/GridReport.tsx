@@ -3,7 +3,7 @@ import * as Moment from 'moment';
 import React from 'react';
 import { Button, Checkbox, CheckboxProps, Table } from 'semantic-ui-react';
 import { extendMoment } from 'moment-range';
-import { INTERNS } from '../usernames';
+import { isIntern } from '../usernames';
 import { MONTHLY_REPORT_OPTIONS, ROW_TYPE } from '../options';
 import { PageLoader } from '../components/PageLoader';
 import { transform, TransformedEncounter } from './data';
@@ -86,7 +86,7 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
         ) {
           if (encounter.encounterType === 'staff') {
             staff[i] += encounter[field];
-          } else if (INTERNS.includes((encounter.username || '').toLowerCase())) {
+          } else if (isIntern(encounter.username, months[i])) {
             interns[i] += encounter[field];
           } else {
             nonInterns[i] += encounter[field];

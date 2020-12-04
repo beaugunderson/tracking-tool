@@ -1,3 +1,5 @@
+import moment from 'moment';
+
 export const USERNAMES = {
   'araceli.tovarcarrill': 'Araceli Tovar Carrillo',
   'eileen.bilynsky': 'Eileen Bilynsky',
@@ -44,19 +46,32 @@ export const USERNAMES = {
 };
 
 export const INTERNS = [
+  'araceli.tovarcarrill',
   'goodmx1',
+  'gretchen.hoyum',
   'john.d.gonzales',
-  // TODO: will need to add an intern/employee date for interns that become employees
   'jonasa1', // December 7th Sam becomes a non-intern
   'kanedp2',
   'maysam1',
   'montme1',
   'n6335348',
   'n7867222',
+  'patrick.stephens',
   'pughat1',
   'rodney.antonson',
+  'shanna.sexton',
   'smithk',
 ];
+
+export function isIntern(username: string | null, date: moment.Moment): boolean {
+  const lowercaseUsername = (username || '').toLowerCase();
+
+  if (lowercaseUsername === 'jonasa1' && date.isAfter(moment('12/6/2020'))) {
+    return true;
+  }
+
+  return INTERNS.includes(lowercaseUsername);
+}
 
 export function usernameToName(username: string) {
   return USERNAMES[username.toLowerCase()] || username.toLowerCase();
