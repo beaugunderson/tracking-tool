@@ -145,8 +145,6 @@ export const CLINIC_LOCATION_STAFF_OPTIONS = mapValues(CLINIC_LOCATIONS, (locati
 
 export const COMMUNITY = 'Community';
 
-// TODO: remove this when we upgrade react-scripts to stable
-// eslint-disable-next-line no-shadow
 export enum ROW_TYPE {
   OSW = 'OSW',
   INTERNS = 'Interns',

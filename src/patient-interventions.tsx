@@ -636,9 +636,11 @@ export type InitialCommunityInterventionValues = {
   transportation: boolean;
 };
 
-export const initialInterventionValues: InitialInterventionValues = {} as InitialInterventionValues;
+export const initialInterventionValues: InitialInterventionValues =
+  {} as InitialInterventionValues;
 
-export const communityInitialInterventionValues: InitialCommunityInterventionValues = {} as InitialCommunityInterventionValues;
+export const communityInitialInterventionValues: InitialCommunityInterventionValues =
+  {} as InitialCommunityInterventionValues;
 
 INTERVENTIONS.forEach((intervention) => {
   if (intervention.scored) {

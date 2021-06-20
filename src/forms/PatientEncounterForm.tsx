@@ -520,16 +520,8 @@ class UnwrappedPatientEncounterForm extends React.Component<
 
   render() {
     const { confirmingInactiveMd, loadingSearchOptions, patientOptions } = this.state;
-    const {
-      dirty,
-      encounter,
-      errors,
-      isSubmitting,
-      onCancel,
-      submitForm,
-      touched,
-      values,
-    } = this.props;
+    const { dirty, encounter, errors, isSubmitting, onCancel, submitForm, touched, values } =
+      this.props;
 
     const columns = interventionGroups.map((column, i) => {
       return (

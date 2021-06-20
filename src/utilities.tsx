@@ -198,13 +198,15 @@ export function obfuscateString(string: string): string {
     const lowercaseLetter = letter.toLowerCase();
 
     if (isVowel(lowercaseLetter)) {
-      obfuscated += VOWELS[(VOWELS.indexOf(lowercaseLetter) + VOWEL_OFFSET) % VOWELS.length][
-        capitalizationFunction
-      ]();
+      obfuscated +=
+        VOWELS[(VOWELS.indexOf(lowercaseLetter) + VOWEL_OFFSET) % VOWELS.length][
+          capitalizationFunction
+        ]();
     } else if (isConsonant(lowercaseLetter)) {
-      obfuscated += CONSONANTS[
-        (CONSONANTS.indexOf(lowercaseLetter) + CONSONANT_OFFSET) % CONSONANTS.length
-      ][capitalizationFunction]();
+      obfuscated +=
+        CONSONANTS[(CONSONANTS.indexOf(lowercaseLetter) + CONSONANT_OFFSET) % CONSONANTS.length][
+          capitalizationFunction
+        ]();
     } else {
       obfuscated += letter;
     }

@@ -151,9 +151,7 @@ type EncounterNumberOfTasksFieldProps = FieldProps & {
   patient?: boolean;
 };
 
-export class EncounterNumberOfTasksField extends React.Component<
-  EncounterNumberOfTasksFieldProps
-> {
+export class EncounterNumberOfTasksField extends React.Component<EncounterNumberOfTasksFieldProps> {
   render() {
     const { error, onBlur, onChange, patient, value } = this.props;
 

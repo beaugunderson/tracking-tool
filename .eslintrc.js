@@ -19,7 +19,7 @@ module.exports = {
     '@typescript-eslint',
   ],
 
-  extends: ['airbnb', 'prettier'],
+  extends: ['airbnb', 'plugin:prettier/recommended'],
 
   rules: {
     'array-callback-return': 'off',

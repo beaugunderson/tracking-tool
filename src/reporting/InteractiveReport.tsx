@@ -110,8 +110,6 @@ const uniqueMrn = reductio()
   .exception((d: TransformedEncounter) => d.providenceOrSwedishMrn)
   .exceptionCount(true);
 
-// TODO: remove this when we upgrade react-scripts to stable
-// eslint-disable-next-line no-shadow
 export enum ReportAudience {
   INDIVIDUAL = 0,
   ADMINISTRATOR = 1,
