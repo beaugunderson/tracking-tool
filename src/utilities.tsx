@@ -1,9 +1,9 @@
-import doubleMetaphone from 'double-metaphone';
-import levenshtein from 'levenshtein-edit-distance';
 import moment from 'moment';
 import XRegExp from 'xregexp';
 import { DATE_FORMAT_DISPLAY } from './constants';
 import { deburr, endsWith, isString, mapValues, startsWith } from 'lodash';
+import { doubleMetaphone } from 'double-metaphone';
+import { levenshteinEditDistance } from 'levenshtein-edit-distance';
 import { Name, parseFullName } from 'parse-full-name';
 
 const RE_NON_LETTERS = XRegExp('[^\\pL -]', 'g');
@@ -32,7 +32,7 @@ function firstNamesMatch(a: Name, b: Name): boolean {
     (a.nick && substringMatch(a.nick, b.first)) ||
     (b.nick && substringMatch(a.first, b.nick)) ||
     // handle small typos e.g. Jones == Jonas, Jonnes
-    levenshtein(a.first, b.first) < 2
+    levenshteinEditDistance(a.first, b.first) < 2
   );
 }
 
@@ -62,7 +62,7 @@ function lastNamesMatch(a: string, b: string) {
 
   for (const aLast of aLasts) {
     for (const bLast of bLasts) {
-      if (levenshtein(aLast, bLast) < 2) {
+      if (levenshteinEditDistance(aLast, bLast) < 2) {
         return true;
       }
     }
