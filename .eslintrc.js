@@ -99,6 +99,7 @@ module.exports = {
 
     // React
     'react/destructuring-assignment': 'off',
+    'react/jsx-uses-react': 'off',
     'react/no-array-index-key': 'off',
     'react/no-danger': 'off',
     'react/no-did-mount-set-state': 'off',
@@ -107,6 +108,7 @@ module.exports = {
     'react/no-unused-prop-types': 'off',
     'react/no-unused-state': 'warn',
     'react/prefer-stateless-function': 'off',
+    'react/react-in-jsx-scope': 'off',
     'react/require-default-props': 'off',
     'react/sort-comp': 'off',
     'react/sort-prop-types': ['warn', { ignoreCase: true }],
