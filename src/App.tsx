@@ -33,8 +33,9 @@ function currentUserIn(users: string[]) {
 }
 
 const canSeeAuditReport = () => currentUserIn(['beau', 'carynstewart', 'lindce2']);
+
 const canSeeReporting = () =>
-  currentUserIn(['beau', 'carynstewart', 'johnss1', 'lindce2', 'nejash1', 'valejd1']);
+  currentUserIn(['beau', 'carynstewart', 'johnss1', 'lindce2', 'nejash1', 'valejd1', 'nordje1']);
 
 const DELETE_BUTTON = <Button negative>Delete</Button>;
 
@@ -525,14 +526,16 @@ export class App extends React.Component<{}, AppState> {
                     Monthly Report
                   </div>
 
-                  <div
-                    className={className('navigation-button', {
-                      active: page === Page.ReportLink,
-                    })}
-                    onClick={this.handleLinkMrnReportClick}
-                  >
-                    Link MRN Report
-                  </div>
+                  {canSeeAuditReport() && (
+                    <div
+                      className={className('navigation-button', {
+                        active: page === Page.ReportLink,
+                      })}
+                      onClick={this.handleLinkMrnReportClick}
+                    >
+                      Link MRN Report
+                    </div>
+                  )}
                 </>
               )}
 
