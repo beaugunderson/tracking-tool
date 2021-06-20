@@ -12,6 +12,7 @@ export const USERNAMES = {
   'patrick.stephens': 'Patrick Stephens',
   'rodney.antonson': 'Rodney Antonson',
   'shanna.sexton': 'Zoe Sexton',
+  'steven.robinson': 'Steven Robinson',
   birdre1: 'Rebekah Wyse',
   blacex1: 'Eowyn Black',
   coxxra2: 'Rachel Cox',
