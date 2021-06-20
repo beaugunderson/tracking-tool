@@ -6,6 +6,7 @@ export const USERNAMES = {
   'chelsea.gault': 'Chelsea Gault',
   'eileen.bilynsky': 'Eileen Bilynsky',
   'gretchen.hoyum': 'Gretchen Hoyum',
+  'heather.shin': 'Heather Shin',
   'john.d.gonzales': 'John Gonzales',
   'marilyn.oakes-greens': 'Marilyn Oakes-Greenspan',
   'patrick.stephens': 'Patrick Stephens',
