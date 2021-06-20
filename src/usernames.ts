@@ -63,7 +63,7 @@ export const INTERNS = [
   'montme1',
   'n6335348',
   'n7867222',
-  'patrick.stephens',
+  'patrick.stephens', // Becomes a non-intern 6/19/2021
   'pughat1',
   'rodney.antonson',
   'shanna.sexton',
@@ -74,7 +74,11 @@ export function isIntern(username: string | null, date: moment.Moment): boolean 
   const lowercaseUsername = (username || '').toLowerCase();
 
   if (lowercaseUsername === 'jonasa1' && date.isAfter(moment('12/6/2020'))) {
-    return true;
+    return false;
+  }
+
+  if (lowercaseUsername === 'patrick.stephens' && date.isAfter(moment('6/19/2021'))) {
+    return false;
   }
 
   return INTERNS.includes(lowercaseUsername);
