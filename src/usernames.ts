@@ -1,7 +1,9 @@
 import moment from 'moment';
 
 export const USERNAMES = {
+  'ailish.mackey': 'Ailish Mackey',
   'araceli.tovarcarrill': 'Araceli Tovar Carrillo',
+  'chelsea.gault': 'Chelsea Gault',
   'eileen.bilynsky': 'Eileen Bilynsky',
   'gretchen.hoyum': 'Gretchen Hoyum',
   'john.d.gonzales': 'John Gonzales',
@@ -48,6 +50,7 @@ export const USERNAMES = {
 };
 
 export const INTERNS = [
+  'ailish.mackey',
   'araceli.tovarcarrill',
   'goodmx1',
   'gretchen.hoyum',
