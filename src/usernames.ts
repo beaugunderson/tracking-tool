@@ -15,6 +15,7 @@ export const USERNAMES = {
   delame1: 'Marie Kong',
   farise1: 'Sylvia Farias',
   fillmx1: 'Mark Filler',
+  fletel2: 'Emili Fletcher',
   foxxva1: 'Vivian Foxx',
   goodmx1: 'Morgan Goodney',
   johnss1: 'Sandra Johnson',
