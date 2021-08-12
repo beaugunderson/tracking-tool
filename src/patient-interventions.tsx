@@ -426,6 +426,10 @@ const MENTAL_HEALTH = {
         'Worksheets, behavioral activation, connecting thought/emotion and behaviors, education regarding cognitive distortions, insomnia/pain/relaxation techniques, cognitive reframing',
     },
     {
+      name: 'DBT',
+      description: 'Intervention techniques in the style of dialectical behavior therapy',
+    },
+    {
       name: 'Grief',
       description:
         'Validation of feelings/loss, reflective listening, coping/adapting, rituals, narrative, many types of loss, can be anticipatory, legacy work, meaning making, remembering, holding space',
