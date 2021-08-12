@@ -188,7 +188,7 @@ const LIMITED_ENGLISH_PROFICIENCY_LABEL = (
 const TRANSPLANT_LABEL = (
   <label>
     Transplant patient{' '}
-    <InfoButton content="Mark this for patients who have completed a transplant or CAR-T assessment in preparation for treatment" />
+    <InfoButton content="Mark this for patients who have been referred to the BMT coordinator for consideration of transplant or CAR-T" />
   </label>
 );
 
