@@ -111,6 +111,7 @@ export const RAW_DOCTORS: readonly Doctor[] = [
   { text: 'Takamiya, Robert' },
   { text: 'Tierney, Shannon', inactive: true },
   { text: 'Tiu, Maitram Christine', inactive: true },
+  { text: 'Tsai, Michaela' },
   { text: 'Vallieres, Eric' },
   { text: 'Vaynshteyn, Rostislav' },
   { text: 'Veljovich, Dan' },
