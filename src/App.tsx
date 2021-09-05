@@ -13,6 +13,7 @@ import { ENCOUNTER_TYPE_NAMES, ENCOUNTER_TYPES } from './options';
 import { ensureUserDirectoryExists, rootPathExists } from './store';
 import { ErrorMessage } from './ErrorMessage';
 import { fieldNameToName, OtherEncounterForm } from './forms/OtherEncounterForm';
+import { FindInPage } from 'electron-find';
 import { FirstTimeSetup } from './FirstTimeSetup';
 import { GridReport } from './reporting/GridReport';
 import { insertExamples } from './generate-data';
@@ -25,6 +26,18 @@ import { PatientEncounter, PatientEncounterForm } from './forms/PatientEncounter
 import { StaffEncounterForm } from './forms/StaffEncounterForm';
 import { transformEncounter, transformEncounters } from './reporting/data';
 import type Nedb from 'nedb';
+
+const { ipcRenderer, remote } = window.require('electron');
+
+const findInPage = new FindInPage(remote.getCurrentWebContents(), {
+  preload: true,
+  offsetTop: 74,
+  offsetRight: 10,
+});
+
+ipcRenderer.on('on-find', () => {
+  findInPage.openFindWindow();
+});
 
 const username = window.require('username');
 

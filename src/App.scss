@@ -133,7 +133,7 @@ body {
 
 @media print {
   #navigation-wrapper {
-     visibility: hidden;
+    visibility: hidden;
   }
 
   #page-body {
@@ -222,4 +222,8 @@ $button-spacer: lighten($button-color, 10%);
 
 .clear {
   clear: both;
+}
+
+.find-box {
+  z-index: 15000000 !important;
 }

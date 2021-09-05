@@ -6381,6 +6381,11 @@ electron-dl@^3.2.1:
     pupa "^2.0.1"
     unused-filename "^2.1.0"
 
+electron-find@^1.0.7:
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/electron-find/-/electron-find-1.0.7.tgz#12a861fd4f264f897075fff5c2e612556bc21c83"
+  integrity sha512-C2FQJuk8567P2a2loBNwl5c8kwOTQVMB0capgHtPI7zKwZG16X0UxG+sNYZExQfnJ0PA+ecECA/4LcXxQa2TCA==
+
 electron-is-dev@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/electron-is-dev/-/electron-is-dev-2.0.0.tgz#833487a069b8dad21425c67a19847d9064ab19bd"

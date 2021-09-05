@@ -1,6 +1,6 @@
 const isDev = require('electron-is-dev');
 const path = require('path');
-const { app, BrowserWindow, dialog, ipcMain, Menu, shell } = require('electron');
+const { app, BrowserWindow, dialog, globalShortcut, ipcMain, Menu, shell } = require('electron');
 const defaultMenu = require('electron-default-menu');
 
 app.allowRendererProcessReuse = true;
@@ -34,6 +34,18 @@ const createWindow = () => {
     ipcMain.on('open-external-window', (event, arg) => {
       shell.openExternal(arg);
     });
+  });
+
+  mainWindow.on('focus', () => {
+    globalShortcut.register('CommandOrControl+F', () => {
+      if (mainWindow?.webContents) {
+        mainWindow.webContents.send('on-find', '');
+      }
+    });
+  });
+
+  mainWindow.on('blur', () => {
+    globalShortcut.unregister('CommandOrControl+F');
   });
 
   mainWindow.on('closed', () => {
