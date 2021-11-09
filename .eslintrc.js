@@ -80,6 +80,7 @@ module.exports = {
 
     // https://github.com/typescript-eslint/typescript-eslint/issues/2471
     'no-shadow': 'off', // replaced by ts-eslint rule below
+    'no-unused-vars': 'off', // replaced by ts-eslint rule below
     '@typescript-eslint/no-shadow': 'error',
 
     // JSX

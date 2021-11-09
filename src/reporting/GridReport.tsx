@@ -187,26 +187,28 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
       <>
         {header}
 
-        <Table>
-          <Table.Header>
-            <Table.Row>
-              <Table.HeaderCell>Location</Table.HeaderCell>
-              <Table.HeaderCell>Clinic</Table.HeaderCell>
-              <Table.HeaderCell>Staff</Table.HeaderCell>
-              {months.map((month) => (
-                <Table.HeaderCell key={`${month.format('YYYY-MM')}`} textAlign="right">
-                  {month.format('YYYY-MM')}
-                </Table.HeaderCell>
-              ))}
-            </Table.Row>
-          </Table.Header>
+        <div style={{ overflowX: 'auto' }}>
+          <Table>
+            <Table.Header>
+              <Table.Row>
+                <Table.HeaderCell>Location</Table.HeaderCell>
+                <Table.HeaderCell>Clinic</Table.HeaderCell>
+                <Table.HeaderCell>Staff</Table.HeaderCell>
+                {months.map((month) => (
+                  <Table.HeaderCell key={`${month.format('YYYY-MM')}`} textAlign="right">
+                    {month.format('YYYY-MM')}
+                  </Table.HeaderCell>
+                ))}
+              </Table.Row>
+            </Table.Header>
 
-          <Table.Body>
-            {MONTHLY_REPORT_OPTIONS.map(([location, clinic, types]) =>
-              this.rowsForPermutation(clinic, location, types, months)
-            )}
-          </Table.Body>
-        </Table>
+            <Table.Body>
+              {MONTHLY_REPORT_OPTIONS.map(([location, clinic, types]) =>
+                this.rowsForPermutation(clinic, location, types, months)
+              )}
+            </Table.Body>
+          </Table>
+        </div>
       </>
     );
   }
