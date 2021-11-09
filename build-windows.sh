@@ -9,4 +9,4 @@ docker run --rm \
   -v ~/.cache/electron:/root/.cache/electron \
   -v ~/.cache/electron-builder:/root/.cache/electron-builder \
     electronuserland/builder:wine \
-     bash -c "yarn --ignore-engines && yarn dist-win"
+     bash -c "yarn --ignore-engines --verbose && yarn dist-win"
