@@ -114,10 +114,11 @@ const migrations: Migration[] = [
 ];
 
 export const openEncounters = (
+  username: string,
   cb: (err: Error | null | undefined, dataStore: Nedb) => void,
   statusCb: (line: string) => void
 ): void => {
-  const filename = userFilePath('encounters.json');
+  const filename = userFilePath(username, 'encounters.json');
 
   statusCb(`Opening "${filename}"`);
 

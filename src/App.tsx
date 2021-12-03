@@ -5,6 +5,7 @@ import moment from 'moment';
 import React from 'react';
 import { Button, Confirm, Dropdown, Icon, Input, Statistic, Table } from 'semantic-ui-react';
 import { chain, escapeRegExp, isEqual, sumBy } from 'lodash';
+import { ChooseUserForm } from './ChooseUserForm';
 import { CommunityEncounterForm } from './forms/CommunityEncounterForm';
 import { CrisisReport } from './reporting/CrisisReport';
 import { DataAuditReport } from './reporting/DataAuditReport';
@@ -25,6 +26,7 @@ import { PageLoader } from './components/PageLoader';
 import { PatientEncounter, PatientEncounterForm } from './forms/PatientEncounterForm';
 import { StaffEncounterForm } from './forms/StaffEncounterForm';
 import { transformEncounter, transformEncounters } from './reporting/data';
+
 import type Nedb from 'nedb';
 
 const { ipcRenderer, remote } = window.require('electron');
@@ -68,6 +70,7 @@ enum Page {
   ReportGrid,
   ReportInteractive,
   ReportLink,
+  ChooseUser,
 }
 
 // const FORM_PAGES = [
@@ -101,7 +104,20 @@ type AppState = {
   // showFormNavigation: boolean;
   showReportNavigation: boolean;
   status: string[];
+  username: string;
 };
+
+function firstPage(): Page {
+  if (!rootPathExists()) {
+    return Page.FirstTimeSetupPage;
+  }
+
+  if (currentUserIn(['beau', 'carynstewart', 'lindce2'])) {
+    return Page.ChooseUser;
+  }
+
+  return Page.Encounters;
+}
 
 export class App extends React.Component<{}, AppState> {
   encounters?: Nedb;
@@ -113,7 +129,7 @@ export class App extends React.Component<{}, AppState> {
     encounterSearchDate: '',
     encounterSearchPatientName: '',
     encounterSearchType: 'All',
-    page: rootPathExists() ? Page.Encounters : Page.FirstTimeSetupPage,
+    page: firstPage(),
     interventions: 0,
     gads: 0,
     mocas: 0,
@@ -121,6 +137,7 @@ export class App extends React.Component<{}, AppState> {
     // showFormNavigation: false,
     showReportNavigation: false,
     status: [],
+    username: username.sync().toLowerCase(),
   };
 
   handleReportsClick = () =>
@@ -226,32 +243,36 @@ export class App extends React.Component<{}, AppState> {
     }));
 
   initialize(cb = () => {}) {
-    ensureUserDirectoryExists(this.appendStatus);
+    ensureUserDirectoryExists(this.state.username, this.appendStatus);
 
-    openEncounters((error, dataStore) => {
-      if (error) {
-        return this.setState({ error });
-      }
+    openEncounters(
+      this.state.username,
+      (error, dataStore) => {
+        if (error) {
+          return this.setState({ error });
+        }
 
-      this.appendStatus('Setting encounters');
+        this.appendStatus('Setting encounters');
 
-      this.encounters = dataStore;
+        this.encounters = dataStore;
 
-      // @ts-ignore
-      window.createFakeEncounters = () => insertExamples(this.encounters);
+        // @ts-ignore
+        window.createFakeEncounters = () => insertExamples(this.encounters);
 
-      this.appendStatus('Initializing search state');
-      this.searchPatients();
+        this.appendStatus('Initializing search state');
+        this.searchPatients();
 
-      this.appendStatus('Updating assessments');
-      this.updateAssessments();
+        this.appendStatus('Updating assessments');
+        this.updateAssessments();
 
-      cb();
-    }, this.appendStatus);
+        cb();
+      },
+      this.appendStatus
+    );
   }
 
   componentDidMount() {
-    if (this.state.page === Page.FirstTimeSetupPage) {
+    if (this.state.page === Page.FirstTimeSetupPage || this.state.page === Page.ChooseUser) {
       return;
     }
 
@@ -293,6 +314,11 @@ export class App extends React.Component<{}, AppState> {
 
   handleFirstTimeSetupComplete = () =>
     this.initialize(() => this.setState({ page: Page.Encounters }));
+
+  handleChooseUserComplete = (name: string) =>
+    this.setState({ username: name }, () =>
+      this.initialize(() => this.setState({ page: Page.Encounters, username: name }))
+    );
 
   renderPage() {
     const { encounter, page, error, status } = this.state;
@@ -398,6 +424,10 @@ export class App extends React.Component<{}, AppState> {
 
     if (page === Page.FirstTimeSetupPage) {
       return <FirstTimeSetup onComplete={this.handleFirstTimeSetupComplete} />;
+    }
+
+    if (page === Page.ChooseUser) {
+      return <ChooseUserForm onComplete={this.handleChooseUserComplete} />;
     }
 
     return (

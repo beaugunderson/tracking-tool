@@ -63,7 +63,7 @@ export class ErrorMessage extends React.Component<ErrorProps> {
             </List.Item>
 
             <List.Item>
-              <strong>User path:</strong> <code>{userDirectoryPath()}</code>
+              <strong>User path:</strong> <code>{userDirectoryPath(username.sync())}</code>
             </List.Item>
 
             <List.Item>

@@ -8,6 +8,7 @@ import { isEmpty } from 'lodash';
 const electron = window.require('electron');
 const fs = electron.remote.require('fs');
 const path = electron.remote.require('path');
+const username = window.require('username');
 
 const ROOT_DIRECTORY_FILE = 'tracking-tool-root.txt';
 
@@ -57,9 +58,11 @@ export class FirstTimeSetup extends React.Component<FirstTimeSetupProps, FirstTi
     setRootPath(firstPathThatExists());
 
     try {
-      ensureUserDirectoryExists();
+      ensureUserDirectoryExists(username.sync());
     } catch (error) {
-      return this.setState({ error: `Unable to create directory "${userDirectoryPath()}"` });
+      return this.setState({
+        error: `Unable to create directory "${userDirectoryPath(username.sync())}"`,
+      });
     }
 
     this.props.onComplete();
