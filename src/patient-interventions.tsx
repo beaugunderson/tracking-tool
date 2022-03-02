@@ -427,7 +427,8 @@ const MENTAL_HEALTH = {
     },
     {
       name: 'DBT',
-      description: 'Intervention techniques in the style of dialectical behavior therapy',
+      description:
+        'Skills based techniques looking at change and acceptance skills: Distress tolerance, emotion regulation, mindfulness, interpersonal effectiveness',
     },
     {
       name: 'Grief',
