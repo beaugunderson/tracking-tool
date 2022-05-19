@@ -115,7 +115,7 @@
     "cross-env": "^7.0.3",
     "delectron": "^0.0.1-security",
     "devtron": "^1.4.0",
-    "electron": "^13.0.0",
+    "electron": "^13.6.6",
     "electron-builder": "^22.13.1",
     "eslint": "^7.32.0",
     "eslint-config-airbnb": "^18.2.1",
