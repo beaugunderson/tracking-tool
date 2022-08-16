@@ -21,7 +21,10 @@ yarn-debug.log*
 yarn-error.log*
 dist/
 
-beau-gunderson.p12
 release.sh
 .env
-beau-gunderson.pfx
+
+*.cer
+*.pfx
+*.p12
+*.key
