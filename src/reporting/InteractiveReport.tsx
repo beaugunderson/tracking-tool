@@ -1,5 +1,5 @@
-import '../../node_modules/dc/dist/style/dc.css';
 import './InteractiveReport.css';
+import 'dc/dist/style/dc.css';
 import * as d3 from 'd3';
 import * as dc from 'dc';
 import crossfilter from 'crossfilter2';
