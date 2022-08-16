@@ -2,7 +2,7 @@
     "typescript.tsdk": "node_modules/typescript/lib",
 
     "eslint.options": {
-        "configFile": "./.eslintrc.js"
+        "overrideConfigFile": "./.eslintrc.js"
     },
 
     "files.exclude": {
