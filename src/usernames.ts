@@ -89,6 +89,14 @@ export function isIntern(username: string | null, date: moment.Moment): boolean 
     return false;
   }
 
+  if (lowercaseUsername === 'ailish.mackey' && date.isAfter(moment('8/20/2022'))) {
+    return false;
+  }
+
+  if (lowercaseUsername === 'lauren.zemer' && date.isAfter(moment('8/20/2022'))) {
+    return false;
+  }
+
   return INTERNS.includes(lowercaseUsername);
 }
 
