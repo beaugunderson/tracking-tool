@@ -86,7 +86,7 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
         ) {
           if (encounter.encounterType === 'staff') {
             staff[i] += encounter[field];
-          } else if (isIntern(encounter.username, months[i])) {
+          } else if (isIntern(encounter.username, encounter.encounterDate)) {
             interns[i] += encounter[field];
           } else {
             nonInterns[i] += encounter[field];
