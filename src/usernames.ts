@@ -2,7 +2,10 @@ import moment from 'moment';
 
 export const USERNAMES = {
   'ailish.mackey': 'Ailish Mackey',
+  'alice.allis': 'Alice Allis',
   'araceli.tovarcarrill': 'Araceli Tovar Carrillo',
+  'beatrice.terino': 'Beatrice Terino',
+  'carrie.mccolloch': 'Carrie McColloch',
   'chelsea.gault': 'Chelsea Gault',
   'eileen.bilynsky': 'Eileen Bilynsky',
   'gretchen.hoyum': 'Gretchen Hoyum',
@@ -15,6 +18,7 @@ export const USERNAMES = {
   'marilyn.oakes-greens': 'Marilyn Oakes-Greenspan',
   'patrick.stephens': 'Patrick Stephens',
   'rodney.antonson': 'Rodney Antonson',
+  'sabrina.figueroa': 'Sabrina Figueroa',
   'shanna.sexton': 'Zoe Sexton',
   'steven.robinson': 'Steven Robinson',
   'zhaoyang.xie': 'Dora Xie',
@@ -60,6 +64,8 @@ export const USERNAMES = {
 export const INTERNS = [
   'ailish.mackey',
   'araceli.tovarcarrill',
+  'beatrice.terino',
+  'carrie.mccolloch',
   'goodmx1',
   'gretchen.hoyum',
   'john.d.gonzales',
@@ -74,12 +80,14 @@ export const INTERNS = [
   'patrick.stephens', // Becomes a non-intern 6/19/2021
   'pughat1',
   'rodney.antonson',
+  'sabrina.figueroa',
   'shanna.sexton',
   'smithk',
 ];
 
-export function isIntern(username: string | null, date: moment.Moment): boolean {
+export function isIntern(username: string | null, encounterDate: string): boolean {
   const lowercaseUsername = (username || '').toLowerCase();
+  const date = moment(encounterDate);
 
   if (lowercaseUsername === 'jonasa1' && date.isAfter(moment('12/6/2020'))) {
     return false;
