@@ -116,7 +116,7 @@
     "delectron": "^0.0.1-security",
     "devtron": "^1.4.0",
     "electron": "^13.0.0",
-    "electron-builder": "^22.13.1",
+    "electron-builder": "^23.6.0",
     "eslint": "^7.32.0",
     "eslint-config-airbnb": "^18.2.1",
     "eslint-config-prettier": "^8.3.0",
