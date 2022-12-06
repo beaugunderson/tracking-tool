@@ -266,10 +266,12 @@ describe('arraySimilarity', () => {
     const beau2 = metaphones('Gunderson, Beau');
     const beau3 = metaphones('   Gunderson ,     Beau ');
     const beau4 = metaphones('Gunderson, Beau Allen');
+    const beau5 = metaphones("B'eau Gunderson");
 
     expect(arraySimilarity(beau1, beau1)).toBe(1);
     expect(arraySimilarity(beau1, beau2)).toBe(1);
     expect(arraySimilarity(beau1, beau3)).toBe(1);
+    expect(arraySimilarity(beau1, beau5)).toBe(1);
     expect(arraySimilarity(beau2, beau3)).toBe(1);
 
     expect(arraySimilarity(beau1, beau4)).toBe(2 / 3);

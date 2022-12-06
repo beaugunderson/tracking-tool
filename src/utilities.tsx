@@ -158,7 +158,7 @@ export function arraySimilarity(a: any[], b: any[]): number {
 export function metaphones(name: string): string[] {
   return name
     .trim()
-    .replace(/,/g, ' ')
+    .replace(/[,."]/g, ' ')
     .replace(/\s+/g, ' ')
     .split(' ')
     .map((part) => doubleMetaphone(part)[0]);
