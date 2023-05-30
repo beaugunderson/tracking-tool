@@ -29,6 +29,7 @@ export const RAW_DOCTORS: readonly Doctor[] = [
   { text: 'Clay, Martha', inactive: true },
   { text: 'Cobbs, Charles' },
   { text: 'Crown, Angelena', value: 'Crown, Angelina' },
+  { text: 'Deshmukh, Abhijit' },
   { text: 'Devarakonda Siddhartha' },
   { text: 'Dong, David', inactive: true },
   { text: 'Douglas, Robert' },
