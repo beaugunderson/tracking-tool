@@ -12,6 +12,7 @@ export const USERNAMES = {
   'hannah.sjogren': 'Hannah Sjogren',
   'heather.shin': 'Heather Shin',
   'john.d.gonzales': 'John Gonzales',
+  'kristen.sievert': 'Kristen Sievert',
   'lucy.gunter': 'Lacy Gunter',
   'lauren.zemer': 'Lauren Zemer',
   'linsey.hunt': 'Linsey Hunt',
@@ -71,6 +72,7 @@ export const INTERNS = [
   'john.d.gonzales',
   'jonasa1', // December 7th Sam becomes a non-intern
   'kanedp2',
+  'kristen.sievert',
   'lauren.zemer',
   'linsey.hunt',
   'maysam1',
