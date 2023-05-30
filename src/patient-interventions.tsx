@@ -224,6 +224,11 @@ const PSYCHOLOGICAL = {
       ),
     },
     {
+      name: 'Psychotherapy',
+      description:
+        'Formal psychotherapy program, with intentional, goal-directed therapeutic services and interventions.',
+    },
+    {
       name: 'Sexuality, Intimacy, Fertility',
       description: 'Assessment, information, referral related to sexuality, intimacy, fertility',
     },
