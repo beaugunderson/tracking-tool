@@ -36,7 +36,12 @@ export class CrisisReport extends React.Component<CrisisReportProps, CrisisRepor
           return false;
         }
 
-        return encounter.mandmMortalityAndMorbidity || encounter.suicidehomicide;
+        return (
+          encounter.mandmMortalityAndMorbidity ||
+          encounter.psychotherapy ||
+          encounter.sciRxAssistance ||
+          encounter.suicidehomicide
+        );
       }),
       'parsedEncounterDate'
     ).reverse();
@@ -46,6 +51,14 @@ export class CrisisReport extends React.Component<CrisisReportProps, CrisisRepor
 
       if (encounter.mandmMortalityAndMorbidity) {
         crisisNames.push('M&M');
+      }
+
+      if (encounter.psychotherapy) {
+        crisisNames.push('Psychotherapy');
+      }
+
+      if (encounter.sciRxAssistance) {
+        crisisNames.push('SCI RX Assistance');
       }
 
       if (encounter.suicidehomicide) {

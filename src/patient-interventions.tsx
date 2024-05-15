@@ -593,6 +593,7 @@ export type InitialInterventionValues = {
   phq: boolean;
   phqScore: string;
   psychiatryPsychotherapy: boolean;
+  psychotherapy: boolean;
   respiteCare: boolean;
   sciGrantFunds: boolean;
   sciRxAssistance: boolean;
