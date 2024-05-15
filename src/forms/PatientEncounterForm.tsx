@@ -699,13 +699,11 @@ class UnwrappedPatientEncounterForm extends React.Component<
 
           <Form.Field
             control={Input}
-            disabled={!values.patientName || values.diagnosisType !== 'Malignant'}
+            disabled
             error={!!(touched.diagnosisFreeText && errors.diagnosisFreeText)}
             id="input-diagnosis-free-text"
             label="Diagnosis"
             name="diagnosisFreeText"
-            onBlur={this.handleBlur}
-            onChange={this.handleChange}
             value={values.diagnosisType === 'Malignant' ? values.diagnosisFreeText : ''}
           />
 
