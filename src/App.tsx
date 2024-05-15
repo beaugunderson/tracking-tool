@@ -546,7 +546,7 @@ export class App extends React.Component<{}, AppState> {
                     })}
                     onClick={this.handleCrisisReportClick}
                   >
-                    Crisis Report
+                    Intervention Report
                   </div>
 
                   {canSeeAuditReport() && (
