@@ -55,7 +55,7 @@ dc.config.defaultColors(d3.schemeCategory10 as string[]);
 const DEFAULT_MARGINS = { top: 10, right: 50, bottom: 30, left: 30 };
 
 const VERTICAL_CHART_MARGINS = { ...DEFAULT_MARGINS, left: 55 };
-const HORIZONTAL_CHART_MARGINS = { ...DEFAULT_MARGINS, left: 40 };
+const HORIZONTAL_CHART_MARGINS = { ...DEFAULT_MARGINS, left: 55 };
 
 const OTHER_FIELD_NAMES: string[] = map(OTHER_ENCOUNTER_OPTIONS, 'fieldName') as string[];
 const OTHER_FIELD_MAPPING = zipObject(
@@ -934,7 +934,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
 
     userChart
       .width(paddedWidth / 3)
-      .height(600)
+      .height(1200)
       .elasticX(true)
       .ordinalColors(colors)
       .dimension(userDimension)
