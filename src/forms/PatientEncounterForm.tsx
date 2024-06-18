@@ -834,10 +834,6 @@ export const PatientEncounterForm = withFormik<PatientEncounterFormProps, Patien
     const errors: FormikErrors<PatientEncounter> = {};
 
     if (values.diagnosisType === 'Malignant') {
-      if (!values.diagnosisFreeText) {
-        errors.diagnosisFreeText = 'Diagnosis is required';
-      }
-
       if (!values.diagnosisStage) {
         errors.diagnosisStage = 'Diagnosis stage is required';
       }
