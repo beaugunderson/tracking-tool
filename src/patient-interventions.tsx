@@ -463,7 +463,7 @@ const MENTAL_HEALTH = {
     {
       name: 'SMART',
       description:
-        'SMART participants should mark when using SMART techniques one on one with a patient',
+        'SMART facilitators should mark when using SMART techniques one on one with a patient',
     },
     {
       name: 'Solution-Focused',
