@@ -50,7 +50,16 @@ function currentUserIn(users: string[]) {
 const canSeeAuditReport = () => currentUserIn(['beau', 'carynstewart', 'lindce2']);
 
 const canSeeReporting = () =>
-  currentUserIn(['beau', 'carynstewart', 'johnss1', 'lindce2', 'nejash1', 'valejd1', 'nordje1']);
+  currentUserIn([
+    'beau',
+    'carynstewart',
+    'johnss1',
+    'lindce2',
+    'nejash1',
+    'nordje1',
+    'steven.robinson',
+    'valejd1',
+  ]);
 
 const DELETE_BUTTON = <Button negative>Delete</Button>;
 
