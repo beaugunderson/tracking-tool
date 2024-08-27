@@ -441,6 +441,11 @@ const MENTAL_HEALTH = {
         'Validation of feelings/loss, reflective listening, coping/adapting, rituals, narrative, many types of loss, can be anticipatory, legacy work, meaning making, remembering, holding space',
     },
     {
+      name: 'Meaning-Centered Psychotherapy',
+      description:
+        'Structured sessions utilizing homework assignments to explore historical, attitudinal, creative, and experiential sources of meaning, focusing on creating, experiencing, and keeping a sense of meaning and purpose in life',
+    },
+    {
       name: 'Mindfulness',
       description:
         'Skill building, guided imagery, relaxation response, body scan, breathing techniques, meditation, noticing/acknowledging, non-judgmental awareness, present-based, anxiety reduction',
