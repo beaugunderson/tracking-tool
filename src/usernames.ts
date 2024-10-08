@@ -129,6 +129,13 @@ export function isIntern(username: string | null, encounterDate: string): boolea
     return false;
   }
 
+  if (
+    (lowercaseUsername === 'shannon.youmans' || lowercaseUsername === 'sabrina.figueroa') &&
+    date.isAfter(moment('8/31/2024'))
+  ) {
+    return false;
+  }
+
   return INTERNS.includes(lowercaseUsername);
 }
 
