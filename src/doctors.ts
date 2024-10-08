@@ -136,6 +136,7 @@ export const RAW_DOCTORS: readonly Doctor[] = [
   { text: 'Ryu, Lio' },
   { text: 'Sarkar, Reith' },
   { text: 'Sceats, Lindsay' },
+  { text: 'Schaffel, Stephanie' },
   { text: 'Schwede Matthew' },
   { text: 'Shah, Chirag' },
   { text: 'Shango, Maryann', inactive: true },
@@ -143,6 +144,7 @@ export const RAW_DOCTORS: readonly Doctor[] = [
   { text: 'Simmons, Forrest', inactive: true },
   { text: 'Smith, Spencer' },
   { text: 'Sniezek, Joseph' },
+  { text: 'Solanki, Kupra' },
   { text: 'Spiegel, James' },
   { text: 'Subramaniam, Somasundaram (Soma)' },
   { text: 'Takamiya, Robert' },
@@ -160,6 +162,7 @@ export const RAW_DOCTORS: readonly Doctor[] = [
   { text: 'Ward, Jeffery', inactive: true },
   { text: 'West, Howard (Jack)', inactive: true },
   { text: 'White, Peter' },
+  { text: 'Wignall, Aiza' },
   { text: 'Wilcox, Kristin' },
   { text: 'Wulff, Jennifer' },
   { text: 'Xie, Bin' },
@@ -167,6 +170,9 @@ export const RAW_DOCTORS: readonly Doctor[] = [
   { text: 'Zhao, Meng' },
   { text: 'Zhao, Song' },
   { text: 'Zucker, David' },
+  //
+  // Unassigned should be last
+  //
   { text: 'Unassigned' },
 ] as const;
 
