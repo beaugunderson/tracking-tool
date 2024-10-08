@@ -165,7 +165,7 @@ export const RAW_DOCTORS: readonly Doctor[] = [
   { text: 'White, Peter' },
   { text: 'Wignall, Aiza' },
   { text: 'Wilcox, Kristin' },
-  { text: 'Wulff, Jennifer' },
+  { text: 'Wulff, Jennifer', inactive: true },
   { text: 'Xie, Bin' },
   { text: 'Yan, Fengting' },
   { text: 'Zhao, Meng' },
