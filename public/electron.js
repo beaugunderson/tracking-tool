@@ -15,6 +15,7 @@ const createWindow = () => {
     backgroundColor: '#F7F7F7',
     minWidth: 400,
     show: false,
+    title: `Tracking Tool v${app.getVersion()}`,
     webPreferences: {
       enableRemoteModule: true,
       nodeIntegration: true,
