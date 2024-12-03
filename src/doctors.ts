@@ -20,6 +20,7 @@ export const RAW_DOCTORS: readonly Doctor[] = [
   { text: 'Blanshan, Stephanie', inactive: true },
   { text: 'Bograd, Adam' },
   { text: 'BonDurant, Amy' },
+  { text: 'Bonis, William' },
   { text: 'Boxwell, Anthony' },
   { text: 'Brashears, James' },
   { text: 'Brower, Jessica' },
