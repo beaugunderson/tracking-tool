@@ -146,7 +146,7 @@ export const RAW_DOCTORS: readonly Doctor[] = [
   { text: 'Simmons, Forrest', inactive: true },
   { text: 'Smith, Spencer' },
   { text: 'Sniezek, Joseph' },
-  { text: 'Solanki, Kupra' },
+  { text: 'Solanki, Krupa', value: 'Solanki, Kupra' },
   { text: 'Spiegel, James' },
   { text: 'Subramaniam, Somasundaram (Soma)' },
   { text: 'Takamiya, Robert' },
