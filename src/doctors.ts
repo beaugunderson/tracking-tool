@@ -119,6 +119,7 @@ export const RAW_DOCTORS: readonly Doctor[] = [
   { text: 'Murphy, Patrick' },
   { text: 'Musa, Fernanda' },
   { text: 'Namburi, Swathi' },
+  { text: 'Norman, Kurt' },
   { text: 'Ochsner, Alyssa' },
   { text: 'Ong, Evan' },
   { text: 'Pagel, John', inactive: true },
