@@ -181,6 +181,9 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
 
     const months = Array.from(moment.range(min, max).by('month'));
 
+    // show newest month first
+    months.reverse();
+
     log.debug(`GridComponent render: rendering ${months.length} months`);
 
     return (
