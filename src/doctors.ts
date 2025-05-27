@@ -110,7 +110,6 @@ export const RAW_DOCTORS: readonly Doctor[] = [
   { text: 'Meier, Robert' },
   { text: 'Menon, Raman' },
   { text: 'Milhoan, Linda' },
-  { text: 'Milhoan, Linda' },
   { text: 'Montgomery, Susan' },
   { text: 'Moore, David', inactive: true },
   { text: 'Morgan, Amy' },
