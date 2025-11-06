@@ -31,6 +31,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_OPTIONS: "--openssl-legacy-provider"
         run: |
+          yarn run prettier --write . --end-of-line crlf
           yarn build
           yarn dist-win
 
