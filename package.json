@@ -50,6 +50,9 @@
     "start": "concurrently \"cross-env BROWSER=none NODE_OPTIONS=--openssl-legacy-provider yarn react-scripts start\" \"wait-on http://127.0.0.1:3000 && electron .\"",
     "test": "yarn react-scripts test --silent --env @jest-runner/electron/environment --runner @jest-runner/electron"
   },
+  "resolutions": {
+    "fsevents": "^2.3.3"
+  },
   "dependencies": {
     "async": "^3.2.2",
     "camelcase": "^6.2.0",
@@ -115,7 +118,7 @@
     "delectron": "^0.0.1-security",
     "devtron": "^1.4.0",
     "electron": "^13.0.0",
-    "electron-builder": "^23.6.0",
+    "electron-builder": "^26.0.12",
     "eslint": "^7.32.0",
     "eslint-config-airbnb": "^18.2.1",
     "eslint-config-prettier": "^8.3.0",
