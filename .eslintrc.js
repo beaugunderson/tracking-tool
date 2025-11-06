@@ -56,7 +56,7 @@ module.exports = {
     'no-underscore-dangle': 'off',
     'no-use-before-define': 'off',
     'no-useless-constructor': 'off',
-    'prettier/prettier': ['error', { singleQuote: true, printWidth: 99 }],
+    'prettier/prettier': ['error', { singleQuote: true, printWidth: 99, edOfLine: 'auto' }],
 
     // override this from airbnb's guide specifically to allow for..of loops
     'no-restricted-syntax': [
