@@ -17,7 +17,7 @@ type UnprocessedIntervention = {
   fieldName?: string;
   name: string;
   scored?: true;
-  visibleTo?: string[];
+  editableBy?: string[];
 };
 
 type InterventionGroup = {
@@ -349,12 +349,12 @@ const FINANCIAL = {
       description:
         'Discussion, facilitation of SCI grant funds, including SCI Parking Assistance and SCI Rx Assistance',
       community: true,
-      visibleTo: ['lindce2', 'nordje1', 'steven.robinson'],
     },
     {
       name: 'SCI Rx Assistance',
       description:
         'For person who is approving/denying Rx Assistance, not for the OSW requesting it. Can be selected whenever discussing Rx Assistance with an OSW about a specific patient',
+      editableBy: ['lindce2', 'nordje1', 'steven.robinson', 'beau'],
     },
     {
       name: 'Community Grant Funds',

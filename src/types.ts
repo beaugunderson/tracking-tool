@@ -15,5 +15,5 @@ export type Intervention = {
   community?: boolean;
   scored?: boolean;
 
-  visibleTo?: string[];
+  editableBy?: string[];
 };

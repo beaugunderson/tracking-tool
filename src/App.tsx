@@ -340,6 +340,8 @@ export class App extends React.Component<{}, AppState> {
       return <PageLoader status={status} />;
     }
 
+    const userName = username.sync().toLowerCase();
+
     switch (page) {
       case Page.ReportCrisis:
         return <CrisisReport />;
@@ -357,7 +359,7 @@ export class App extends React.Component<{}, AppState> {
         return (
           <InteractiveReport
             audience={canSeeReporting() ? ReportAudience.ADMINISTRATOR : ReportAudience.INDIVIDUAL}
-            username={username.sync().toLowerCase()}
+            username={userName}
           />
         );
 
@@ -368,6 +370,7 @@ export class App extends React.Component<{}, AppState> {
             encounters={this.encounters}
             onCancel={this.handleCancel}
             onComplete={this.handleComplete}
+            username={userName}
           />
         );
 

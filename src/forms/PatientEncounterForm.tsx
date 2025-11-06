@@ -198,6 +198,7 @@ function indexValues<T extends any[]>(values: T) {
 
 type PatientEncounterFormProps = {
   encounter?: PatientEncounter;
+  username: string;
 } & EncounterFormProps;
 
 type PatientEncounterFormState = {
@@ -468,6 +469,9 @@ class UnwrappedPatientEncounterForm extends React.Component<
       onChange={this.handleChange}
       onMouseEnter={this.handleInterventionOnMouseEnter}
       onMouseLeave={this.handleInterventionOnMouseLeave}
+      disabled={
+        intervention.editableBy ? intervention.editableBy.includes(this.props.username) : false
+      }
     />
   );
 
@@ -485,6 +489,9 @@ class UnwrappedPatientEncounterForm extends React.Component<
           name={intervention.fieldName}
           onBlur={this.handleBlur}
           onChange={this.handleChange}
+          disabled={
+            intervention.editableBy ? intervention.editableBy.includes(this.props.username) : false
+          }
         />
 
         {this.props.values[intervention.fieldName] && (
