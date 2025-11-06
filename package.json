@@ -37,7 +37,7 @@
       "azureSignOptions": {
         "publisherName": "Beau Gunderson",
         "codeSigningAccountName": "personal-signer",
-        "certificateProfileName": "personal-signing-profile",
+        "certificateProfileName": "personal-trust-profile",
         "endpoint": "https://eus.codesigning.azure.net/"
       }
     }
