@@ -21,7 +21,7 @@ jobs:
           cache: "yarn"
 
       - name: install deps
-        run: yarn --ignore-engines --ignore-platforms --frozen-lockfile
+        run: yarn --ignore-engines --ignore-platform --frozen-lockfile
 
       - name: build and sign Windows artifact
         env:
