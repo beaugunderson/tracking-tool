@@ -33,7 +33,13 @@
           ],
           "target": "portable"
         }
-      ]
+      ],
+      "azureSignOptions": {
+        "publisherName": "Beau Gunderson",
+        "codeSigningAccountName": "personal-signer",
+        "certificateProfileName": "personal-signing-profile",
+        "endpoint": "https://eus.codesigning.azure.net/"
+      }
     }
   },
   "scripts": {
