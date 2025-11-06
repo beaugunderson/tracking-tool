@@ -29,7 +29,9 @@ jobs:
           AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
           AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: yarn dist-win
+        run: |
+          yarn build
+          yarn dist-win
 
       - name: upload signed artifacts
         uses: actions/upload-artifact@v4
