@@ -17,6 +17,7 @@ type UnprocessedIntervention = {
   fieldName?: string;
   name: string;
   scored?: true;
+  visibleTo?: string[];
 };
 
 type InterventionGroup = {
@@ -348,6 +349,7 @@ const FINANCIAL = {
       description:
         'Discussion, facilitation of SCI grant funds, including SCI Parking Assistance and SCI Rx Assistance',
       community: true,
+      visibleTo: ['lindce2', 'nordje1', 'steven.robinson'],
     },
     {
       name: 'SCI Rx Assistance',

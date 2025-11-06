@@ -14,4 +14,6 @@ export type Intervention = {
   fieldName: string;
   community?: boolean;
   scored?: boolean;
+
+  visibleTo?: string[];
 };
