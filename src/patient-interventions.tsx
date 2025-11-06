@@ -354,7 +354,7 @@ const FINANCIAL = {
       name: 'SCI Rx Assistance',
       description:
         'For person who is approving/denying Rx Assistance, not for the OSW requesting it. Can be selected whenever discussing Rx Assistance with an OSW about a specific patient',
-      editableBy: ['lindce2', 'nordje1', 'steven.robinson', 'beau'],
+      editableBy: ['lindce2', 'nordje1', 'steven.robinson'],
     },
     {
       name: 'Community Grant Funds',
