@@ -6,7 +6,7 @@
     "type": "git",
     "url": "https://github.com/beaugunderson/tracking-tool.git"
   },
-  "version": "8.30.0",
+  "version": "8.31.0",
   "private": true,
   "homepage": "./",
   "main": "public/electron.js",
