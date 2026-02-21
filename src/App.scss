@@ -1,3 +1,5 @@
+@use 'sass:color';
+
 body {
   padding: 0;
   margin: 0;
@@ -175,10 +177,10 @@ body {
 
 $button-color: #bbb;
 
-$button-hover: darken($button-color, 10%);
-$button-active: darken($button-color, 50%);
+$button-hover: color.adjust($button-color, $lightness: -10%);
+$button-active: color.adjust($button-color, $lightness: -50%);
 
-$button-spacer: lighten($button-color, 10%);
+$button-spacer: color.adjust($button-color, $lightness: 10%);
 
 #navigation,
 #form-navigation,
