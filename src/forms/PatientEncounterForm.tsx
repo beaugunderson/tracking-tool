@@ -470,7 +470,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
       onMouseEnter={this.handleInterventionOnMouseEnter}
       onMouseLeave={this.handleInterventionOnMouseLeave}
       disabled={
-        intervention.editableBy ? intervention.editableBy.includes(this.props.username) : false
+        intervention.editableBy ? !intervention.editableBy.includes(this.props.username) : false
       }
     />
   );
@@ -490,7 +490,9 @@ class UnwrappedPatientEncounterForm extends React.Component<
           onBlur={this.handleBlur}
           onChange={this.handleChange}
           disabled={
-            intervention.editableBy ? intervention.editableBy.includes(this.props.username) : false
+            intervention.editableBy
+              ? !intervention.editableBy.includes(this.props.username)
+              : false
           }
         />
 
