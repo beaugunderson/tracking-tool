@@ -1,5 +1,4 @@
 import moment from 'moment';
-import path from 'path';
 import { applyMigrations, Fix, getFixes } from '../data';
 import { clone, findLast, isEqual, isNaN, isNumber, pick } from 'lodash';
 import { DATE_FORMAT_DATABASE, DATE_FORMAT_DISPLAY } from '../constants';
@@ -13,6 +12,7 @@ const fs = window.require('fs');
 const glob = window.require('glob');
 const log = window.require('electron-log');
 const os = window.require('os');
+const path = window.require('path');
 const rimraf = window.require('rimraf');
 
 export type AgeBucket = '<= 39 years' | '40 to 64 years' | '>= 65 years';

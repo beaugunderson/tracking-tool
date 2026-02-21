@@ -136,14 +136,6 @@ class UnwrappedOtherEncounterForm extends React.Component<
   handleChange = (e, { name, value, checked }) =>
     this.props.setFieldValue(name, value !== undefined ? value : checked);
 
-  handleOptionChange = (e, data) => {
-    if (!data) {
-      return;
-    }
-
-    this.props.setFieldValue('activity', data.value);
-  };
-
   handleOptionOnMouseEnter = (e) => {
     e.persist();
     this.setState({ activeInfoButton: e.target.parentElement.firstChild.name });

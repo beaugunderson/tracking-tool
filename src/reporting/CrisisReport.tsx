@@ -69,57 +69,51 @@ export class CrisisReport extends React.Component<CrisisReportProps, CrisisRepor
     }
 
     return (
-      <>
-        <Table>
-          <Table.Header>
-            <Table.Row>
-              <Table.HeaderCell>Date</Table.HeaderCell>
-              <Table.HeaderCell>Social Worker</Table.HeaderCell>
-              <Table.HeaderCell>Providence MRN</Table.HeaderCell>
-              <Table.HeaderCell>MRN</Table.HeaderCell>
-              <Table.HeaderCell>Crises</Table.HeaderCell>
-              <Table.HeaderCell>Location</Table.HeaderCell>
-              <Table.HeaderCell>Clinic</Table.HeaderCell>
-            </Table.Row>
-          </Table.Header>
+      <Table>
+        <Table.Header>
+          <Table.Row>
+            <Table.HeaderCell>Date</Table.HeaderCell>
+            <Table.HeaderCell>Social Worker</Table.HeaderCell>
+            <Table.HeaderCell>Providence MRN</Table.HeaderCell>
+            <Table.HeaderCell>MRN</Table.HeaderCell>
+            <Table.HeaderCell>Crises</Table.HeaderCell>
+            <Table.HeaderCell>Location</Table.HeaderCell>
+            <Table.HeaderCell>Clinic</Table.HeaderCell>
+          </Table.Row>
+        </Table.Header>
 
-          <Table.Body>
-            {crisisEncounters.map((encounter, i) => (
-              <Table.Row key={i}>
-                <Table.Cell>
-                  {encounter.parsedEncounterDate.format(DATE_FORMAT_DISPLAY)}
-                </Table.Cell>
-                <Table.Cell>{usernameToName(encounter.username)}</Table.Cell>
-                <Table.Cell>
-                  <button
-                    className="button-link"
-                    onClick={() => clipboard.writeText(encounter.providenceMrn)}
-                    type="button"
-                  >
-                    {encounter.providenceMrn === EXCLUDE_STRING_VALUE
-                      ? ''
-                      : encounter.providenceMrn}{' '}
-                    <Icon name="copy" />
-                  </button>
-                </Table.Cell>
-                <Table.Cell>
-                  <button
-                    className="button-link"
-                    onClick={() => clipboard.writeText(encounter.mrn)}
-                    type="button"
-                  >
-                    {encounter.mrn === EXCLUDE_STRING_VALUE ? '' : encounter.mrn}{' '}
-                    <Icon name="copy" />
-                  </button>
-                </Table.Cell>
-                <Table.Cell>{crises(encounter)}</Table.Cell>
-                <Table.Cell>{encounter.location}</Table.Cell>
-                <Table.Cell>{encounter.clinic}</Table.Cell>
-              </Table.Row>
-            ))}
-          </Table.Body>
-        </Table>
-      </>
+        <Table.Body>
+          {crisisEncounters.map((encounter, i) => (
+            <Table.Row key={i}>
+              <Table.Cell>{encounter.parsedEncounterDate.format(DATE_FORMAT_DISPLAY)}</Table.Cell>
+              <Table.Cell>{usernameToName(encounter.username)}</Table.Cell>
+              <Table.Cell>
+                <button
+                  className="button-link"
+                  onClick={() => clipboard.writeText(encounter.providenceMrn)}
+                  type="button"
+                >
+                  {encounter.providenceMrn === EXCLUDE_STRING_VALUE ? '' : encounter.providenceMrn}{' '}
+                  <Icon name="copy" />
+                </button>
+              </Table.Cell>
+              <Table.Cell>
+                <button
+                  className="button-link"
+                  onClick={() => clipboard.writeText(encounter.mrn)}
+                  type="button"
+                >
+                  {encounter.mrn === EXCLUDE_STRING_VALUE ? '' : encounter.mrn}{' '}
+                  <Icon name="copy" />
+                </button>
+              </Table.Cell>
+              <Table.Cell>{crises(encounter)}</Table.Cell>
+              <Table.Cell>{encounter.location}</Table.Cell>
+              <Table.Cell>{encounter.clinic}</Table.Cell>
+            </Table.Row>
+          ))}
+        </Table.Body>
+      </Table>
     );
   }
 }

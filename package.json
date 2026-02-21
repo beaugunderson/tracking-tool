@@ -53,11 +53,12 @@
     "predist": "yarn build",
     "prepack": "yarn build",
     "postinstall": "electron-builder install-app-deps",
-    "start": "concurrently \"cross-env BROWSER=none NODE_OPTIONS=--openssl-legacy-provider yarn react-scripts start\" \"wait-on http://127.0.0.1:3000 && electron .\"",
-    "test": "yarn react-scripts test --silent --env @jest-runner/electron/environment --runner @jest-runner/electron"
+    "start": "concurrently \"cross-env BROWSER=none yarn react-scripts start\" \"wait-on http://127.0.0.1:3000 && electron .\"",
+    "test": "yarn react-scripts test --silent --env @kayahr/jest-electron-runner/environment --runner @kayahr/jest-electron-runner"
   },
   "resolutions": {
-    "fsevents": "^2.3.3"
+    "fsevents": "^2.3.3",
+    "@kayahr/jest-electron-runner/electron": "^13.0.0"
   },
   "dependencies": {
     "async": "^3.2.2",
@@ -87,7 +88,7 @@
     "parse-full-name": "^1.2.5",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "react-scripts": "^4.0.3",
+    "react-scripts": "^5.0.1",
     "reductio": "^1.0.0",
     "semantic-ui-css": "^2.4.1",
     "semantic-ui-react": "^2.0.3",
@@ -97,7 +98,7 @@
     "xregexp": "^5.1.0"
   },
   "devDependencies": {
-    "@jest-runner/electron": "^3.0.1",
+    "@kayahr/jest-electron-runner": "4.4.1",
     "@types/async": "^3.2.7",
     "@types/classnames": "^2.3.1",
     "@types/d3": "^7.0.0",
@@ -116,17 +117,16 @@
     "@types/react-dom": "^17.0.9",
     "@types/string-similarity": "^4.0.0",
     "@types/xregexp": "^4.4.0",
-    "@typescript-eslint/eslint-plugin": "^4.30.0",
-    "@typescript-eslint/parser": "^4.30.0",
-    "babel-eslint": "^10.1.0",
+    "@typescript-eslint/eslint-plugin": "^5.5.0",
+    "@typescript-eslint/parser": "^5.5.0",
     "concurrently": "^6.2.1",
     "cross-env": "^7.0.3",
     "delectron": "^0.0.1-security",
     "devtron": "^1.4.0",
     "electron": "^13.0.0",
     "electron-builder": "^26.0.17",
-    "eslint": "^7.32.0",
-    "eslint-config-airbnb": "^18.2.1",
+    "eslint": "^8.3.0",
+    "eslint-config-airbnb": "^19.0.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-filenames": "^1.3.2",
     "eslint-plugin-import": "^2.24.2",
