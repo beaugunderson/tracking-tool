@@ -39,4 +39,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-signed
-          path: "**/*.exe"
+          path: "dist/*.exe"
