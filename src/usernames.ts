@@ -29,7 +29,7 @@ export const USERNAMES = {
   'patrick.stephens': 'Patrick Stephens',
   'rodney.antonson': 'Rodney Antonson',
   'sabrina.figueroa': 'Sabrina Figueroa',
-  'samantha.theam': 'Samatha Theam',
+  'samantha.theam': 'Samantha Theam',
   'shanna.sexton': 'Zoe Sexton',
   'shannon.youmans': 'Shannon Youmans',
   'shekinah.indrias': 'Shekinah Indrias',
