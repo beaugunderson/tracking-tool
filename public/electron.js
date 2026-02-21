@@ -6,6 +6,7 @@ const defaultMenu = require('electron-default-menu');
 app.allowRendererProcessReuse = true;
 
 require('electron-context-menu')({ showSaveImageAs: true });
+require('electron-store').initRenderer();
 
 let mainWindow;
 let showExitPrompt = true;
