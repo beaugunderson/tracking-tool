@@ -19,6 +19,10 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
     encounters: null,
   };
 
+  handleCopyClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    window.trackingTool.writeClipboard(e.currentTarget.dataset.text!);
+  };
+
   async componentDidMount() {
     this.setState({ encounters: await transform() });
   }
@@ -117,7 +121,8 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
                   {encounter.encounterType === 'patient' && (
                     <button
                       className="button-link"
-                      onClick={() => window.trackingTool.writeClipboard(encounter.providenceMrn)}
+                      data-text={encounter.providenceMrn}
+                      onClick={this.handleCopyClick}
                       type="button"
                     >
                       {encounter.providenceMrn === EXCLUDE_STRING_VALUE
@@ -131,7 +136,8 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
                   {encounter.encounterType === 'patient' && (
                     <button
                       className="button-link"
-                      onClick={() => window.trackingTool.writeClipboard(encounter.mrn)}
+                      data-text={encounter.mrn}
+                      onClick={this.handleCopyClick}
                       type="button"
                     >
                       {encounter.mrn === EXCLUDE_STRING_VALUE ? '' : encounter.mrn}{' '}

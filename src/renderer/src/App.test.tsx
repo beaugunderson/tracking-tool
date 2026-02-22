@@ -17,7 +17,7 @@ async function renderApp() {
 function setupMocks(options: { rootPath?: string; username?: string } = {}) {
   const { rootPath = '', username = 'testuser' } = options;
 
-  (window.trackingTool.username as any) = username;
+  Object.defineProperty(window.trackingTool, 'username', { value: username, writable: true });
 
   vi.mocked(window.trackingTool.configGet).mockResolvedValue(rootPath);
   vi.mocked(window.trackingTool.fsExists).mockResolvedValue(false);
@@ -30,7 +30,7 @@ function setupMocks(options: { rootPath?: string; username?: string } = {}) {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  window.scroll = vi.fn() as any;
+  window.scroll = vi.fn() as unknown as typeof window.scroll;
 });
 
 describe('App page navigation', () => {

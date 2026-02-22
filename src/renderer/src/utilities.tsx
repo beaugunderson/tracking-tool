@@ -143,7 +143,7 @@ export function namesRepresentSamePerson(a: string, b: string): boolean {
   return false;
 }
 
-export function arraySimilarity(a: any[], b: any[]): number {
+export function arraySimilarity<T>(a: T[], b: T[]): number {
   let matches = 0;
 
   for (const item of a) {

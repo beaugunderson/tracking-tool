@@ -72,7 +72,7 @@ export async function insertExamples() {
   const patients = times(records, fakePatient);
 
   const inserts = times(records, () => {
-    const patient = sample(patients) as any;
+    const patient = sample(patients)!;
 
     const sampledInterventions = sampleSize(INTERVENTIONS, 1 + Math.floor(Math.random() * 5));
     const interventionValues: { [key: string]: boolean | string } = {};

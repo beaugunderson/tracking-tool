@@ -60,12 +60,15 @@ class UnwrappedCommunityEncounterForm extends React.Component<
     activeInfoButton: null,
   };
 
-  handleBlur = (e, data) => this.props.setFieldTouched((data && data.name) || e.target.name, true);
+  handleBlur = (e: React.FocusEvent, data?: { name: string }) =>
+    this.props.setFieldTouched((data && data.name) || (e.target as HTMLInputElement).name, true);
 
-  handleChange = (e, { name, value, checked }) =>
-    this.props.setFieldValue(name, value !== undefined ? value : checked);
+  handleChange = (
+    _e: React.SyntheticEvent,
+    data: { name?: string; value?: string | string[] | boolean; checked?: boolean },
+  ) => this.props.setFieldValue(data.name!, data.value !== undefined ? data.value : data.checked);
 
-  handleInterventionChange = (e: React.FormEvent<HTMLInputElement>, data) => {
+  handleInterventionChange = (_e: React.SyntheticEvent, data: { value: string } | undefined) => {
     if (!data) {
       return;
     }
@@ -102,6 +105,7 @@ class UnwrappedCommunityEncounterForm extends React.Component<
       control={Checkbox}
       key={intervention.fieldName}
       label={
+        // eslint-disable-next-line react-perf/jsx-no-jsx-as-prop
         <InfoButtonLabel
           description={intervention.description}
           name={intervention.name}

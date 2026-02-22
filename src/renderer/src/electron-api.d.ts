@@ -1,3 +1,6 @@
+import type { Encounter } from './types';
+import type { Fix } from './data';
+
 interface TrackingToolAPI {
   // Sync constants
   readonly username: string;
@@ -11,8 +14,8 @@ interface TrackingToolAPI {
   getStorePath(): Promise<string>;
 
   // Config
-  configGet(key: string): Promise<any>;
-  configSet(key: string, value: any): Promise<void>;
+  configGet(key: string): Promise<unknown>;
+  configSet(key: string, value: unknown): Promise<void>;
 
   // Filesystem
   fsExists(filePath: string): Promise<boolean>;
@@ -35,19 +38,19 @@ interface TrackingToolAPI {
     encounterType?: string;
     patientNamePattern?: string;
     encounterDate?: string;
-  }): Promise<any[]>;
-  dbFindAll(): Promise<any[]>;
-  dbInsert(doc: any): Promise<any>;
-  dbUpdate(query: any, doc: any): Promise<number>;
-  dbRemove(query: any): Promise<number>;
+  }): Promise<Encounter[]>;
+  dbFindAll(): Promise<Encounter[]>;
+  dbInsert(doc: Encounter): Promise<Encounter>;
+  dbUpdate(query: { _id: string }, doc: Encounter): Promise<number>;
+  dbRemove(query: { _id: string }): Promise<number>;
 
   // Fixes
   fixesOpen(): Promise<void>;
-  fixesInsert(doc: any): Promise<any>;
-  fixesGetAll(): Promise<any[]>;
+  fixesInsert(doc: Fix): Promise<Fix>;
+  fixesGetAll(): Promise<Fix[]>;
 
   // Reporting
-  reportTransform(options: { mapMrns?: boolean; fixMrns?: boolean }): Promise<any[]>;
+  reportTransform(options: { mapMrns?: boolean; fixMrns?: boolean }): Promise<Encounter[]>;
 
   // Find in page
   findInPage(text: string, options?: { forward?: boolean; findNext?: boolean }): Promise<void>;
@@ -58,8 +61,8 @@ interface TrackingToolAPI {
   onFindRequested(callback: () => void): () => void;
 
   // Logging (fire-and-forget)
-  logDebug(...args: any[]): void;
-  logError(...args: any[]): void;
+  logDebug(...args: unknown[]): void;
+  logError(...args: unknown[]): void;
 
   // Shell
   openExternal(url: string): Promise<void>;

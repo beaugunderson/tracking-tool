@@ -6,14 +6,15 @@ import React from 'react';
 import { Button, Confirm, Dropdown, Icon, Input, Statistic, Table } from 'semantic-ui-react';
 import { chain, sumBy } from 'lodash';
 import { ChooseUserForm } from './ChooseUserForm';
-import { CommunityEncounterForm } from './forms/CommunityEncounterForm';
+import { CommunityEncounter, CommunityEncounterForm } from './forms/CommunityEncounterForm';
 import { CrisisReport } from './reporting/CrisisReport';
 import { DataAuditReport } from './reporting/DataAuditReport';
 import { DATE_FORMAT_DATABASE, DATE_FORMAT_DISPLAY } from './constants';
+import { Encounter } from './types';
 import { ENCOUNTER_TYPE_NAMES, ENCOUNTER_TYPES } from './options';
 import { ensureUserDirectoryExists, initStore, rootPathExists } from './store';
 import { ErrorMessage } from './ErrorMessage';
-import { fieldNameToName, OtherEncounterForm } from './forms/OtherEncounterForm';
+import { fieldNameToName, OtherEncounter, OtherEncounterForm } from './forms/OtherEncounterForm';
 import { FindBar } from './components/FindBar';
 import { FirstTimeSetup } from './FirstTimeSetup';
 import { GridReport } from './reporting/GridReport';
@@ -22,7 +23,7 @@ import { LinkMrnReport } from './reporting/LinkMrnReport';
 import { MENTAL_HEALTH_FIELD_NAMES } from './patient-interventions';
 import { PageLoader } from './components/PageLoader';
 import { PatientEncounter, PatientEncounterForm } from './forms/PatientEncounterForm';
-import { StaffEncounterForm } from './forms/StaffEncounterForm';
+import { StaffEncounter, StaffEncounterForm } from './forms/StaffEncounterForm';
 import { transformEncounter, transformEncounters } from './reporting/data';
 
 function currentUserIn(users: string[]) {
@@ -71,8 +72,8 @@ const REPORT_PAGES = [
 type AppState = {
   confirmDeletion: string | null;
   dbReady: boolean;
-  encounter: any;
-  encounters: any[];
+  encounter: Encounter | null;
+  encounters: Encounter[];
   encounterSearchDate: string;
   encounterSearchPatientName: string;
   encounterSearchType: string;
@@ -123,7 +124,7 @@ export class App extends React.Component<{}, AppState> {
   handleReportsClick = () =>
     this.setState((state) => ({ showReportNavigation: !state.showReportNavigation }));
 
-  encounterToPage(encounter: any): Page {
+  encounterToPage(encounter: Encounter): Page {
     switch (encounter.encounterType) {
       case 'patient':
         return Page.EncounterFormPatient;
@@ -138,11 +139,11 @@ export class App extends React.Component<{}, AppState> {
         return Page.EncounterFormOther;
 
       default:
-        throw new Error(`Unknown encounter type: ${encounter.encounterType}`);
+        throw new Error(`Unknown encounter type: ${(encounter as Encounter).encounterType}`);
     }
   }
 
-  editEncounter = (encounter: any) =>
+  editEncounter = (encounter: Encounter) =>
     this.setState({ page: this.encounterToPage(encounter), encounter });
 
   searchPatients = async () => {
@@ -185,14 +186,15 @@ export class App extends React.Component<{}, AppState> {
 
   async updateAssessments() {
     try {
-      const results: PatientEncounter[] = await window.trackingTool.dbFindAll();
+      const results = await window.trackingTool.dbFindAll();
 
       const monthStart = moment().startOf('month');
       const monthEnd = moment().endOf('month');
 
-      const monthEncounters = transformEncounters(results).filter((encounter) => {
-        return encounter.parsedEncounterDate.isBetween(monthStart, monthEnd, undefined, '[]');
-      });
+      const monthEncounters = transformEncounters(results as PatientEncounter[]).filter(
+        (encounter) =>
+          encounter.parsedEncounterDate.isBetween(monthStart, monthEnd, undefined, '[]'),
+      );
 
       const gads = monthEncounters.filter((encounter) => !!encounter.gad).length;
       const mocas = monthEncounters.filter((encounter) => !!encounter.moca).length;
@@ -221,7 +223,7 @@ export class App extends React.Component<{}, AppState> {
       await window.trackingTool.dbOpen(this.state.username);
 
       if (this.state.username === 'beau') {
-        // @ts-ignore
+        // @ts-expect-error createFakeEncounters is a debug helper attached to window
         window.createFakeEncounters = async () =>
           (await import('./generate-data')).insertExamples();
       }
@@ -252,7 +254,7 @@ export class App extends React.Component<{}, AppState> {
     await this.initialize();
   }
 
-  componentDidUpdate(prevProps: any, prevState: AppState) {
+  componentDidUpdate(_prevProps: {}, prevState: AppState) {
     // scroll to top when we come back
     if (this.state.page !== prevState.page) {
       window.scroll({
@@ -278,12 +280,46 @@ export class App extends React.Component<{}, AppState> {
     this.setState({ encounter: null, page: Page.Encounters, error });
   };
 
-  handleDeleteClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, doc: any) => {
+  handleDeleteClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
 
-    this.setState({ confirmDeletion: doc._id });
+    this.setState({ confirmDeletion: e.currentTarget.dataset.id });
   };
+
+  handleEncounterSearchDateChange = (_e: React.SyntheticEvent, { value }: { value: string }) =>
+    this.setState({ encounterSearchDate: value });
+
+  handleEncounterSearchTypeChange = (_e: React.SyntheticEvent, { value }: { value?: unknown }) =>
+    this.setState({ encounterSearchType: value as string });
+
+  handleClearPatientNameSearch = () => this.setState({ encounterSearchPatientName: '' });
+
+  handleEncounterSearchPatientNameChange = (
+    _e: React.SyntheticEvent,
+    { value }: { value: string },
+  ) => {
+    this.setState({ encounterSearchPatientName: value });
+  };
+
+  handleConfirmCancel = () => this.setState({ confirmDeletion: null });
+
+  handleConfirmDelete = async () => {
+    try {
+      await window.trackingTool.dbRemove({ _id: this.state.confirmDeletion });
+      await this.searchPatients();
+      this.setState({ confirmDeletion: null });
+    } catch (err) {
+      this.setState({ error: err as Error });
+    }
+  };
+
+  handleRowClick = (e: React.MouseEvent<HTMLTableRowElement>) => {
+    const index = parseInt(e.currentTarget.dataset.index!, 10);
+    this.editEncounter(this.state.encounters[index]);
+  };
+
+  clearSearchIcon = (<Icon link name="delete" onClick={this.handleClearPatientNameSearch} />);
 
   handleFirstTimeSetupComplete = () =>
     this.initialize().then(() => this.setState({ page: Page.Encounters }));
@@ -330,7 +366,7 @@ export class App extends React.Component<{}, AppState> {
       case Page.EncounterFormPatient:
         return (
           <PatientEncounterForm
-            encounter={encounter}
+            encounter={encounter as PatientEncounter}
             onCancel={this.handleCancel}
             onComplete={this.handleComplete}
             username={userName}
@@ -340,7 +376,7 @@ export class App extends React.Component<{}, AppState> {
       case Page.EncounterFormCommunity:
         return (
           <CommunityEncounterForm
-            encounter={encounter}
+            encounter={encounter as CommunityEncounter}
             onCancel={this.handleCancel}
             onComplete={this.handleComplete}
           />
@@ -349,7 +385,7 @@ export class App extends React.Component<{}, AppState> {
       case Page.EncounterFormStaff:
         return (
           <StaffEncounterForm
-            encounter={encounter}
+            encounter={encounter as StaffEncounter}
             onCancel={this.handleCancel}
             onComplete={this.handleComplete}
           />
@@ -358,7 +394,7 @@ export class App extends React.Component<{}, AppState> {
       case Page.EncounterFormOther:
         return (
           <OtherEncounterForm
-            encounter={encounter}
+            encounter={encounter as OtherEncounter}
             onCancel={this.handleCancel}
             onComplete={this.handleComplete}
           />
@@ -583,9 +619,7 @@ export class App extends React.Component<{}, AppState> {
               <Table.HeaderCell width={1}>
                 <Input
                   id="encounter-date-input"
-                  onChange={(e, { value }) =>
-                    this.setState({ encounterSearchDate: value as string })
-                  }
+                  onChange={this.handleEncounterSearchDateChange}
                   type="date"
                   value={this.state.encounterSearchDate}
                 />
@@ -594,9 +628,7 @@ export class App extends React.Component<{}, AppState> {
                 <Dropdown
                   id="encounter-type-dropdown"
                   fluid
-                  onChange={(e, { value }) =>
-                    this.setState({ encounterSearchType: value as string })
-                  }
+                  onChange={this.handleEncounterSearchTypeChange}
                   options={ENCOUNTER_TYPES}
                   placeholder="Encounter Type"
                   selection
@@ -605,16 +637,10 @@ export class App extends React.Component<{}, AppState> {
               </Table.HeaderCell>
               <Table.HeaderCell width={3}>
                 <Input
-                  icon={
-                    <Icon
-                      link
-                      name="delete"
-                      onClick={() => this.setState({ encounterSearchPatientName: '' })}
-                    />
-                  }
+                  icon={this.clearSearchIcon}
                   id="encounter-patient-input"
                   fluid
-                  onChange={(e, { value }) => this.setState({ encounterSearchPatientName: value })}
+                  onChange={this.handleEncounterSearchPatientNameChange}
                   placeholder="Search..."
                   value={this.state.encounterSearchPatientName}
                 />
@@ -625,18 +651,18 @@ export class App extends React.Component<{}, AppState> {
           </Table.Header>
 
           <Table.Body>
-            {this.state.encounters.map((doc: any, i: number) => {
-              const transformed = transformEncounter(doc);
+            {this.state.encounters.map((doc, i) => {
+              const transformed = transformEncounter(doc as PatientEncounter);
+              const row = doc as Record<string, unknown>;
 
               return (
-                <Table.Row key={i} onClick={() => this.editEncounter(doc)}>
+                <Table.Row key={i} data-index={i} onClick={this.handleRowClick}>
                   <Table.Cell className="delete-cell" textAlign="center">
                     <Button
                       color="red"
+                      data-id={doc._id}
                       icon
-                      onClick={(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) =>
-                        this.handleDeleteClick(e, doc)
-                      }
+                      onClick={this.handleDeleteClick}
                       size="mini"
                     >
                       <Icon name="delete" />
@@ -652,12 +678,14 @@ export class App extends React.Component<{}, AppState> {
                       !transformed.numberOfInterventions && (
                         <Icon color="orange" name="warning sign" />
                       )}
-                    {(doc.gad || doc.phq || doc.moca) && <Icon name="clipboard check" />}
+                    {(row.gad || row.phq || row.moca) && <Icon name="clipboard check" />}
                   </Table.Cell>
-                  <Table.Cell>{doc.patientName}</Table.Cell>
-                  <Table.Cell>{doc.clinic || fieldNameToName(doc.activity)}</Table.Cell>
+                  <Table.Cell>{row.patientName as string}</Table.Cell>
                   <Table.Cell>
-                    {doc.timeSpent} {doc.numberOfTasks && `/ ${doc.numberOfTasks}`}
+                    {(row.clinic as string) || fieldNameToName(row.activity as string)}
+                  </Table.Cell>
+                  <Table.Cell>
+                    {doc.timeSpent} {row.numberOfTasks && `/ ${row.numberOfTasks}`}
                   </Table.Cell>
                 </Table.Row>
               );
@@ -668,16 +696,8 @@ export class App extends React.Component<{}, AppState> {
         <Confirm
           confirmButton={DELETE_BUTTON}
           content="Are you sure you want to delete this encounter?"
-          onCancel={() => this.setState({ confirmDeletion: null })}
-          onConfirm={async () => {
-            try {
-              await window.trackingTool.dbRemove({ _id: this.state.confirmDeletion });
-              await this.searchPatients();
-              this.setState({ confirmDeletion: null });
-            } catch (err) {
-              this.setState({ error: err as Error });
-            }
-          }}
+          onCancel={this.handleConfirmCancel}
+          onConfirm={this.handleConfirmDelete}
           open={confirmDeletion !== null}
           size="large"
         />

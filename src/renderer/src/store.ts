@@ -11,7 +11,7 @@ function pathJoin(...segments: string[]): string {
 let cachedRootPath = '';
 
 export async function initStore(): Promise<void> {
-  cachedRootPath = (await window.trackingTool.configGet('root-path')) || '';
+  cachedRootPath = ((await window.trackingTool.configGet('root-path')) as string) || '';
 }
 
 export const rootPath = (): string => cachedRootPath;

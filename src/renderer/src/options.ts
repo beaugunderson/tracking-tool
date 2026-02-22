@@ -50,9 +50,7 @@ export const DIAGNOSES = makeOptions(['Malignant', 'Benign/Other', 'Unknown']);
 
 export const ENCOUNTER_TYPES = makeOptions(['All', 'Patient', 'Community', 'Staff', 'Other']);
 
-type EncounterTypeNames = { [key: string]: any };
-
-export const ENCOUNTER_TYPE_NAMES: EncounterTypeNames = {
+export const ENCOUNTER_TYPE_NAMES: Record<string, string> = {
   patient: 'Patient',
   community: 'Community',
   staff: 'Staff',

@@ -3,7 +3,7 @@ import { vi } from 'vitest';
 
 // Minimal mock for window.trackingTool so tests that transitively import
 // modules using the Electron IPC bridge don't crash at import time.
-(window as any).trackingTool = {
+window.trackingTool = {
   username: 'testuser',
   platform: 'darwin',
   pathSep: '/',

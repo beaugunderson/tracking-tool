@@ -12,8 +12,8 @@ import { FormikErrors, FormikProps, withFormik } from 'formik';
 import { InfoButtonLabel } from '../InfoButtonLabel';
 import { nameToFieldName } from '../patient-interventions';
 
-function addFieldNames(options: any) {
-  return options.map((option: any) => {
+function addFieldNames(options: { name: string; description: string }[]) {
+  return options.map((option) => {
     const fieldName = nameToFieldName(option.name);
 
     return { ...option, fieldName, key: fieldName };
@@ -90,9 +90,7 @@ export function fieldNameToName(fieldName: string) {
   return (option && option.name) || '';
 }
 
-type OtherEncounter = {
-  [key: string]: any;
-
+export type OtherEncounter = {
   _id?: string;
   username?: string;
 
@@ -131,20 +129,30 @@ class UnwrappedOtherEncounterForm extends React.Component<
     activeInfoButton: null,
   };
 
-  handleBlur = (e, data) => this.props.setFieldTouched((data && data.name) || e.target.name, true);
+  handleBlur = (e: React.FocusEvent, data?: { name: string }) =>
+    this.props.setFieldTouched((data && data.name) || (e.target as HTMLInputElement).name, true);
 
-  handleChange = (e, { name, value, checked }) =>
-    this.props.setFieldValue(name, value !== undefined ? value : checked);
+  handleChange = (
+    _e: React.SyntheticEvent,
+    data: { name?: string; value?: string | string[] | boolean; checked?: boolean },
+  ) => this.props.setFieldValue(data.name!, data.value !== undefined ? data.value : data.checked);
 
-  handleOptionOnMouseEnter = (e) => {
+  handleOptionOnMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
     e.persist();
-    this.setState({ activeInfoButton: e.target.parentElement.firstChild.name });
+    this.setState({
+      activeInfoButton: (
+        (e.target as HTMLDivElement).parentElement!.firstChild as HTMLInputElement
+      ).name,
+    });
   };
 
-  handleOptionOnMouseLeave = (e) => {
+  handleOptionOnMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
     e.persist();
     this.setState((state) => {
-      if (state.activeInfoButton === e.target.parentElement.firstChild.name) {
+      if (
+        state.activeInfoButton ===
+        ((e.target as HTMLDivElement).parentElement!.firstChild as HTMLInputElement).name
+      ) {
         return { activeInfoButton: null } as OtherEncounterFormState;
       }
 
@@ -159,6 +167,7 @@ class UnwrappedOtherEncounterForm extends React.Component<
       control={Radio}
       key={option.fieldName}
       label={
+        // eslint-disable-next-line react-perf/jsx-no-jsx-as-prop
         <InfoButtonLabel
           description={option.description}
           name={option.name}
@@ -167,6 +176,7 @@ class UnwrappedOtherEncounterForm extends React.Component<
       }
       name={option.fieldName}
       onBlur={this.handleBlur}
+      // eslint-disable-next-line react-perf/jsx-no-new-function-as-prop
       onChange={() => this.props.setFieldValue('activity', option.fieldName)}
       onMouseEnter={this.handleOptionOnMouseEnter}
       onMouseLeave={this.handleOptionOnMouseLeave}

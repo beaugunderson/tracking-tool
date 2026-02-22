@@ -10,9 +10,12 @@ import { transform, TransformedEncounter } from './data';
 
 // import { maxBy, minBy } from 'lodash';
 
-const log = { debug: (...args: any[]) => window.trackingTool.logDebug(...args) };
+const log = { debug: (...args: unknown[]) => window.trackingTool.logDebug(...args) };
 
-const moment = extendMoment(Moment as any);
+const OVERFLOW_AUTO_STYLE: React.CSSProperties = { overflowX: 'auto' };
+
+// @ts-expect-error moment-range typing mismatch with moment
+const moment = extendMoment(Moment);
 
 function formatCount(count: number) {
   if (count === 0) {
@@ -34,6 +37,8 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
     encounters: null,
     filterDocumentationTasks: false,
   };
+
+  handlePrint = () => window.print();
 
   changeIncludeDocumentation: (
     event: React.FormEvent<HTMLInputElement>,
@@ -150,7 +155,7 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
 
     const header = (
       <div>
-        <Button onClick={() => window.print()}>Print</Button>
+        <Button onClick={this.handlePrint}>Print</Button>
         &nbsp;&nbsp;&nbsp;
         <Checkbox label="Remove documentation tasks" onChange={this.changeIncludeDocumentation} />
       </div>
@@ -190,7 +195,7 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
       <>
         {header}
 
-        <div style={{ overflowX: 'auto' }}>
+        <div style={OVERFLOW_AUTO_STYLE}>
           <Table>
             <Table.Header>
               <Table.Row>

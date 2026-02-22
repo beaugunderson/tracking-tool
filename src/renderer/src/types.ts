@@ -1,4 +1,10 @@
 import type React from 'react';
+import type { CommunityEncounter } from './forms/CommunityEncounterForm';
+import type { OtherEncounter } from './forms/OtherEncounterForm';
+import type { PatientEncounter } from './forms/PatientEncounterForm';
+import type { StaffEncounter } from './forms/StaffEncounterForm';
+
+export type Encounter = PatientEncounter | CommunityEncounter | StaffEncounter | OtherEncounter;
 
 export type EncounterFormProps = {
   onCancel: () => void;

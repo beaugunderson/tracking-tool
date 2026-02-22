@@ -13,9 +13,7 @@ import { EncounterFormProps } from '../types';
 import { FormikErrors, FormikProps, withFormik } from 'formik';
 import { isEmpty } from 'lodash';
 
-type StaffEncounter = {
-  [key: string]: any;
-
+export type StaffEncounter = {
   _id?: string;
   username?: string;
 
@@ -47,13 +45,19 @@ type StaffEncounterFormProps = {
 class UnwrappedStaffEncounterForm extends React.Component<
   StaffEncounterFormProps & FormikProps<StaffEncounter>
 > {
-  handleBlur = (e, data) => this.props.setFieldTouched((data && data.name) || e.target.name, true);
+  handleBlur = (e: React.FocusEvent, data?: { name: string }) =>
+    this.props.setFieldTouched((data && data.name) || (e.target as HTMLInputElement).name, true);
 
-  handleChange = (e, { name, value, checked }) =>
-    this.props.setFieldValue(name, value !== undefined ? value : checked);
+  handleChange = (
+    _e: React.SyntheticEvent,
+    data: { name?: string; value?: string | string[] | boolean; checked?: boolean },
+  ) => this.props.setFieldValue(data.name!, data.value !== undefined ? data.value : data.checked);
 
-  handleLocationChange = (e, { value }) => {
-    this.props.setFieldValue('location', value);
+  handleLocationChange = (
+    _e: React.SyntheticEvent,
+    data: { value?: string | string[] | boolean },
+  ) => {
+    this.props.setFieldValue('location', data.value);
     this.props.setFieldValue('clinic', '');
   };
 

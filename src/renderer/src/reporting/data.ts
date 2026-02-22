@@ -387,5 +387,5 @@ export async function transform(
   fixMrns: boolean = true,
 ): Promise<TransformedEncounter[]> {
   const rawEncounters = await window.trackingTool.reportTransform({ mapMrns, fixMrns });
-  return transformEncounters(rawEncounters, mapMrns);
+  return transformEncounters(rawEncounters as PatientEncounter[], mapMrns);
 }

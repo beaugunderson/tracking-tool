@@ -46,7 +46,7 @@ import { OTHER_ENCOUNTER_OPTIONS } from '../forms/OtherEncounterForm';
 import { PageLoader } from '../components/PageLoader';
 import { usernameToName } from '../usernames';
 
-const log = { debug: (...args: any[]) => window.trackingTool.logDebug(...args) };
+const log = { debug: (...args: unknown[]) => window.trackingTool.logDebug(...args) };
 
 dc.config.defaultColors(d3.schemeCategory10 as string[]);
 
@@ -158,7 +158,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     window.removeEventListener('resize', this.resize);
   }
 
-  async componentDidUpdate(prevProps: any, prevState: ReportState) {
+  async componentDidUpdate(_prevProps: ReportProps, prevState: ReportState) {
     if (
       this.state.encounters &&
       !prevState.dateFrom &&
@@ -311,6 +311,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     function renderNumber(
       selector: string,
       group: crossfilter.GroupAll<TransformedEncounter, {}>,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       accessor: (d: any) => number | string = (d) => d,
     ) {
       const number = dc.numberDisplay(selector);
@@ -467,7 +468,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .elasticY(true)
       .renderLabel(true)
       .yAxisLabel('Tasks')
-      // @ts-ignore
+      // @ts-expect-error dc.js yAxisPadding typing mismatch
       .yAxisPadding('15%')
       .dimension(encounterDateDimension)
       .group(encounterDateGroup)
@@ -507,7 +508,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .elasticY(true)
       .renderLabel(true)
       .yAxisLabel('Tasks')
-      // @ts-ignore
+      // @ts-expect-error dc.js yAxisPadding typing mismatch
       .yAxisPadding('10%')
       .dimension(dayOfWeekDimension)
       .group(removeExcludedData(dayOfWeekGroup))
@@ -548,7 +549,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .xUnits(dc.units.ordinal)
       .yAxisLabel('Entries')
       .renderLabel(true)
-      // @ts-ignore
+      // @ts-expect-error dc.js yAxisPadding typing mismatch
       .yAxisPadding('10%')
       .dimension(numberOfInterventionsDimension)
       .margins(VERTICAL_CHART_MARGINS)
@@ -597,7 +598,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .brushOn(false)
       .elasticY(true)
       .yAxisLabel('Entries')
-      // @ts-ignore
+      // @ts-expect-error dc.js yAxisPadding typing mismatch
       .yAxisPadding('10%')
       .renderLabel(true)
       .dimension(timeDimension)
@@ -820,7 +821,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     // #endregion
 
     // #region by assessment tool
-    const testDimension = ndx.dimension((d) => d.tests as any, true);
+    const testDimension = ndx.dimension((d) => d.tests, true);
     const testGroup = testDimension.group();
 
     testChart
@@ -1076,8 +1077,10 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
 
   print = () => window.print();
 
-  handleDateFromChange = (e, data) => this.setState({ dateFrom: data.value });
-  handleDateToChange = (e, data) => this.setState({ dateTo: data.value });
+  handleDateFromChange = (_e: React.SyntheticEvent, data: { value: string }) =>
+    this.setState({ dateFrom: data.value });
+  handleDateToChange = (_e: React.SyntheticEvent, data: { value: string }) =>
+    this.setState({ dateTo: data.value });
 
   handleFilterDocumentationTasksChange = () =>
     this.setState((state) => ({
@@ -1094,7 +1097,8 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       hideDocumentationAndCareCoordination: !state.hideDocumentationAndCareCoordination,
     }));
 
-  handleHideSocialWorkersChange = (e, data) => this.setState({ hideSocialWorkers: data.checked });
+  handleHideSocialWorkersChange = (_e: React.SyntheticEvent, data: { checked?: boolean }) =>
+    this.setState({ hideSocialWorkers: data.checked });
 
   render() {
     const { audience } = this.props;

@@ -1,5 +1,36 @@
 import React from 'react';
 
+const FIND_BAR_STYLE: React.CSSProperties = {
+  position: 'fixed',
+  top: 10,
+  right: 10,
+  zIndex: 9999,
+  background: '#fff',
+  border: '1px solid #ccc',
+  borderRadius: 4,
+  padding: '6px 8px',
+  display: 'flex',
+  alignItems: 'center',
+  gap: 6,
+  boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+};
+
+const INPUT_STYLE: React.CSSProperties = {
+  width: 200,
+  padding: '4px 8px',
+  border: '1px solid #ddd',
+  borderRadius: 3,
+};
+
+const MATCH_COUNT_STYLE: React.CSSProperties = {
+  fontSize: 12,
+  minWidth: 50,
+  textAlign: 'center',
+  color: '#666',
+};
+
+const BUTTON_STYLE: React.CSSProperties = { cursor: 'pointer' };
+
 interface FindBarState {
   visible: boolean;
   searchText: string;
@@ -86,39 +117,21 @@ export class FindBar extends React.Component<{}, FindBarState> {
     const { activeMatch, searchText, totalMatches } = this.state;
 
     return (
-      <div
-        id="find-bar"
-        style={{
-          position: 'fixed',
-          top: 10,
-          right: 10,
-          zIndex: 9999,
-          background: '#fff',
-          border: '1px solid #ccc',
-          borderRadius: 4,
-          padding: '6px 8px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 6,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-        }}
-      >
+      <div id="find-bar" style={FIND_BAR_STYLE}>
         <input
           ref={this.inputRef}
           value={searchText}
           onChange={this.handleChange}
           onKeyDown={this.handleKeyDown}
           placeholder="Find in page..."
-          style={{ width: 200, padding: '4px 8px', border: '1px solid #ddd', borderRadius: 3 }}
+          style={INPUT_STYLE}
         />
-        <span style={{ fontSize: 12, minWidth: 50, textAlign: 'center', color: '#666' }}>
-          {searchText ? `${activeMatch}/${totalMatches}` : ''}
-        </span>
+        <span style={MATCH_COUNT_STYLE}>{searchText ? `${activeMatch}/${totalMatches}` : ''}</span>
         <button
           type="button"
           onClick={this.handlePrev}
           disabled={!searchText}
-          style={{ cursor: 'pointer' }}
+          style={BUTTON_STYLE}
         >
           &#9650;
         </button>
@@ -126,11 +139,11 @@ export class FindBar extends React.Component<{}, FindBarState> {
           type="button"
           onClick={this.handleNext}
           disabled={!searchText}
-          style={{ cursor: 'pointer' }}
+          style={BUTTON_STYLE}
         >
           &#9660;
         </button>
-        <button type="button" onClick={this.handleClose} style={{ cursor: 'pointer' }}>
+        <button type="button" onClick={this.handleClose} style={BUTTON_STYLE}>
           &#10005;
         </button>
       </div>

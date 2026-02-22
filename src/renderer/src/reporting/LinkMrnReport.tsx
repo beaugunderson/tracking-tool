@@ -353,7 +353,7 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
           name="mode"
           value={MODE.MAKE_FIXES}
           checked={this.state.mode === MODE.MAKE_FIXES}
-          onChange={(e, { value }: any) => this.setState({ mode: value })}
+          onChange={(_e, { value }) => this.setState({ mode: value as MODE })}
         />
         &nbsp;&nbsp;&nbsp;
         <Radio
@@ -361,7 +361,7 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
           name="mode"
           value={MODE.SHOW_FIXES}
           checked={this.state.mode === MODE.SHOW_FIXES}
-          onChange={(e, { value }: any) => this.setState({ mode: value })}
+          onChange={(_e, { value }) => this.setState({ mode: value as MODE })}
         />
       </div>
     );
@@ -623,7 +623,7 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
     );
   }
 
-  renderShowFixes(header) {
+  renderShowFixes(header: React.ReactElement) {
     const { fixes } = this.state;
 
     if (!fixes || fixes.length === 0) {

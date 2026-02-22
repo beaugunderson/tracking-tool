@@ -17,9 +17,12 @@ const EMPTY_ARRAY: never[] = [] as never[];
 type FieldProps = {
   disabled?: boolean;
   error: boolean;
-  value: any;
-  onBlur: any;
-  onChange: any;
+  value: string | string[];
+  onBlur: (e: React.FocusEvent, data?: { name: string }) => void;
+  onChange: (
+    e: React.SyntheticEvent,
+    data: { name?: string; value?: string | string[] | boolean; checked?: boolean },
+  ) => void;
 };
 
 export const today = () => moment().format(DATE_FORMAT_DATABASE);
@@ -113,6 +116,40 @@ export class EncounterClinicField extends React.Component<EncounterClinicFieldPr
   }
 }
 
+const TIME_SPENT_PATIENT_LABEL = (
+  <label>
+    Time Spent{' '}
+    <InfoButton content="The number of total minutes on all encounters for this patient on this day, rounded up to the nearest 5 (e.g. 75 minutes), including full representation of time spent documenting, can also include travel time (5-10 minutes) and time spent waiting to see the patient" />
+  </label>
+);
+
+const TIME_SPENT_OTHER_LABEL = (
+  <label>
+    Time Spent{' '}
+    <InfoButton content="The number of total minutes on all encounters for this entry on this day, rounded up to the nearest 5 (e.g. 75 minutes)" />
+  </label>
+);
+
+const NUMBER_OF_TASKS_PATIENT_LABEL = (
+  <label>
+    Number of Tasks{' '}
+    <InfoButton
+      content="The number of tasks associated with the encounter, equal to the number of lines you would have completed in the old spreadsheet format. Include 1 task for documentation. For example, discussion with MD, seeing patient, coordinating with PFA, and starting documentation would equal 4 tasks. If completing documentation on another day without a patient encounter, enter 1 task"
+      wide
+    />
+  </label>
+);
+
+const NUMBER_OF_TASKS_OTHER_LABEL = (
+  <label>
+    Number of Tasks{' '}
+    <InfoButton
+      content="The number of tasks associated with the encounter, equal to the number of lines you would have completed in the old spreadsheet format"
+      wide
+    />
+  </label>
+);
+
 type EncounterTimeSpentFieldProps = FieldProps & {
   patient?: boolean;
 };
@@ -121,23 +158,12 @@ export class EncounterTimeSpentField extends React.Component<EncounterTimeSpentF
   render() {
     const { error, onBlur, onChange, patient, value } = this.props;
 
-    const patientLabel =
-      'The number of total minutes on all encounters for this patient on this day, rounded up to the nearest 5 (e.g. 75 minutes), including full representation of time spent documenting, can also include travel time (5-10 minutes) and time spent waiting to see the patient';
-    const otherLabel =
-      'The number of total minutes on all encounters for this entry on this day, rounded up to the nearest 5 (e.g. 75 minutes)';
-
-    const label = (
-      <label>
-        Time Spent <InfoButton content={patient ? patientLabel : otherLabel} />
-      </label>
-    );
-
     // could require a multiple of 5, could round up automatically
     return (
       <Form.Field
         control={Input}
         error={error}
-        label={label}
+        label={patient ? TIME_SPENT_PATIENT_LABEL : TIME_SPENT_OTHER_LABEL}
         name="timeSpent"
         onBlur={onBlur}
         onChange={onChange}
@@ -155,22 +181,11 @@ export class EncounterNumberOfTasksField extends React.Component<EncounterNumber
   render() {
     const { error, onBlur, onChange, patient, value } = this.props;
 
-    const patientLabel =
-      'The number of tasks associated with the encounter, equal to the number of lines you would have completed in the old spreadsheet format. Include 1 task for documentation. For example, discussion with MD, seeing patient, coordinating with PFA, and starting documentation would equal 4 tasks. If completing documentation on another day without a patient encounter, enter 1 task';
-    const otherLabel =
-      'The number of tasks associated with the encounter, equal to the number of lines you would have completed in the old spreadsheet format';
-
-    const label = (
-      <label>
-        Number of Tasks <InfoButton content={patient ? patientLabel : otherLabel} wide />
-      </label>
-    );
-
     return (
       <Form.Field
         control={Input}
         error={error}
-        label={label}
+        label={patient ? NUMBER_OF_TASKS_PATIENT_LABEL : NUMBER_OF_TASKS_OTHER_LABEL}
         name="numberOfTasks"
         onBlur={onBlur}
         onChange={onChange}
@@ -183,8 +198,8 @@ export class EncounterNumberOfTasksField extends React.Component<EncounterNumber
 type SubmitButtonsProps = {
   isClean?: boolean;
   isSubmitting: boolean;
-  onCancel: any;
-  submitForm: any;
+  onCancel: () => void;
+  submitForm: () => void;
 };
 
 export class SubmitButtons extends React.Component<SubmitButtonsProps> {
@@ -207,7 +222,9 @@ export class SubmitButtons extends React.Component<SubmitButtonsProps> {
           />
         ) : (
           <Popup
+            // eslint-disable-next-line react-perf/jsx-no-jsx-as-prop
             trigger={<Form.Button content="Cancel" disabled={isSubmitting} negative size="big" />}
+            // eslint-disable-next-line react-perf/jsx-no-jsx-as-prop
             content={<Form.Button content="Confirm?" onClick={onCancel} />}
             on="click"
           />

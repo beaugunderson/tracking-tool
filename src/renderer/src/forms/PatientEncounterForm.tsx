@@ -192,8 +192,8 @@ const TRANSPLANT_LABEL = (
   </label>
 );
 
-function indexValues<T extends any[]>(values: T) {
-  return values.map((value: any, i: number) => ({ ...value, value: `${i}` }));
+function indexValues<T extends Record<string, unknown>>(values: T[]) {
+  return values.map((value, i) => ({ ...value, value: `${i}` }));
 }
 
 type PatientEncounterFormProps = {
@@ -201,17 +201,16 @@ type PatientEncounterFormProps = {
   username: string;
 } & EncounterFormProps;
 
+type PatientOption = Record<string, unknown> & {
+  value: string;
+};
+
 type PatientEncounterFormState = {
   activeInfoButton: string | null;
   confirmingInactiveMd: boolean;
   patientNameIndex: string;
   loadingSearchOptions: boolean;
-  patientOptions: {
-    content: any;
-    encounter: {} | null;
-    text: string;
-    value: string;
-  }[];
+  patientOptions: PatientOption[];
 };
 
 class UnwrappedPatientEncounterForm extends React.Component<
@@ -253,10 +252,10 @@ class UnwrappedPatientEncounterForm extends React.Component<
   setSearchEncounterList = async (searchQuery: string) => {
     this.setState({ loadingSearchOptions: true });
 
-    const docs: PatientEncounter[] = await window.trackingTool.dbSearch({
+    const docs = (await window.trackingTool.dbSearch({
       encounterType: 'Patient',
       patientNamePattern: searchQuery || undefined,
-    });
+    })) as PatientEncounter[];
 
     // get the most recent encounter for each patient matching the query,
     // sorted by patient name
@@ -332,21 +331,26 @@ class UnwrappedPatientEncounterForm extends React.Component<
     debug('componentDidUpdate %o', { props: this.props, state: this.state });
   }
 
-  handleBlur = (e: any, data: any) =>
-    this.props.setFieldTouched((data && data.name) || e.target.name, true);
+  handleBlur = (e: React.FocusEvent, data?: { name: string }) =>
+    this.props.setFieldTouched((data && data.name) || (e.target as HTMLInputElement).name, true);
 
-  handleChange = (e: any, { name, value, checked }: any) =>
-    this.props.setFieldValue(name, value !== undefined ? value : checked);
+  handleChange = (
+    _e: React.SyntheticEvent,
+    data: { name?: string; value?: string | string[] | boolean; checked?: boolean },
+  ) => this.props.setFieldValue(data.name!, data.value !== undefined ? data.value : data.checked);
 
-  handleChangeTrimmed = (e: any, { name, value }: any) =>
-    this.props.setFieldValue(name, (value || '').trim());
+  handleChangeTrimmed = (_e: React.SyntheticEvent, data: { name?: string; value?: string }) =>
+    this.props.setFieldValue(data.name!, (data.value || '').trim());
 
-  handleLocationChange = (e, { value }) => {
-    this.props.setFieldValue('location', value);
+  handleLocationChange = (
+    _e: React.SyntheticEvent,
+    data: { value?: string | string[] | boolean },
+  ) => {
+    this.props.setFieldValue('location', data.value);
     this.props.setFieldValue('clinic', '');
   };
 
-  handlePatientAddition = (e: any, { value }: any) => {
+  handlePatientAddition = (_e: React.SyntheticEvent, { value }: { value: string }) => {
     this.setState(
       (state) => ({
         patientOptions: indexValues([
@@ -397,23 +401,29 @@ class UnwrappedPatientEncounterForm extends React.Component<
     this.setState({ patientNameIndex });
   };
 
-  handlePatientChange = (e: any, { value, options }: any) => {
-    const selectedOption = options.find((option: any) => option.value === value);
+  handlePatientChange = (
+    _e: React.SyntheticEvent,
+    { value, options }: { value: string; options: Array<Record<string, unknown>> },
+  ) => {
+    const selectedOption = options.find((option) => option.value === value);
 
     if (!selectedOption) {
       return this.updatePatientIndexAndValue('', INITIAL_VALUES(), '');
     }
 
-    const encounter = (selectedOption && selectedOption['data-encounter']) || INITIAL_VALUES();
-    const patientName = selectedOption && selectedOption['data-patient-name'];
+    const encounter = (selectedOption['data-encounter'] as PatientEncounter) || INITIAL_VALUES();
+    const patientName = selectedOption['data-patient-name'] as string;
 
-    this.updatePatientIndexAndValue(selectedOption.value, encounter, patientName);
+    this.updatePatientIndexAndValue(selectedOption.value as string, encounter, patientName);
   };
 
   // HACK: without creating a new options array here we end up with duplicate additionLabels
-  handlePatientNameSearch = (options: any[]) => [...options];
+  handlePatientNameSearch = (options: Record<string, unknown>[]) => [...options];
 
-  handlePatientSearchChange = (e: any, { searchQuery }: { searchQuery: string }) => {
+  handlePatientSearchChange = (
+    _e: React.SyntheticEvent,
+    { searchQuery }: { searchQuery: string },
+  ) => {
     if (searchQuery) {
       this.setSearchEncounterList(searchQuery);
     } else {
@@ -421,7 +431,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
     }
   };
 
-  handleInterventionChange = (e: any, data: { value: string } | undefined) => {
+  handleInterventionChange = (_e: React.SyntheticEvent, data: { value: string } | undefined) => {
     if (!data) {
       return;
     }
@@ -429,17 +439,24 @@ class UnwrappedPatientEncounterForm extends React.Component<
     this.props.setFieldValue(data.value, true);
   };
 
-  handleInterventionOnMouseEnter = (e: any) => {
+  handleInterventionOnMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
     e.persist();
 
-    this.setState({ activeInfoButton: e.target.parentElement.firstChild.name });
+    this.setState({
+      activeInfoButton: (
+        (e.target as HTMLDivElement).parentElement!.firstChild as HTMLInputElement
+      ).name,
+    });
   };
 
-  handleInterventionOnMouseLeave = (e: any) => {
+  handleInterventionOnMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
     e.persist();
 
     this.setState((state) => {
-      if (state.activeInfoButton === e.target.parentElement.firstChild.name) {
+      if (
+        state.activeInfoButton ===
+        ((e.target as HTMLDivElement).parentElement!.firstChild as HTMLInputElement).name
+      ) {
         return { activeInfoButton: null } as PatientEncounterFormState;
       }
 
@@ -453,6 +470,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
       control={Checkbox}
       key={intervention.fieldName}
       label={
+        // eslint-disable-next-line react-perf/jsx-no-jsx-as-prop
         <InfoButtonLabel
           description={intervention.description}
           name={intervention.name}
@@ -507,8 +525,8 @@ class UnwrappedPatientEncounterForm extends React.Component<
     );
   };
 
-  handleDateOfBirthRef = (ref) => (this.dateOfBirthRef = ref);
-  handlePatientRef = (ref) => (this.patientNameRef = ref);
+  handleDateOfBirthRef = (ref: HTMLElement) => (this.dateOfBirthRef = ref);
+  handlePatientRef = (ref: HTMLElement) => (this.patientNameRef = ref);
 
   cancelConfirmation = () => this.setState({ confirmingInactiveMd: false });
 

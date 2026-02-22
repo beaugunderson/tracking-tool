@@ -1,5 +1,7 @@
 import React from 'react';
 import { Header, Icon, List, Message, Segment } from 'semantic-ui-react';
+
+const PRE_WRAP_STYLE: React.CSSProperties = { whiteSpace: 'pre-wrap' };
 import { isError } from 'lodash';
 import { rootPath, userDirectoryPath } from './store';
 
@@ -57,7 +59,7 @@ export class ErrorMessage extends React.Component<ErrorProps, ErrorState> {
           <List>
             {isError(error) && (
               <List.Item>
-                <strong>Stack:</strong> <pre style={{ whiteSpace: 'pre-wrap' }}>{error.stack}</pre>
+                <strong>Stack:</strong> <pre style={PRE_WRAP_STYLE}>{error.stack}</pre>
               </List.Item>
             )}
 
