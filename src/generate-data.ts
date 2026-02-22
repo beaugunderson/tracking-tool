@@ -6,7 +6,6 @@ import { DOCTORS } from './doctors';
 import { INITIAL_VALUES, PatientEncounter } from './forms/PatientEncounterForm';
 import { INTERVENTIONS } from './patient-interventions';
 import { sample, sampleSize, times } from 'lodash';
-import type Nedb from 'nedb';
 
 function doctors() {
   return sampleSize(DOCTORS, Math.random() > 0.75 ? 2 : 1).map((doctor) => doctor.value);
@@ -66,13 +65,13 @@ function fakePatient() {
   };
 }
 
-export function insertExamples(encounters: Nedb) {
+export async function insertExamples() {
   const records = 250;
 
   // pre-generate fake patients so we can have multiple encounters per patient
   const patients = times(records, fakePatient);
 
-  function insertExample() {
+  const inserts = times(records, () => {
     const patient = sample(patients) as any;
 
     const sampledInterventions = sampleSize(INTERVENTIONS, 1 + Math.floor(Math.random() * 5));
@@ -126,8 +125,8 @@ export function insertExamples(encounters: Nedb) {
       timeSpent: `${Math.ceil((Math.random() * sampledInterventions.length * 10) / 5) * 5}`,
     };
 
-    encounters.insert(doc);
-  }
+    return window.trackingTool.dbInsert(doc);
+  });
 
-  times(records, insertExample);
+  await Promise.all(inserts);
 }

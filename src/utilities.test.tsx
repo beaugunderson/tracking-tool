@@ -222,19 +222,19 @@ function dedupe(array: [string, string][]) {
 describe('getPermutations', () => {
   it('should get permutations', () => {
     expect(getPermutations('SmithJones, Tim')).toEqual(
-      new Set(['SmithJones, Tim', 'Smith Jones, Tim', 'Smith-Jones, Tim'])
+      new Set(['SmithJones, Tim', 'Smith Jones, Tim', 'Smith-Jones, Tim']),
     );
   });
 });
 
 describe('nameToParts', () =>
   test.each(NAMES)('%p should parse correctly', (name, result) =>
-    expect(nameToParts(name)).toEqual(result)
+    expect(nameToParts(name)).toEqual(result),
   ));
 
 describe('namesRepresentSamePerson should match', () =>
   test.each(dedupe(NAME_GROUP_COMBINATIONS))('%p should represent %p', (a, b) =>
-    expect(namesRepresentSamePerson(a, b)).toBe(true)
+    expect(namesRepresentSamePerson(a, b)).toBe(true),
   ));
 
 describe('namesRepresentSamePerson should not match', () => {
@@ -243,7 +243,7 @@ describe('namesRepresentSamePerson should not match', () => {
   });
 
   test.each(dedupe(SHOULD_NOT_MATCH_COMBINATIONS))('%p should not represent %p', (a, b) =>
-    expect(namesRepresentSamePerson(a, b)).toBe(false)
+    expect(namesRepresentSamePerson(a, b)).toBe(false),
   );
 });
 

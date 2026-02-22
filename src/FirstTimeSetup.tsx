@@ -3,24 +3,8 @@ import React from 'react';
 import { Button, Container, Header, Icon } from 'semantic-ui-react';
 import { DEFAULT_PATHS, ensureUserDirectoryExists, setRootPath, userDirectoryPath } from './store';
 import { ErrorMessage } from './ErrorMessage';
-import { isEmpty } from 'lodash';
-
-const electron = window.require('electron');
-const fs = electron.remote.require('fs');
-const path = electron.remote.require('path');
-const username = window.require('username');
 
 const ROOT_DIRECTORY_FILE = 'tracking-tool-root.txt';
-
-function firstPathThatExists(): string | null {
-  for (const defaultPath of DEFAULT_PATHS) {
-    if (fs.existsSync(defaultPath)) {
-      return defaultPath;
-    }
-  }
-
-  return null;
-}
 
 type FirstTimeSetupProps = {
   onComplete: () => void;
@@ -28,40 +12,63 @@ type FirstTimeSetupProps = {
 
 type FirstTimeSetupState = {
   error?: string;
+  defaultPathExists: boolean | null;
 };
 
 export class FirstTimeSetup extends React.Component<FirstTimeSetupProps, FirstTimeSetupState> {
-  state: FirstTimeSetupState = {};
+  state: FirstTimeSetupState = {
+    defaultPathExists: null,
+  };
+
+  async componentDidMount() {
+    for (const defaultPath of DEFAULT_PATHS) {
+      // eslint-disable-next-line no-await-in-loop
+      if (await window.trackingTool.fsExists(defaultPath)) {
+        this.setState({ defaultPathExists: true });
+        return;
+      }
+    }
+    this.setState({ defaultPathExists: false });
+  }
+
+  firstPathThatExists = async (): Promise<string | null> => {
+    for (const defaultPath of DEFAULT_PATHS) {
+      // eslint-disable-next-line no-await-in-loop
+      if (await window.trackingTool.fsExists(defaultPath)) {
+        return defaultPath;
+      }
+    }
+    return null;
+  };
 
   handleChooseClick = async () => {
-    const dialogResult = await electron.remote.dialog.showOpenDialog({
+    const dialogResult = await window.trackingTool.showOpenDialog({
       buttonLabel: 'Choose Directory',
       properties: ['openDirectory'],
     });
 
-    if (dialogResult.canceled || isEmpty(dialogResult.filePaths)) {
+    if (dialogResult.canceled || !dialogResult.filePaths.length) {
       return;
     }
 
     const [selectedPath] = dialogResult.filePaths;
+    const rootFilePath = selectedPath + window.trackingTool.pathSep + ROOT_DIRECTORY_FILE;
 
-    const rootFilePath = path.join(selectedPath, ROOT_DIRECTORY_FILE);
-
-    if (fs.existsSync(rootFilePath)) {
-      setRootPath(selectedPath);
-
+    if (await window.trackingTool.fsExists(rootFilePath)) {
+      await setRootPath(selectedPath);
       this.props.onComplete();
     }
   };
 
-  handleDefaultClick = () => {
-    setRootPath(firstPathThatExists());
+  handleDefaultClick = async () => {
+    const defaultPath = await this.firstPathThatExists();
+    await setRootPath(defaultPath);
 
     try {
-      ensureUserDirectoryExists(username.sync());
-    } catch (error) {
+      await ensureUserDirectoryExists(window.trackingTool.username);
+    } catch {
       return this.setState({
-        error: `Unable to create directory "${userDirectoryPath(username.sync())}"`,
+        error: `Unable to create directory "${userDirectoryPath(window.trackingTool.username)}"`,
       });
     }
 
@@ -69,7 +76,7 @@ export class FirstTimeSetup extends React.Component<FirstTimeSetupProps, FirstTi
   };
 
   render() {
-    const pathExists = firstPathThatExists();
+    const { defaultPathExists } = this.state;
 
     if (this.state.error) {
       return <ErrorMessage error={this.state.error} />;
@@ -85,7 +92,7 @@ export class FirstTimeSetup extends React.Component<FirstTimeSetupProps, FirstTi
           id="first-time-setup-description"
         />
 
-        {pathExists && (
+        {defaultPathExists && (
           <Button
             className="icon-margin"
             icon

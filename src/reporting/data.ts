@@ -1,19 +1,8 @@
 import moment from 'moment';
-import { applyMigrations, Fix, getFixes } from '../data';
-import { clone, findLast, isEqual, isNaN, isNumber, pick } from 'lodash';
+import { clone, isEqual, isNaN, isNumber } from 'lodash';
 import { DATE_FORMAT_DATABASE, DATE_FORMAT_DISPLAY } from '../constants';
-import { fixesFilePath, rootPath } from '../store';
 import { INTERVENTIONS } from '../patient-interventions';
 import { PatientEncounter } from '../forms/PatientEncounterForm';
-import type Nedb from 'nedb';
-
-const DataStore = window.require('nedb');
-const fs = window.require('fs');
-const glob = window.require('glob');
-const log = window.require('electron-log');
-const os = window.require('os');
-const path = window.require('path');
-const rimraf = window.require('rimraf');
 
 export type AgeBucket = '<= 39 years' | '40 to 64 years' | '>= 65 years';
 
@@ -53,7 +42,7 @@ export function parseDate(date: string): moment.Moment {
       'YYYY-MM-DD',
     ],
     // strict mode
-    true
+    true,
   );
 }
 
@@ -97,21 +86,6 @@ export interface TransformedEncounter extends PatientEncounter {
   uniqueId: string;
 }
 
-interface CopiedFile {
-  username: string;
-  filename: string;
-}
-
-interface CopyFilesResult {
-  files: CopiedFile[];
-  temporaryDirectory: string;
-}
-
-interface CopyFixFileResult {
-  file: string;
-  temporaryDirectory: string;
-}
-
 function bucketAge(age?: number): AgeBucket | null {
   if (isNaN(age) || !isNumber(age)) {
     return null;
@@ -126,92 +100,6 @@ function bucketAge(age?: number): AgeBucket | null {
   }
 
   return '>= 65 years';
-}
-
-async function getEncounterFiles(): Promise<string[]> {
-  return new Promise((resolve, reject) => {
-    glob(path.join(rootPath(), '*', 'encounters.json'), (err: Error, files: string[]) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(files);
-      }
-    });
-  });
-}
-
-export async function copyFixFile(): Promise<CopyFixFileResult> {
-  const copyPath = fs.mkdtempSync(path.join(os.tmpdir(), 'fixes-'));
-  const fixFile = fixesFilePath('fixes.json');
-
-  log.debug(`copyFixFile: copying "${fixFile}"`);
-
-  const destination = path.join(copyPath, `fixes.json`);
-
-  fs.copyFileSync(fixFile, destination);
-
-  return {
-    file: destination,
-    temporaryDirectory: copyPath,
-  };
-}
-
-async function copyEncounterFiles(): Promise<CopyFilesResult> {
-  const copiedFiles = [];
-  const copyPath = fs.mkdtempSync(path.join(os.tmpdir(), 'reporting-'));
-  const encounterFiles = await getEncounterFiles();
-
-  for (const file of encounterFiles) {
-    log.debug(`copyEncounterFiles: copying "${file}"`);
-
-    const parts = path.dirname(file).split(path.sep);
-    const username = parts[parts.length - 1];
-    const destination = path.join(copyPath, `${username}.json`);
-
-    fs.copyFileSync(file, destination);
-
-    copiedFiles.push({ username, filename: destination });
-  }
-
-  return {
-    files: copiedFiles,
-    temporaryDirectory: copyPath,
-  };
-}
-
-async function getAllEncounters(filename: string): Promise<PatientEncounter[]> {
-  log.debug(`getAllEncounters: "${filename}"`);
-
-  const dataStore: Nedb = new DataStore({
-    autoload: true,
-    compareStrings: (a: string, b: string) => {
-      return a.toLowerCase().localeCompare(b.toLowerCase());
-    },
-    filename,
-    timestampData: true,
-  });
-
-  return new Promise((resolve, reject) => {
-    log.debug(`getAllEncounters: calling dataStore.find for "${filename}`);
-
-    applyMigrations(dataStore, (applyMigrationsError, migratedDataStore) => {
-      if (applyMigrationsError) {
-        return reject(applyMigrationsError);
-      }
-
-      migratedDataStore.find(
-        { encounterType: { $exists: true } },
-        (err: Error, results: PatientEncounter[]) => {
-          if (err) {
-            log.debug(`getAllEncounters: error in dataStore.find "${err}"`);
-            reject(err);
-          } else {
-            resolve(results);
-          }
-        }
-      );
-    });
-  });
 }
 
 export const SCORE_DECLINED = 'Declined';
@@ -282,7 +170,7 @@ const TYPES_WITH_INTERVENTIONS = ['patient', 'community'];
 export function transformEncounter(
   encounter: PatientEncounter,
   providenceMapping = null,
-  swedishMapping = null
+  swedishMapping = null,
 ): TransformedEncounter {
   let ageBucket: AgeBucket | undefined;
   let parsedDateOfBirth: moment.Moment | undefined;
@@ -413,8 +301,6 @@ export function inferMrns(encounters: PatientEncounter[]): [MrnMapping, MrnMappi
   let lastProvidenceMapping: MrnMapping;
   let lastSwedishMapping: MrnMapping;
 
-  let counter = 0;
-
   while (
     !isEqual(lastProvidenceMapping, providenceMapping) ||
     !isEqual(lastSwedishMapping, swedishMapping)
@@ -450,8 +336,6 @@ export function inferMrns(encounters: PatientEncounter[]): [MrnMapping, MrnMappi
         swedishMapping[encounter.mrn] = EXCLUDE_STRING_VALUE;
       }
     }
-
-    counter++;
   }
 
   for (const providence of Object.keys(providenceMapping)) {
@@ -474,90 +358,34 @@ export function inferMrns(encounters: PatientEncounter[]): [MrnMapping, MrnMappi
     }
   }
 
-  log.debug(`resolved MRNs in ${counter} cycles`);
-
   return [providenceMapping, swedishMapping];
 }
 
 export function transformEncounters(encounters: PatientEncounter[], mapMrns = true) {
-  log.debug(`transformEncounters: transforming ${encounters.length} encounters`);
-
   let providenceMapping: MrnMapping;
   let swedishMapping: MrnMapping;
 
   if (mapMrns) {
     [providenceMapping, swedishMapping] = inferMrns(
-      encounters.filter((encounter) => encounter.encounterType === 'patient')
+      encounters.filter((encounter) => encounter.encounterType === 'patient'),
     );
   }
 
   return encounters
     .filter((encounter) =>
-      ['community', 'patient', 'other', 'staff'].includes(encounter.encounterType)
+      ['community', 'patient', 'other', 'staff'].includes(encounter.encounterType),
     )
     .map((encounter) => transformEncounter(encounter, providenceMapping, swedishMapping));
 }
 
+/**
+ * Full reporting pipeline. The main process handles I/O (file copying, NeDB,
+ * migrations, fixes), then we run transformEncounters on the raw results.
+ */
 export async function transform(
   mapMrns: boolean = true,
-  fixMrns: boolean = true
+  fixMrns: boolean = true,
 ): Promise<TransformedEncounter[]> {
-  log.debug('transform: copying encounter files');
-
-  const fixFile = await copyFixFile();
-  const fixes = await getFixes(fixFile.file);
-
-  log.debug(`transform: removing temporary directory "${fixFile.temporaryDirectory}"`);
-  rimraf.sync(fixFile.temporaryDirectory, { glob: false });
-
-  const copiedUserEncounters = await copyEncounterFiles();
-  const allEncounters: PatientEncounter[] = [];
-
-  for (const copiedUserEncounter of copiedUserEncounters.files) {
-    log.debug(`transform: getting all encounters for "${copiedUserEncounter.filename}"`);
-
-    // eslint-disable-next-line no-await-in-loop
-    const encounters = await getAllEncounters(copiedUserEncounter.filename);
-
-    log.debug(
-      `transform: got ${encounters.length} encounters for "${copiedUserEncounter.filename}"`
-    );
-
-    for (const encounter of encounters) {
-      if (fixMrns && encounter.encounterType === 'patient') {
-        const uniqueId = `${copiedUserEncounter.username}-${encounter._id}`;
-
-        const fix: Fix = pick(
-          findLast(fixes, { uniqueId }) || { uniqueId },
-          'dateOfBirth',
-          'mrn',
-          'providenceMrn',
-          'uniqueId'
-        );
-
-        allEncounters.push({
-          ...encounter,
-
-          // apply fixes to the patient encounter (to manage MRN linkages and incorrect DOBs)
-          ...fix,
-
-          username: copiedUserEncounter.username,
-        });
-      } else {
-        allEncounters.push({
-          ...encounter,
-
-          username: copiedUserEncounter.username,
-        });
-      }
-    }
-  }
-
-  log.debug(
-    `transform: removing temporary directory "${copiedUserEncounters.temporaryDirectory}"`
-  );
-  rimraf.sync(copiedUserEncounters.temporaryDirectory, { glob: false });
-
-  log.debug(`transform: running transformEncounters on ${allEncounters.length} encounters`);
-  return transformEncounters(allEncounters, mapMrns);
+  const rawEncounters = await window.trackingTool.reportTransform({ mapMrns, fixMrns });
+  return transformEncounters(rawEncounters, mapMrns);
 }

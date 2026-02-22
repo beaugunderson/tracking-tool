@@ -78,7 +78,7 @@ export const LOCATIONS = [
 export const LOCATION_OPTIONS = makeOptions(LOCATIONS);
 
 export const COMMUNITY_LOCATION_OPTIONS = makeOptions(
-  LOCATIONS.filter((location) => location !== TRUE_CANCER_CENTER)
+  LOCATIONS.filter((location) => location !== TRUE_CANCER_CENTER),
 );
 
 export const STAGES = makeOptions(['Unknown', 'Early', 'Advanced']);
@@ -135,15 +135,15 @@ export const CLINIC_LOCATIONS = {
 } as const;
 
 export const CLINIC_LOCATION_OPTIONS = mapValues(CLINIC_LOCATIONS, (locations) =>
-  makeOptions(locations)
+  makeOptions(locations),
 );
 
 export const CLINIC_LOCATION_STAFF_OPTIONS = mapValues(CLINIC_LOCATIONS, (locations, clinic) =>
   makeOptions(
     clinic !== CHERRY_HILL && clinic !== TRUE_CANCER_CENTER
       ? [...locations, TREATMENT_CENTER]
-      : locations
-  )
+      : locations,
+  ),
 );
 
 export const COMMUNITY = 'Community';

@@ -1,28 +1,43 @@
 import React from 'react';
 import { Header, Icon, List, Message, Segment } from 'semantic-ui-react';
 import { isError } from 'lodash';
-import { rootPath, store, userDirectoryPath } from './store';
-
-declare global {
-  interface Window {
-    require: any;
-  }
-}
-
-const electron = window.require('electron');
-const osName = window.require('os-name');
-const username = window.require('username');
-
-const { app } = electron.remote;
+import { rootPath, userDirectoryPath } from './store';
 
 type ErrorProps = {
   error: Error | string;
 };
 
-export class ErrorMessage extends React.Component<ErrorProps> {
+type ErrorState = {
+  appVersion: string;
+  appPath: string;
+  osName: string;
+  storePath: string;
+};
+
+export class ErrorMessage extends React.Component<ErrorProps, ErrorState> {
+  state: ErrorState = {
+    appVersion: '',
+    appPath: '',
+    osName: '',
+    storePath: '',
+  };
+
+  async componentDidMount() {
+    const [appVersion, appPath, osName, storePath] = await Promise.all([
+      window.trackingTool.getAppVersion(),
+      window.trackingTool.getAppPath(),
+      window.trackingTool.getOsName(),
+      window.trackingTool.getStorePath(),
+    ]);
+
+    this.setState({ appVersion, appPath, osName, storePath });
+  }
+
   render() {
     const { error } = this.props;
+    const { appVersion, appPath, osName, storePath } = this.state;
     const message: string = isError(error) ? error.message : error;
+    const { username } = window.trackingTool;
 
     return (
       <>
@@ -47,15 +62,15 @@ export class ErrorMessage extends React.Component<ErrorProps> {
             )}
 
             <List.Item>
-              <strong>Version:</strong> <code>{app.getVersion()}</code>
+              <strong>Version:</strong> <code>{appVersion}</code>
             </List.Item>
 
             <List.Item>
-              <strong>Application path:</strong> <code>{app.getAppPath()}</code>
+              <strong>Application path:</strong> <code>{appPath}</code>
             </List.Item>
 
             <List.Item>
-              <strong>Username:</strong> <code>{username.sync()}</code>
+              <strong>Username:</strong> <code>{username}</code>
             </List.Item>
 
             <List.Item>
@@ -63,15 +78,15 @@ export class ErrorMessage extends React.Component<ErrorProps> {
             </List.Item>
 
             <List.Item>
-              <strong>User path:</strong> <code>{userDirectoryPath(username.sync())}</code>
+              <strong>User path:</strong> <code>{userDirectoryPath(username)}</code>
             </List.Item>
 
             <List.Item>
-              <strong>Configuration path:</strong> <code>{store.path}</code>
+              <strong>Configuration path:</strong> <code>{storePath}</code>
             </List.Item>
 
             <List.Item>
-              <strong>OS version:</strong> <code>{osName()}</code>
+              <strong>OS version:</strong> <code>{osName}</code>
             </List.Item>
           </List>
         </Segment>

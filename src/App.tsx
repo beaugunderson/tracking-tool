@@ -4,47 +4,30 @@ import className from 'classnames';
 import moment from 'moment';
 import React from 'react';
 import { Button, Confirm, Dropdown, Icon, Input, Statistic, Table } from 'semantic-ui-react';
-import { chain, escapeRegExp, isEqual, sumBy } from 'lodash';
+import { chain, sumBy } from 'lodash';
 import { ChooseUserForm } from './ChooseUserForm';
 import { CommunityEncounterForm } from './forms/CommunityEncounterForm';
 import { CrisisReport } from './reporting/CrisisReport';
 import { DataAuditReport } from './reporting/DataAuditReport';
 import { DATE_FORMAT_DATABASE, DATE_FORMAT_DISPLAY } from './constants';
 import { ENCOUNTER_TYPE_NAMES, ENCOUNTER_TYPES } from './options';
-import { ensureUserDirectoryExists, rootPathExists } from './store';
+import { ensureUserDirectoryExists, initStore, rootPathExists } from './store';
 import { ErrorMessage } from './ErrorMessage';
 import { fieldNameToName, OtherEncounterForm } from './forms/OtherEncounterForm';
-import { FindInPage } from 'electron-find';
+import { FindBar } from './components/FindBar';
 import { FirstTimeSetup } from './FirstTimeSetup';
 import { GridReport } from './reporting/GridReport';
 import { insertExamples } from './generate-data';
 import { InteractiveReport, ReportAudience } from './reporting/InteractiveReport';
 import { LinkMrnReport } from './reporting/LinkMrnReport';
 import { MENTAL_HEALTH_FIELD_NAMES } from './patient-interventions';
-import { openEncounters } from './data';
 import { PageLoader } from './components/PageLoader';
 import { PatientEncounter, PatientEncounterForm } from './forms/PatientEncounterForm';
 import { StaffEncounterForm } from './forms/StaffEncounterForm';
 import { transformEncounter, transformEncounters } from './reporting/data';
 
-import type Nedb from 'nedb';
-
-const { ipcRenderer, remote } = window.require('electron');
-
-const findInPage = new FindInPage(remote.getCurrentWebContents(), {
-  preload: true,
-  offsetTop: 74,
-  offsetRight: 10,
-});
-
-ipcRenderer.on('on-find', () => {
-  findInPage.openFindWindow();
-});
-
-const username = window.require('username');
-
 function currentUserIn(users: string[]) {
-  return users.indexOf(username.sync().toLowerCase()) !== -1;
+  return users.indexOf(window.trackingTool.username) !== -1;
 }
 
 const canSeeAuditReport = () => currentUserIn(['beau', 'carynstewart', 'lindce2']);
@@ -63,10 +46,6 @@ const canSeeReporting = () =>
 
 const DELETE_BUTTON = <Button negative>Delete</Button>;
 
-const DEFAULT_SEARCH_CRITERIA = {
-  encounterType: { $exists: true },
-};
-
 enum Page {
   Encounters = 0,
   EncounterFormPatient,
@@ -82,13 +61,6 @@ enum Page {
   ChooseUser,
 }
 
-// const FORM_PAGES = [
-//   Page.EncounterFormCommunity,
-//   Page.EncounterFormOther,
-//   Page.EncounterFormPatient,
-//   Page.EncounterFormStaff,
-// ];
-
 const REPORT_PAGES = [
   Page.ReportAudit,
   Page.ReportCrisis,
@@ -99,6 +71,7 @@ const REPORT_PAGES = [
 
 type AppState = {
   confirmDeletion: string | null;
+  dbReady: boolean;
   encounter: any;
   encounters: any[];
   encounterSearchDate: string;
@@ -107,10 +80,10 @@ type AppState = {
   error?: string | Error;
   gads: number;
   interventions?: number;
+  loading: boolean;
   mocas: number;
   page: Page;
   phqs: number;
-  // showFormNavigation: boolean;
   showReportNavigation: boolean;
   status: string[];
   username: string;
@@ -129,24 +102,23 @@ function firstPage(): Page {
 }
 
 export class App extends React.Component<{}, AppState> {
-  encounters?: Nedb;
-
   state: AppState = {
     confirmDeletion: null,
+    dbReady: false,
     encounter: null,
     encounters: [],
     encounterSearchDate: '',
     encounterSearchPatientName: '',
     encounterSearchType: 'All',
-    page: firstPage(),
+    loading: true,
+    page: Page.Encounters,
     interventions: 0,
     gads: 0,
     mocas: 0,
     phqs: 0,
-    // showFormNavigation: false,
     showReportNavigation: false,
     status: [],
-    username: username.sync().toLowerCase(),
+    username: window.trackingTool.username,
   };
 
   handleReportsClick = () =>
@@ -174,41 +146,30 @@ export class App extends React.Component<{}, AppState> {
   editEncounter = (encounter: any) =>
     this.setState({ page: this.encounterToPage(encounter), encounter });
 
-  searchPatients = () => {
-    if (!this.encounters) {
-      return;
-    }
-
+  searchPatients = async () => {
     const { encounterSearchDate, encounterSearchPatientName, encounterSearchType } = this.state;
-
-    const criteria: {
-      encounterType?: string | { $exists: boolean };
-      patientName?: RegExp;
-      encounterDate?: string;
-    } = {
-      ...DEFAULT_SEARCH_CRITERIA,
-    };
-
-    if (encounterSearchType !== 'All') {
-      criteria.encounterType = this.state.encounterSearchType.toLowerCase();
-    }
-
-    if (
-      (encounterSearchType === 'All' || encounterSearchType === 'Patient') &&
-      encounterSearchPatientName
-    ) {
-      criteria.patientName = new RegExp(escapeRegExp(this.state.encounterSearchPatientName), 'i');
-    }
 
     const encounterSearchMoment = moment(encounterSearchDate);
 
-    if (encounterSearchMoment.isValid()) {
-      criteria.encounterDate = encounterSearchMoment.format(DATE_FORMAT_DATABASE);
-    }
+    const isDefaultCriteria =
+      encounterSearchType === 'All' &&
+      !encounterSearchPatientName &&
+      !encounterSearchMoment.isValid();
 
-    const resultsToReturn = isEqual(DEFAULT_SEARCH_CRITERIA, criteria) ? 50 : 500;
+    try {
+      const docs = await window.trackingTool.dbSearch({
+        encounterType: encounterSearchType,
+        patientNamePattern:
+          encounterSearchType === 'All' || encounterSearchType === 'Patient'
+            ? encounterSearchPatientName
+            : undefined,
+        encounterDate: encounterSearchMoment.isValid()
+          ? encounterSearchMoment.format(DATE_FORMAT_DATABASE)
+          : undefined,
+      });
 
-    this.encounters.find(criteria).exec((err, docs) => {
+      const resultsToReturn = isDefaultCriteria ? 50 : 500;
+
       const encounters = chain(docs)
         .sortBy('patientName')
         .reverse()
@@ -218,14 +179,14 @@ export class App extends React.Component<{}, AppState> {
         .value();
 
       this.setState({ encounters });
-    });
+    } catch (err) {
+      this.setState({ error: err as Error });
+    }
   };
 
-  updateAssessments() {
-    this.encounters.find({}, (err: Error, results: PatientEncounter[]) => {
-      if (err) {
-        return;
-      }
+  async updateAssessments() {
+    try {
+      const results: PatientEncounter[] = await window.trackingTool.dbFindAll();
 
       const monthStart = moment().startOf('month');
       const monthEnd = moment().endOf('month');
@@ -239,11 +200,13 @@ export class App extends React.Component<{}, AppState> {
       const phqs = monthEncounters.filter((encounter) => !!encounter.phq).length;
 
       const interventions = sumBy(monthEncounters, (encounter) =>
-        sumBy(MENTAL_HEALTH_FIELD_NAMES, (field) => (encounter[field] ? 1 : 0))
+        sumBy(MENTAL_HEALTH_FIELD_NAMES, (field) => (encounter[field] ? 1 : 0)),
       );
 
       this.setState({ gads, mocas, phqs, interventions });
-    });
+    } catch {
+      // ignore errors in assessment update
+    }
   }
 
   appendStatus = (line: string) =>
@@ -251,41 +214,40 @@ export class App extends React.Component<{}, AppState> {
       status: [...state.status, line],
     }));
 
-  initialize(cb = () => {}) {
-    ensureUserDirectoryExists(this.state.username, this.appendStatus);
+  async initialize() {
+    try {
+      await ensureUserDirectoryExists(this.state.username, this.appendStatus);
 
-    openEncounters(
-      this.state.username,
-      (error, dataStore) => {
-        if (error) {
-          return this.setState({ error });
-        }
+      this.appendStatus('Opening encounters database');
+      await window.trackingTool.dbOpen(this.state.username);
 
-        this.appendStatus('Setting encounters');
+      // @ts-ignore
+      window.createFakeEncounters = () => insertExamples();
 
-        this.encounters = dataStore;
+      this.appendStatus('Initializing search state');
+      await this.searchPatients();
 
-        // @ts-ignore
-        window.createFakeEncounters = () => insertExamples(this.encounters);
+      this.appendStatus('Updating assessments');
+      await this.updateAssessments();
 
-        this.appendStatus('Initializing search state');
-        this.searchPatients();
-
-        this.appendStatus('Updating assessments');
-        this.updateAssessments();
-
-        cb();
-      },
-      this.appendStatus
-    );
+      this.setState({ dbReady: true });
+    } catch (error) {
+      this.setState({ error: error as Error });
+    }
   }
 
-  componentDidMount() {
-    if (this.state.page === Page.FirstTimeSetupPage || this.state.page === Page.ChooseUser) {
+  async componentDidMount() {
+    await initStore();
+
+    const page = firstPage();
+
+    if (page === Page.FirstTimeSetupPage || page === Page.ChooseUser) {
+      this.setState({ page, loading: false });
       return;
     }
 
-    this.initialize();
+    this.setState({ page, loading: false });
+    await this.initialize();
   }
 
   componentDidUpdate(prevProps: any, prevState: AppState) {
@@ -322,25 +284,25 @@ export class App extends React.Component<{}, AppState> {
   };
 
   handleFirstTimeSetupComplete = () =>
-    this.initialize(() => this.setState({ page: Page.Encounters }));
+    this.initialize().then(() => this.setState({ page: Page.Encounters }));
 
   handleChooseUserComplete = (name: string) =>
     this.setState({ username: name }, () =>
-      this.initialize(() => this.setState({ page: Page.Encounters, username: name }))
+      this.initialize().then(() => this.setState({ page: Page.Encounters, username: name })),
     );
 
   renderPage() {
-    const { encounter, page, error, status } = this.state;
+    const { encounter, page, error, status, dbReady } = this.state;
 
     if (error) {
       return <ErrorMessage error={error} />;
     }
 
-    if (!this.encounters) {
+    if (!dbReady) {
       return <PageLoader status={status} />;
     }
 
-    const userName = username.sync().toLowerCase();
+    const userName = window.trackingTool.username;
 
     switch (page) {
       case Page.ReportCrisis:
@@ -367,7 +329,6 @@ export class App extends React.Component<{}, AppState> {
         return (
           <PatientEncounterForm
             encounter={encounter}
-            encounters={this.encounters}
             onCancel={this.handleCancel}
             onComplete={this.handleComplete}
             username={userName}
@@ -378,7 +339,6 @@ export class App extends React.Component<{}, AppState> {
         return (
           <CommunityEncounterForm
             encounter={encounter}
-            encounters={this.encounters}
             onCancel={this.handleCancel}
             onComplete={this.handleComplete}
           />
@@ -388,7 +348,6 @@ export class App extends React.Component<{}, AppState> {
         return (
           <StaffEncounterForm
             encounter={encounter}
-            encounters={this.encounters}
             onCancel={this.handleCancel}
             onComplete={this.handleComplete}
           />
@@ -398,7 +357,6 @@ export class App extends React.Component<{}, AppState> {
         return (
           <OtherEncounterForm
             encounter={encounter}
-            encounters={this.encounters}
             onCancel={this.handleCancel}
             onComplete={this.handleComplete}
           />
@@ -413,7 +371,6 @@ export class App extends React.Component<{}, AppState> {
   handlePageChange = (page: Page) => {
     this.setState({
       page,
-      // showFormNavigation: FORM_PAGES.includes(page),
       showReportNavigation: REPORT_PAGES.includes(page),
     });
   };
@@ -432,7 +389,11 @@ export class App extends React.Component<{}, AppState> {
   handleLinkMrnReportClick = () => this.handlePageChange(Page.ReportLink);
 
   render() {
-    const { page, showReportNavigation } = this.state;
+    const { page, loading, showReportNavigation } = this.state;
+
+    if (loading) {
+      return <PageLoader />;
+    }
 
     if (page === Page.FirstTimeSetupPage) {
       return <FirstTimeSetup onComplete={this.handleFirstTimeSetupComplete} />;
@@ -444,9 +405,10 @@ export class App extends React.Component<{}, AppState> {
 
     return (
       <>
+        <FindBar />
+
         <div
           className={className({
-            // 'show-sub-navigation': showFormNavigation || showReportNavigation,
             'show-sub-navigation': showReportNavigation,
           })}
           key="page-body"
@@ -519,23 +481,6 @@ export class App extends React.Component<{}, AppState> {
               Reports
             </div>
           </div>
-
-          {/* TODO: is this preferable to the buttons at the bottom? */}
-          {/* {showFormNavigation && !showReportNavigation && (
-            <div id="form-navigation">
-              <div className="spacer" />
-
-              <div className="navigation-button save" onClick={() => null}>
-                Save Encounter
-              </div>
-
-              <div className="navigation-button reset" onClick={() => null}>
-                Reset
-              </div>
-
-              <div className="spacer" />
-            </div>
-          )} */}
 
           {showReportNavigation && (
             <div id="report-navigation">
@@ -722,20 +667,13 @@ export class App extends React.Component<{}, AppState> {
           confirmButton={DELETE_BUTTON}
           content="Are you sure you want to delete this encounter?"
           onCancel={() => this.setState({ confirmDeletion: null })}
-          onConfirm={() => {
-            if (this.encounters) {
-              this.encounters.remove(
-                { _id: this.state.confirmDeletion },
-                {},
-                (err: Error | null) => {
-                  if (err) {
-                    return this.setState({ error: err });
-                  }
-
-                  this.searchPatients();
-                  this.setState({ confirmDeletion: null });
-                }
-              );
+          onConfirm={async () => {
+            try {
+              await window.trackingTool.dbRemove({ _id: this.state.confirmDeletion });
+              await this.searchPatients();
+              this.setState({ confirmDeletion: null });
+            } catch (err) {
+              this.setState({ error: err as Error });
             }
           }}
           open={confirmDeletion !== null}

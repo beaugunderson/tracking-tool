@@ -4,7 +4,7 @@ import moment from 'moment';
 import Mousetrap from 'mousetrap';
 import React from 'react';
 import { ageYears, parseDate } from '../reporting/data';
-import { chain, escapeRegExp, isEmpty, isNaN, pick } from 'lodash';
+import { chain, isEmpty, isNaN, pick } from 'lodash';
 import {
   Checkbox,
   Confirm,
@@ -230,7 +230,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
   };
 
   setInitialEncounterList = () => {
-    const { encounter, encounters } = this.props;
+    const { encounter } = this.props;
 
     // if we're editing an encounter then set the state to contain only the encounter's patient
     if (encounter) {
@@ -247,36 +247,31 @@ class UnwrappedPatientEncounterForm extends React.Component<
       });
     }
 
-    if (encounters) {
-      this.setSearchEncounterList('');
-    }
+    this.setSearchEncounterList('');
   };
 
-  setSearchEncounterList = (searchQuery: string) => {
+  setSearchEncounterList = async (searchQuery: string) => {
     this.setState({ loadingSearchOptions: true });
 
-    this.props.encounters
-      .find({
-        encounterType: 'patient',
-        patientName: new RegExp(escapeRegExp(searchQuery), 'i'),
-      })
-      .sort({ patientName: 1 })
-      .exec((err, docs: PatientEncounter[]) => {
-        // get the most recent encounter for each patient matching the query,
-        // sorted by patient name
-        const patientOptions = chain(docs)
-          .sortBy('encounterDate')
-          .reverse()
-          .uniqBy((doc) => doc.providenceMrn || doc.mrn)
-          .sortBy('patientName')
-          .map(docToOption)
-          .value();
+    const docs: PatientEncounter[] = await window.trackingTool.dbSearch({
+      encounterType: 'Patient',
+      patientNamePattern: searchQuery || undefined,
+    });
 
-        this.setState({
-          loadingSearchOptions: false,
-          patientOptions: indexValues(patientOptions),
-        });
-      });
+    // get the most recent encounter for each patient matching the query,
+    // sorted by patient name
+    const patientOptions = chain(docs)
+      .sortBy('encounterDate')
+      .reverse()
+      .uniqBy((doc) => doc.providenceMrn || doc.mrn)
+      .sortBy('patientName')
+      .map(docToOption)
+      .value();
+
+    this.setState({
+      loadingSearchOptions: false,
+      patientOptions: indexValues(patientOptions),
+    });
   };
 
   clearForm = () => {
@@ -366,14 +361,14 @@ class UnwrappedPatientEncounterForm extends React.Component<
       }),
       () => {
         this.updatePatientIndexAndValue('0', INITIAL_VALUES(), value);
-      }
+      },
     );
   };
 
   updatePatientIndexAndValue = (
     patientNameIndex: string,
     encounter: PatientEncounter,
-    patientName: string
+    patientName: string,
   ) => {
     const { setValues, validateForm, values } = this.props;
 
@@ -900,7 +895,7 @@ export const PatientEncounterForm = withFormik<PatientEncounterFormProps, Patien
     } else if (
       values.encounterDate &&
       parsedDateOfBirth.isBefore(
-        parsedEncounterDate.clone().subtract(OLDEST_POSSIBLE_AGE, 'years')
+        parsedEncounterDate.clone().subtract(OLDEST_POSSIBLE_AGE, 'years'),
       )
     ) {
       errors.dateOfBirth = 'Must be younger than 117 years old';
@@ -913,36 +908,27 @@ export const PatientEncounterForm = withFormik<PatientEncounterFormProps, Patien
     return errors;
   },
 
-  handleSubmit: (values, { props, setSubmitting }) => {
-    const { encounters, encounter, onComplete } = props;
+  handleSubmit: async (values, { props, setSubmitting }) => {
+    const { encounter, onComplete } = props;
 
-    if (encounter) {
-      return encounters.update(
-        { _id: encounter._id },
-        values,
-        {},
-        (err: Error, numAffected: number) => {
-          if (err || numAffected !== 1) {
-            onComplete(err || new Error('Failed to update encounter'));
-          } else {
-            onComplete();
-          }
+    try {
+      if (encounter) {
+        const numAffected = await window.trackingTool.dbUpdate({ _id: encounter._id }, values);
+        if (numAffected !== 1) {
+          return onComplete(new Error('Failed to update encounter'));
         }
-      );
-    }
+        return onComplete();
+      }
 
-    encounters.insert(
-      {
+      await window.trackingTool.dbInsert({
         ...values,
-
         dateOfBirth: parseDate(values.dateOfBirth).format(DATE_FORMAT_DATABASE),
         patientName: values.patientName.trim(),
-      },
-
-      (err) => {
-        setSubmitting(false);
-        onComplete(err);
-      }
-    );
+      });
+      setSubmitting(false);
+      onComplete();
+    } catch (err) {
+      onComplete(err as Error);
+    }
   },
 })(UnwrappedPatientEncounterForm);

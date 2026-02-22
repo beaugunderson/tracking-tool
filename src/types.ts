@@ -1,8 +1,6 @@
-import type Nedb from 'nedb';
 import type React from 'react';
 
 export type EncounterFormProps = {
-  encounters: Nedb;
   onCancel: () => void;
   onComplete: (error?: Error) => void;
 };

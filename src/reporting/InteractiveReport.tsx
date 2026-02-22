@@ -46,9 +46,7 @@ import { OTHER_ENCOUNTER_OPTIONS } from '../forms/OtherEncounterForm';
 import { PageLoader } from '../components/PageLoader';
 import { usernameToName } from '../usernames';
 
-const log = window.require('electron-log');
-
-// const { remote, screen } = window.require('electron');
+const log = { debug: (...args: any[]) => window.trackingTool.logDebug(...args) };
 
 dc.config.defaultColors(d3.schemeCategory10 as string[]);
 
@@ -60,7 +58,7 @@ const HORIZONTAL_CHART_MARGINS = { ...DEFAULT_MARGINS, left: 55 };
 const OTHER_FIELD_NAMES: string[] = map(OTHER_ENCOUNTER_OPTIONS, 'fieldName') as string[];
 const OTHER_FIELD_MAPPING = zipObject(
   OTHER_FIELD_NAMES,
-  map(OTHER_ENCOUNTER_OPTIONS, 'name') as string[]
+  map(OTHER_ENCOUNTER_OPTIONS, 'name') as string[],
 );
 
 const TITLE_PADDING = 78;
@@ -169,15 +167,14 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       !this.state.dateTo
     ) {
       const firstEncounter = minBy(this.state.encounters, (encounter) =>
-        encounter.parsedEncounterDate.valueOf()
+        encounter.parsedEncounterDate.valueOf(),
       );
 
       const lastEncounter = maxBy(this.state.encounters, (encounter) =>
-        encounter.parsedEncounterDate.valueOf()
+        encounter.parsedEncounterDate.valueOf(),
       );
 
       if (firstEncounter && lastEncounter) {
-        // eslint-disable-next-line react/no-did-update-set-state
         this.setState({
           dateFrom: firstEncounter.parsedEncounterDate.format('YYYY-MM-DD'),
           dateTo: lastEncounter.parsedEncounterDate.format('YYYY-MM-DD'),
@@ -255,14 +252,14 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
 
     if (dateFrom && dateTo) {
       filteredEncounters = encounters.filter((encounter) =>
-        encounter.parsedEncounterDate.isBetween(dateFrom, dateTo, null, '[]')
+        encounter.parsedEncounterDate.isBetween(dateFrom, dateTo, null, '[]'),
       );
     }
 
     if (filterDocumentationTasks) {
       filteredEncounters = filteredEncounters.map((encounter) => {
         const interventions = encounter.interventions.filter(
-          (intervention) => intervention !== 'Documentation'
+          (intervention) => intervention !== 'Documentation',
         );
 
         return {
@@ -314,7 +311,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     function renderNumber(
       selector: string,
       group: crossfilter.GroupAll<TransformedEncounter, {}>,
-      accessor: (d: any) => number | string = (d) => d
+      accessor: (d: any) => number | string = (d) => d,
     ) {
       const number = dc.numberDisplay(selector);
       number
@@ -327,7 +324,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
 
     renderNumber(
       '#total-tasks',
-      ndx.groupAll().reduceSum((d) => d.parsedNumberOfTasks)
+      ndx.groupAll().reduceSum((d) => d.parsedNumberOfTasks),
     );
 
     renderNumber(
@@ -349,7 +346,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
         const value = minuteCount / entryCount;
 
         return isNaN(value) ? 0 : value;
-      }
+      },
     );
 
     renderNumber(
@@ -371,7 +368,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
         const value = taskCount / entryCount;
 
         return isNaN(value) ? 0 : value;
-      }
+      },
     );
 
     renderNumber(
@@ -395,7 +392,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
         const value = sum(values(byMrn)) / keys(byMrn).length;
 
         return isNaN(value) ? 0 : value;
-      }
+      },
     );
 
     renderNumber(
@@ -419,7 +416,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
         const value = sum(values(byMrn)) / keys(byMrn).length;
 
         return isNaN(value) ? 0 : value;
-      }
+      },
     );
 
     renderNumber(
@@ -437,7 +434,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
         });
 
         return mrns.size;
-      }
+      },
     );
 
     renderNumber(
@@ -446,9 +443,9 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
         .groupAll()
         .reduceSum((d) =>
           sumBy(d.interventions, (intervention) =>
-            MENTAL_HEALTH_INTERVENTION_NAMES.includes(intervention) ? 1 : 0
-          )
-        )
+            MENTAL_HEALTH_INTERVENTION_NAMES.includes(intervention) ? 1 : 0,
+          ),
+        ),
     );
 
     log.debug('end renderNumber() calls');
@@ -872,7 +869,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
 
     // #region by other category
     const otherCategoryDimension = ndx.dimension((d) =>
-      d.activity ? OTHER_FIELD_MAPPING[d.activity] : EXCLUDE_STRING_VALUE
+      d.activity ? OTHER_FIELD_MAPPING[d.activity] : EXCLUDE_STRING_VALUE,
     );
 
     const otherCategoryGroup = otherCategoryDimension.group();
@@ -976,9 +973,9 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
         d.interventions.map((intervention) =>
           MENTAL_HEALTH_INTERVENTION_NAMES.includes(intervention)
             ? intervention
-            : EXCLUDE_STRING_VALUE
+            : EXCLUDE_STRING_VALUE,
         ),
-      true
+      true,
     );
     const interventionTechniquesGroup = interventionTechniquesDimension.group();
 
@@ -1006,12 +1003,12 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       const interventions = d.interventions.map((intervention) =>
         MENTAL_HEALTH_INTERVENTION_NAMES.includes(intervention)
           ? 'Intervention techniques'
-          : intervention
+          : intervention,
       );
 
       if (hideDocumentationAndCareCoordination) {
         return interventions.filter(
-          (intervention) => !HIDDEN_INTERVENTIONS.includes(intervention)
+          (intervention) => !HIDDEN_INTERVENTIONS.includes(intervention),
         );
       }
 
@@ -1036,7 +1033,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
 
     // #region by location
     const locationDimension = ndx.dimension((d) =>
-      d.location ? d.location : EXCLUDE_STRING_VALUE
+      d.location ? d.location : EXCLUDE_STRING_VALUE,
     );
     const locationGroup = locationDimension.group().reduceSum((d) => d.parsedNumberOfTasks);
 

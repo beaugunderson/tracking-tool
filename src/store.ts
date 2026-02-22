@@ -1,76 +1,58 @@
-const Store = window.require('electron-store');
-
-const electron = window.require('electron');
-const fs = electron.remote.require('fs');
-const path = electron.remote.require('path');
-
 export const DEFAULT_PATHS = [
   'S:\\PublicWorkGroups\\Social Workers\\Staff\\Tracking tool and Instructions\\2019',
   'G:\\SCI\\PublicWorkGroups\\Social Workers\\Staff\\Tracking tool and Instructions\\2019',
 ];
 
-export const store = new Store();
+function pathJoin(...segments: string[]): string {
+  return segments.join(window.trackingTool.pathSep);
+}
 
-export const rootPath = (): string => store.get('root-path');
-export const setRootPath = (value: string) => store.set('root-path', value);
+// Cached root path — set once by initStore(), then synchronous reads
+let cachedRootPath = '';
 
-export const rootPathExists = (): boolean => rootPath() && fs.existsSync(rootPath());
+export async function initStore(): Promise<void> {
+  cachedRootPath = (await window.trackingTool.configGet('root-path')) || '';
+}
 
-export const userDirectoryPath = (name: string): string => path.join(rootPath(), name);
-export const userDirectoryExists = (name: string): boolean =>
-  fs.existsSync(userDirectoryPath(name));
-export const userFilePath = (name: string, ...args: string[]): string =>
-  path.join(userDirectoryPath(name), ...args);
-export const userBackupPath = (name: string): string => userFilePath(name, 'backups');
+export const rootPath = (): string => cachedRootPath;
 
-export const fixesDirectoryPath = (): string => path.join(rootPath(), 'fixes');
-export const fixesDirectoryExists = (): boolean => fs.existsSync(fixesDirectoryPath());
-export const fixesFilePath = (...args: string[]): string =>
-  path.join(fixesDirectoryPath(), ...args);
-export const fixesBackupPath = (): string => fixesFilePath('backups');
-
-export const ensureFixesDirectoryExists = () => {
-  if (!fixesDirectoryExists()) {
-    fs.mkdirSync(fixesDirectoryPath());
-  }
-
-  if (!fs.existsSync(fixesBackupPath())) {
-    fs.mkdirSync(fixesBackupPath());
-  }
-
-  if (fs.existsSync(fixesFilePath('fixes.json'))) {
-    fs.copyFileSync(
-      fixesFilePath('fixes.json'),
-      fixesFilePath('backups', `${new Date().valueOf()}.json`)
-    );
-  }
+export const setRootPath = async (value: string): Promise<void> => {
+  await window.trackingTool.configSet('root-path', value);
+  cachedRootPath = value;
 };
 
-export const ensureUserDirectoryExists = (
+export const rootPathExists = (): boolean => !!cachedRootPath;
+
+export const userDirectoryPath = (name: string): string => pathJoin(rootPath(), name);
+export const userFilePath = (name: string, ...args: string[]): string =>
+  pathJoin(userDirectoryPath(name), ...args);
+export const userBackupPath = (name: string): string => userFilePath(name, 'backups');
+
+export const ensureUserDirectoryExists = async (
   name: string,
   // eslint-disable-next-line no-console
-  statusCb = (line: string) => console.log(line)
+  statusCb = (line: string) => console.log(line),
 ) => {
   statusCb(`Checking that "${userDirectoryPath(name)}" exists`);
-  if (!userDirectoryExists(name)) {
+  if (!(await window.trackingTool.fsExists(userDirectoryPath(name)))) {
     statusCb(`Creating "${userDirectoryPath(name)}"`);
-    fs.mkdirSync(userDirectoryPath(name));
+    await window.trackingTool.fsMkdir(userDirectoryPath(name));
   }
 
   statusCb(`Checking that "${userBackupPath(name)}" exists`);
-  if (!fs.existsSync(userBackupPath(name))) {
+  if (!(await window.trackingTool.fsExists(userBackupPath(name)))) {
     statusCb(`Creating "${userBackupPath(name)}"`);
-    fs.mkdirSync(userBackupPath(name));
+    await window.trackingTool.fsMkdir(userBackupPath(name));
   }
 
   statusCb(`Checking that "${userFilePath(name, 'encounters.json')}" exists`);
-  if (fs.existsSync(userFilePath(name, 'encounters.json'))) {
+  if (await window.trackingTool.fsExists(userFilePath(name, 'encounters.json'))) {
     const filename = `${new Date().valueOf()}.json`;
 
     statusCb(`Backing up encounters.json to "${filename}"`);
-    fs.copyFileSync(
+    await window.trackingTool.fsCopyFile(
       userFilePath(name, 'encounters.json'),
-      userFilePath(name, 'backups', filename)
+      userFilePath(name, 'backups', filename),
     );
   }
 };

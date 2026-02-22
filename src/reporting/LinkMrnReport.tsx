@@ -4,17 +4,10 @@ import moment from 'moment';
 import React from 'react';
 import { Button, Checkbox, Input, Radio, Table } from 'semantic-ui-react';
 import { chain, Dictionary, each, groupBy, map, sortBy } from 'lodash';
-import {
-  copyFixFile,
-  EXCLUDE_STRING_VALUE,
-  parseDate,
-  transform,
-  TransformedEncounter,
-} from './data';
 import { DATE_FORMAT_DATABASE, DATE_FORMAT_DISPLAY } from '../constants';
-import { ensureFixesDirectoryExists } from '../store';
 import { ErrorMessage } from '../ErrorMessage';
-import { Fix, getFixes, openFixes } from '../data';
+import { EXCLUDE_STRING_VALUE, parseDate, transform, TransformedEncounter } from './data';
+import { Fix } from '../data';
 import {
   namesRepresentSamePerson,
   obfuscateDate,
@@ -23,7 +16,6 @@ import {
 } from '../utilities';
 import { PageLoader } from '../components/PageLoader';
 import { usernameToName } from '../usernames';
-import type Nedb from 'nedb';
 
 function hasMultipleMrns(encounters: TransformedEncounter[]) {
   const swedishMrns = new Set();
@@ -106,7 +98,7 @@ const differentBirthDatesOrDissimilarNames = (a: TransformedEncounter, b: Transf
 function makeGroups(
   group: { [name: string]: TransformedEncounter[] },
   similarityFn: (a: TransformedEncounter, b: TransformedEncounter) => boolean,
-  needsMatchingFn: (encounters: TransformedEncounter[]) => boolean
+  needsMatchingFn: (encounters: TransformedEncounter[]) => boolean,
 ) {
   const pendingMatches: TransformedEncounter[][] = [];
 
@@ -153,7 +145,7 @@ function groupName(encounters: TransformedEncounter[]): string {
 
 function topByProperty(
   encounters: TransformedEncounter[],
-  property: 'formattedDateOfBirth' | 'mrn' | 'providenceMrn'
+  property: 'formattedDateOfBirth' | 'mrn' | 'providenceMrn',
 ): string | null {
   const top = chain(encounters)
     .filter((encounter) => encounter[property] && encounter[property] !== EXCLUDE_STRING_VALUE)
@@ -197,32 +189,32 @@ interface Group {
 export function constructPendingMatchGroups(encounters: TransformedEncounter[]): Group[] {
   const byDOB = groupBy(
     encounters.filter((encounter) => encounter.formattedDateOfBirth),
-    'formattedDateOfBirth'
+    'formattedDateOfBirth',
   );
 
   const bySwedishMrn = groupBy(
     encounters.filter((encounter) => encounter.mrn),
-    'mrn'
+    'mrn',
   );
 
   const byProvidenceMrn = groupBy(
     encounters.filter((encounter) => encounter.providenceMrn),
-    'providenceMrn'
+    'providenceMrn',
   );
 
   const samePatientDifferentMrns = formatGroups(
     makeGroups(byDOB, similarNames, hasMultipleMrns),
-    'same-patient-different-mrns'
+    'same-patient-different-mrns',
   );
 
   const sameSwedishMrnDifferentPatients = formatGroups(
     makeGroups(bySwedishMrn, differentBirthDatesOrDissimilarNames, hasSingleMrn),
-    'same-swedish-mrn-different-patients'
+    'same-swedish-mrn-different-patients',
   );
 
   const sameProvidenceMrnDifferentPatients = formatGroups(
     makeGroups(byProvidenceMrn, differentBirthDatesOrDissimilarNames, hasSingleMrn),
-    'same-providence-mrn-different-patients'
+    'same-providence-mrn-different-patients',
   );
 
   const pendingMatches = [
@@ -283,8 +275,6 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
     logOnDifferentValues: true,
   };
 
-  fixes: Nedb;
-
   state: LinkMrnReportState = {
     changedRows: {},
     encounters: [],
@@ -302,11 +292,10 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
     this.setState({ encounters: null, fixes: null }, async () => {
       const allEncounters = await transform(mapMrns);
       const encounters = allEncounters.filter(
-        (encounter) => encounter.encounterType === 'patient'
+        (encounter) => encounter.encounterType === 'patient',
       );
 
-      const fixFile = await copyFixFile();
-      const fixes = await getFixes(fixFile.file);
+      const fixes = await window.trackingTool.fixesGetAll();
 
       const pendingMatchGroups = constructPendingMatchGroups(encounters);
       const pendingMatchGroupsByType = groupBy(pendingMatchGroups, 'type');
@@ -321,10 +310,7 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
   }
 
   async componentDidMount() {
-    ensureFixesDirectoryExists();
-
-    this.fixes = openFixes();
-
+    await window.trackingTool.fixesOpen();
     await this.loadEncounters(this.state.mrnInferenceEnabled);
   }
 
@@ -357,7 +343,7 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
               }),
               async () => {
                 await this.loadEncounters(this.state.mrnInferenceEnabled);
-              }
+              },
             );
           }}
         />
@@ -498,7 +484,7 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
 
                                 try {
                                   dateOfBirth = parseDate(data.value).format(DATE_FORMAT_DATABASE);
-                                } catch (parseError) {
+                                } catch {
                                   return;
                                 }
 
@@ -584,13 +570,11 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
                               color={saveStatus === SAVE_STATUS.SAVED ? 'green' : 'blue'}
                               disabled={saveDisabled}
                               loading={saveStatus === SAVE_STATUS.SAVING}
-                              onClick={() => {
+                              onClick={async () => {
                                 if (!changedRows[encounter.uniqueId]) {
                                   return;
                                 }
 
-                                // TODO: we could instead figure out if the value differs from the
-                                // previous fix instead of from the encounter
                                 const record: Fix = {
                                   uniqueId: encounter.uniqueId,
 
@@ -603,24 +587,24 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
                                     changedRows[encounter.uniqueId].providenceMrn || providenceMrn,
                                 };
 
-                                this.setState(
-                                  (state) => ({
+                                this.setState((state) => ({
+                                  saveStatuses: {
+                                    ...state.saveStatuses,
+                                    [encounter.uniqueId]: SAVE_STATUS.SAVING,
+                                  },
+                                }));
+
+                                try {
+                                  await window.trackingTool.fixesInsert(record);
+                                  this.setState((state) => ({
                                     saveStatuses: {
                                       ...state.saveStatuses,
-                                      [encounter.uniqueId]: SAVE_STATUS.SAVING,
+                                      [encounter.uniqueId]: SAVE_STATUS.SAVED,
                                     },
-                                  }),
-                                  () =>
-                                    this.fixes.insert(record, (err) =>
-                                      this.setState((state) => ({
-                                        error: err,
-                                        saveStatuses: {
-                                          ...state.saveStatuses,
-                                          [encounter.uniqueId]: SAVE_STATUS.SAVED,
-                                        },
-                                      }))
-                                    )
-                                );
+                                  }));
+                                } catch (err) {
+                                  this.setState({ error: err as Error });
+                                }
                               }}
                             >
                               {saveStatus === SAVE_STATUS.SAVED ? 'Saved!' : 'Save'}

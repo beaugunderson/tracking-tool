@@ -6,8 +6,6 @@ import { PageLoader } from '../components/PageLoader';
 import { sortBy } from 'lodash';
 import { usernameToName } from '../usernames';
 
-const { clipboard } = window.require('electron');
-
 interface CrisisReportProps {}
 
 interface CrisisReportState {
@@ -43,7 +41,7 @@ export class CrisisReport extends React.Component<CrisisReportProps, CrisisRepor
           encounter.suicidehomicide
         );
       }),
-      'parsedEncounterDate'
+      'parsedEncounterDate',
     ).reverse();
 
     function crises(encounter: TransformedEncounter) {
@@ -90,7 +88,7 @@ export class CrisisReport extends React.Component<CrisisReportProps, CrisisRepor
               <Table.Cell>
                 <button
                   className="button-link"
-                  onClick={() => clipboard.writeText(encounter.providenceMrn)}
+                  onClick={() => window.trackingTool.writeClipboard(encounter.providenceMrn)}
                   type="button"
                 >
                   {encounter.providenceMrn === EXCLUDE_STRING_VALUE ? '' : encounter.providenceMrn}{' '}
@@ -100,7 +98,7 @@ export class CrisisReport extends React.Component<CrisisReportProps, CrisisRepor
               <Table.Cell>
                 <button
                   className="button-link"
-                  onClick={() => clipboard.writeText(encounter.mrn)}
+                  onClick={() => window.trackingTool.writeClipboard(encounter.mrn)}
                   type="button"
                 >
                   {encounter.mrn === EXCLUDE_STRING_VALUE ? '' : encounter.mrn}{' '}

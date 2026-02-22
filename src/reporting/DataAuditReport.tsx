@@ -8,8 +8,6 @@ import { PageLoader } from '../components/PageLoader';
 import { sortBy } from 'lodash';
 import { usernameToName } from '../usernames';
 
-const { clipboard } = window.require('electron');
-
 interface DataAuditReportProps {}
 
 interface DataAuditReportState {
@@ -80,7 +78,7 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
           abnormalTimeSpent(encounter)
         );
       }),
-      'parsedEncounterDate'
+      'parsedEncounterDate',
     ).reverse();
 
     return (
@@ -119,7 +117,7 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
                   {encounter.encounterType === 'patient' && (
                     <button
                       className="button-link"
-                      onClick={() => clipboard.writeText(encounter.providenceMrn)}
+                      onClick={() => window.trackingTool.writeClipboard(encounter.providenceMrn)}
                       type="button"
                     >
                       {encounter.providenceMrn === EXCLUDE_STRING_VALUE
@@ -133,7 +131,7 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
                   {encounter.encounterType === 'patient' && (
                     <button
                       className="button-link"
-                      onClick={() => clipboard.writeText(encounter.mrn)}
+                      onClick={() => window.trackingTool.writeClipboard(encounter.mrn)}
                       type="button"
                     >
                       {encounter.mrn === EXCLUDE_STRING_VALUE ? '' : encounter.mrn}{' '}

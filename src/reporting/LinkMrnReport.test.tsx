@@ -113,6 +113,53 @@ describe('constructPendingMatches', () => {
 
     expect(pendingMatches).toEqual([
       {
+        canonicalDateOfBirth: '01/01/2001',
+        canonicalProvidenceMrn: 'providence-1',
+        canonicalSwedishMrn: 'swedish-1',
+        encounters: [
+          {
+            uniqueId: '2',
+            formattedDateOfBirth: '01/01/2001',
+            mrn: 'swedish-1',
+            providenceMrn: 'providence-1',
+            patientName: 'Bob Dobbs',
+          },
+          {
+            uniqueId: '3',
+            formattedDateOfBirth: '01/01/2001',
+            mrn: 'swedish-1a',
+            providenceMrn: 'providence-1',
+            patientName: 'Bob Dobbs',
+          },
+        ],
+        id: '2-3',
+        type: 'same-patient-different-mrns',
+      },
+      {
+        canonicalDateOfBirth: '01/01/2001',
+        canonicalProvidenceMrn: 'providence-1',
+        canonicalSwedishMrn: 'swedish-1',
+        encounters: [
+          {
+            uniqueId: '1',
+            formattedDateOfBirth: '01/01/2001',
+            mrn: 'swedish-1',
+            providenceMrn: 'providence-1',
+            patientName: 'J.R. Bob Dobbs',
+          },
+          {
+            uniqueId: '2',
+            formattedDateOfBirth: '01/01/2001',
+            mrn: 'swedish-1',
+            providenceMrn: 'providence-1',
+            patientName: 'Bob Dobbs',
+          },
+        ],
+        id: '1-2',
+        type: 'same-swedish-mrn-different-patients',
+      },
+      {
+        canonicalDateOfBirth: '01/01/2001',
         canonicalProvidenceMrn: 'providence-1',
         canonicalSwedishMrn: 'swedish-1',
         encounters: [
@@ -139,7 +186,7 @@ describe('constructPendingMatches', () => {
           },
         ],
         id: '1-2-3',
-        type: 'same-patient-different-mrns',
+        type: 'same-providence-mrn-different-patients',
       },
     ]);
   });
@@ -235,6 +282,7 @@ describe('constructPendingMatches', () => {
     expect(pendingMatches).toEqual([
       // same `mrn`
       {
+        canonicalDateOfBirth: '01/01/2001',
         canonicalProvidenceMrn: 'providence-1',
         canonicalSwedishMrn: 'swedish-1',
         encounters: [
@@ -260,6 +308,7 @@ describe('constructPendingMatches', () => {
 
       // same `mrn` and `providenceMrn`
       {
+        canonicalDateOfBirth: '01/01/1975',
         canonicalProvidenceMrn: 'providence-5',
         canonicalSwedishMrn: 'swedish-5',
         encounters: [
@@ -285,6 +334,7 @@ describe('constructPendingMatches', () => {
 
       // same `providenceMrn`
       {
+        canonicalDateOfBirth: '01/01/1950',
         canonicalProvidenceMrn: 'providence-3',
         canonicalSwedishMrn: 'swedish-3',
         encounters: [
@@ -310,8 +360,9 @@ describe('constructPendingMatches', () => {
 
       // same `providenceMrn`, missing swedish `mrn`
       {
+        canonicalDateOfBirth: '01/01/1930',
         canonicalProvidenceMrn: 'providence-8',
-        canonicalSwedishMrn: undefined,
+        canonicalSwedishMrn: null,
         encounters: [
           {
             uniqueId: '9',

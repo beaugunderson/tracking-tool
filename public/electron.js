@@ -3,10 +3,8 @@ const path = require('path');
 const { app, BrowserWindow, dialog, globalShortcut, ipcMain, Menu, shell } = require('electron');
 const defaultMenu = require('electron-default-menu');
 
-app.allowRendererProcessReuse = true;
-
 require('electron-context-menu')({ showSaveImageAs: true });
-require('electron-store').initRenderer();
+require('./ipc-handlers');
 
 let mainWindow;
 let showExitPrompt = true;
@@ -18,9 +16,10 @@ const createWindow = () => {
     show: false,
     title: `Tracking Tool v${app.getVersion()}`,
     webPreferences: {
-      enableRemoteModule: true,
-      nodeIntegration: true,
-      contextIsolation: false,
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: false,
+      preload: path.join(__dirname, 'preload.js'),
     },
     height: 860,
     width: 1280,
@@ -32,10 +31,11 @@ const createWindow = () => {
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
+  });
 
-    ipcMain.on('open-external-window', (event, arg) => {
-      shell.openExternal(arg);
-    });
+  // Forward find-in-page results to the renderer
+  mainWindow.webContents.on('found-in-page', (_event, result) => {
+    mainWindow.webContents.send('find:result', result);
   });
 
   mainWindow.on('focus', () => {
@@ -102,8 +102,4 @@ app.on('activate', () => {
     showExitPrompt = true;
     createWindow();
   }
-});
-
-ipcMain.on('load-page', (event, arg) => {
-  mainWindow.loadURL(arg);
 });

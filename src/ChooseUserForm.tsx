@@ -2,12 +2,8 @@ import './choose-user-form.css';
 import React from 'react';
 import { Button, Container, Header, Icon } from 'semantic-ui-react';
 import { ErrorMessage } from './ErrorMessage';
-import { isEmpty, last } from 'lodash';
+import { last } from 'lodash';
 import { rootPath } from './store';
-
-const electron = window.require('electron');
-const fs = electron.remote.require('fs');
-const path = electron.remote.require('path');
 
 type ChooseUserFormProps = {
   onComplete: (path: string) => void;
@@ -21,20 +17,20 @@ export class ChooseUserForm extends React.Component<ChooseUserFormProps, ChooseU
   state: ChooseUserFormState = {};
 
   handleChooseClick = async () => {
-    const dialogResult = await electron.remote.dialog.showOpenDialog({
+    const dialogResult = await window.trackingTool.showOpenDialog({
       buttonLabel: 'Choose Directory',
       defaultPath: rootPath(),
       properties: ['openDirectory'],
     });
 
-    if (dialogResult.canceled || isEmpty(dialogResult.filePaths)) {
+    if (dialogResult.canceled || !dialogResult.filePaths.length) {
       return;
     }
 
     const [selectedPath] = dialogResult.filePaths;
 
-    if (fs.existsSync(selectedPath)) {
-      const username: string = last(selectedPath.split(path.sep));
+    if (await window.trackingTool.fsExists(selectedPath)) {
+      const username: string = last(selectedPath.split(window.trackingTool.pathSep));
 
       this.props.onComplete(username);
     }

@@ -239,27 +239,23 @@ export const OtherEncounterForm = withFormik<OtherEncounterFormProps, OtherEncou
     return errors;
   },
 
-  handleSubmit: (values, { props, setSubmitting }) => {
-    const { encounters, encounter, onComplete } = props;
+  handleSubmit: async (values, { props, setSubmitting }) => {
+    const { encounter, onComplete } = props;
 
-    if (encounter) {
-      return encounters.update(
-        { _id: encounter._id },
-        values,
-        {},
-        (err: Error, numAffected: number) => {
-          if (err || numAffected !== 1) {
-            onComplete(err || new Error('Failed to update encounter'));
-          } else {
-            onComplete();
-          }
+    try {
+      if (encounter) {
+        const numAffected = await window.trackingTool.dbUpdate({ _id: encounter._id }, values);
+        if (numAffected !== 1) {
+          return onComplete(new Error('Failed to update encounter'));
         }
-      );
-    }
+        return onComplete();
+      }
 
-    encounters.insert(values, (err) => {
+      await window.trackingTool.dbInsert(values);
       setSubmitting(false);
-      onComplete(err);
-    });
+      onComplete();
+    } catch (err) {
+      onComplete(err as Error);
+    }
   },
 })(UnwrappedOtherEncounterForm);

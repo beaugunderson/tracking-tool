@@ -10,7 +10,7 @@ import { transform, TransformedEncounter } from './data';
 
 // import { maxBy, minBy } from 'lodash';
 
-const log = window.require('electron-log');
+const log = { debug: (...args: any[]) => window.trackingTool.logDebug(...args) };
 
 const moment = extendMoment(Moment);
 
@@ -37,7 +37,7 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
 
   changeIncludeDocumentation: (
     event: React.FormEvent<HTMLInputElement>,
-    data: CheckboxProps
+    data: CheckboxProps,
   ) => void = (event, data) => {
     this.setState({
       filterDocumentationTasks: data.checked,
@@ -58,7 +58,7 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
     clinic: string,
     location: string,
     types: readonly ROW_TYPE[],
-    months: Moment.Moment[]
+    months: Moment.Moment[],
   ) {
     log.debug(`rowsForPemutation: ${clinic}, ${location}, [${types.join(', ')}]`);
 
@@ -207,7 +207,7 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
 
             <Table.Body>
               {MONTHLY_REPORT_OPTIONS.map(([location, clinic, types]) =>
-                this.rowsForPermutation(clinic, location, types, months)
+                this.rowsForPermutation(clinic, location, types, months),
               )}
             </Table.Body>
           </Table>
