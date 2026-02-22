@@ -1,5 +1,5 @@
 import ElectronStore from 'electron-store';
-import DataStore from 'nedb';
+import DataStore from '@seald-io/nedb';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';

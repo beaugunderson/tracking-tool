@@ -1,8 +1,8 @@
-import faker from 'faker';
 import moment from 'moment';
 import { CLINICS, LOCATIONS } from './options';
 import { DATE_FORMAT_DATABASE } from './constants';
 import { DOCTORS } from './doctors';
+import { faker } from '@faker-js/faker';
 import { INITIAL_VALUES, PatientEncounter } from './forms/PatientEncounterForm';
 import { INTERVENTIONS } from './patient-interventions';
 import { sample, sampleSize, times } from 'lodash';
@@ -44,9 +44,9 @@ function diagnosis() {
 
 function fakePatient() {
   return {
-    patientName: faker.fake('{{name.lastName}}, {{name.firstName}} {{name.firstName}}'),
+    patientName: `${faker.person.lastName()}, ${faker.person.firstName()} ${faker.person.firstName()}`,
 
-    dateOfBirth: moment(faker.date.past(130)).format(DATE_FORMAT_DATABASE),
+    dateOfBirth: moment(faker.date.past({ years: 130 })).format(DATE_FORMAT_DATABASE),
 
     diagnosis: diagnosis(),
 
@@ -105,7 +105,7 @@ export async function insertExamples() {
 
       ...patientDiagnosis,
 
-      encounterDate: moment(faker.date.recent(180)).format(DATE_FORMAT_DATABASE),
+      encounterDate: moment(faker.date.recent({ days: 180 })).format(DATE_FORMAT_DATABASE),
       encounterType: 'patient',
 
       // 20% of the time generate new location for a given patient

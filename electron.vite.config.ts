@@ -3,7 +3,10 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   main: {
-    build: { sourcemap: true },
+    build: {
+      sourcemap: true,
+      rollupOptions: { output: { interop: 'auto' } },
+    },
   },
   preload: {},
   renderer: {

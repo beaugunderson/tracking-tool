@@ -8,7 +8,7 @@
     "tokenRef": "RELEASE_IT_TOKEN"
   },
   "hooks": {
-    "before:release": "yarn dist"
+    "before:release": "pnpm dist"
   },
   "npm": {
     "publsh": false

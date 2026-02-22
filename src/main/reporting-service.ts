@@ -1,8 +1,8 @@
-import DataStore from 'nedb';
+import DataStore from '@seald-io/nedb';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import glob from 'glob';
+import { glob } from 'glob';
 import log from 'electron-log';
 import moment from 'moment';
 import async from 'async';
@@ -145,12 +145,7 @@ export function openDataStore(filename: string): DataStore {
 }
 
 async function getEncounterFiles(rootPath: string): Promise<string[]> {
-  return new Promise((resolve, reject) => {
-    glob(path.join(rootPath, '*', 'encounters.json'), (err: Error | null, files: string[]) => {
-      if (err) reject(err);
-      else resolve(files);
-    });
-  });
+  return glob(path.join(rootPath, '*', 'encounters.json'));
 }
 
 async function copyEncounterFiles(rootPath: string) {

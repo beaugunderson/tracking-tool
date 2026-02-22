@@ -14,14 +14,17 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
 
+      - name: setup pnpm
+        uses: pnpm/action-setup@v4
+
       - name: use node 22
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: "yarn"
+          cache: "pnpm"
 
       - name: install deps
-        run: yarn --ignore-engines --ignore-platform --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: build and sign Windows artifact
         env:
@@ -31,8 +34,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CI: ""
         run: |
-          yarn build
-          yarn dist-win
+          pnpm build
+          pnpm dist-win
 
       - name: upload signed artifacts
         uses: actions/upload-artifact@v4

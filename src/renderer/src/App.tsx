@@ -17,7 +17,6 @@ import { fieldNameToName, OtherEncounterForm } from './forms/OtherEncounterForm'
 import { FindBar } from './components/FindBar';
 import { FirstTimeSetup } from './FirstTimeSetup';
 import { GridReport } from './reporting/GridReport';
-import { insertExamples } from './generate-data';
 import { InteractiveReport, ReportAudience } from './reporting/InteractiveReport';
 import { LinkMrnReport } from './reporting/LinkMrnReport';
 import { MENTAL_HEALTH_FIELD_NAMES } from './patient-interventions';
@@ -221,8 +220,11 @@ export class App extends React.Component<{}, AppState> {
       this.appendStatus('Opening encounters database');
       await window.trackingTool.dbOpen(this.state.username);
 
-      // @ts-ignore
-      window.createFakeEncounters = () => insertExamples();
+      if (this.state.username === 'beau') {
+        // @ts-ignore
+        window.createFakeEncounters = async () =>
+          (await import('./generate-data')).insertExamples();
+      }
 
       this.appendStatus('Initializing search state');
       await this.searchPatients();

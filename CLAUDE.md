@@ -6,9 +6,9 @@ Electron desktop app for oncology social workers at Swedish Cancer Institute (SC
 
 - **Runtime**: Electron 33 + React 18 + TypeScript 5
 - **UI**: Semantic UI React + Formik (forms) + d3/dc/crossfilter (interactive reports)
-- **Data**: NeDB (file-based JSON database) on shared network drive, per-user directories
+- **Data**: @seald-io/nedb (file-based JSON database) on shared network drive, per-user directories
 - **Build**: electron-vite 5 + Vite 7 + electron-builder
-- **Package manager**: yarn (v1 classic)
+- **Package manager**: pnpm
 - **Linting**: ESLint (airbnb config) + Prettier (single quotes, 99 print width)
 - **Tests**: Vitest 4
 
@@ -31,12 +31,12 @@ Build output: `electron-vite build` → `out/main/`, `out/preload/`, `out/render
 ## Commands
 
 ```
-yarn dev            # dev mode (electron-vite dev)
-yarn build          # tsc --noEmit + electron-vite build (production)
-yarn test           # vitest tests
-yarn eslint         # lint + fix
-yarn dist           # build + package Windows (Docker)
-yarn dist-mac       # build + package macOS
+pnpm dev            # dev mode (electron-vite dev)
+pnpm build          # tsc --noEmit + electron-vite build (production)
+pnpm test           # vitest tests
+pnpm eslint         # lint + fix
+pnpm dist-mac       # build + package macOS
+pnpm dist-win       # package Windows (CI)
 ```
 
 ## Project Structure
