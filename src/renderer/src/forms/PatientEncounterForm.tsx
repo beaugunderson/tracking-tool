@@ -2,7 +2,7 @@ import './form.css';
 import Debug from 'debug';
 import moment from 'moment';
 import Mousetrap from 'mousetrap';
-import React from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ageYears, parseDate } from '../reporting/data';
 import { chain, isEmpty, isNaN, pick } from 'lodash';
 import {
@@ -34,15 +34,15 @@ import {
   today,
 } from '../shared-fields';
 import { EncounterFormProps, Intervention } from '../types';
-import { FormikErrors, FormikProps, withFormik } from 'formik';
+import { FormikErrors, useFormik } from 'formik';
 import { InfoButton } from '../InfoButton';
-import { InfoButtonLabel } from '../InfoButtonLabel';
 import {
   initialInterventionValues,
   InitialInterventionValues,
   interventionGroups,
   interventionOptions,
 } from '../patient-interventions';
+import { InterventionField, ScoredInterventionField } from '../components/InterventionField';
 
 const debug = Debug('tracking-tool:patient-encounter-form');
 
@@ -205,52 +205,145 @@ type PatientOption = Record<string, unknown> & {
   value: string;
 };
 
-type PatientEncounterFormState = {
-  activeInfoButton: string | null;
-  confirmingInactiveMd: boolean;
-  patientNameIndex: string;
-  loadingSearchOptions: boolean;
-  patientOptions: PatientOption[];
-};
+const RE_NUMERIC = /^\d+$/;
+const isNumeric = (string: string) => RE_NUMERIC.test(string);
 
-class UnwrappedPatientEncounterForm extends React.Component<
-  PatientEncounterFormProps & FormikProps<PatientEncounter>,
-  PatientEncounterFormState
-> {
-  patientNameRef?: HTMLElement;
-  dateOfBirthRef?: HTMLElement;
+function UnwrappedPatientEncounterForm({
+  encounter,
+  onCancel,
+  onComplete,
+  username,
+}: PatientEncounterFormProps) {
+  const patientNameRef = useRef<HTMLElement | null>(null);
+  const dateOfBirthRef = useRef<HTMLElement | null>(null);
 
-  state: PatientEncounterFormState = {
-    activeInfoButton: null,
-    confirmingInactiveMd: false,
-    patientNameIndex: '',
-    loadingSearchOptions: false,
-    patientOptions: [],
-  };
+  const [activeInfoButton, setActiveInfoButton] = useState<string | null>(null);
+  const [confirmingInactiveMd, setConfirmingInactiveMd] = useState(false);
+  const [patientNameIndex, setPatientNameIndex] = useState('');
+  const [loadingSearchOptions, setLoadingSearchOptions] = useState(false);
+  const [patientOptions, setPatientOptions] = useState<PatientOption[]>([]);
 
-  setInitialEncounterList = () => {
-    const { encounter } = this.props;
+  const formik = useFormik<PatientEncounter>({
+    initialValues: encounter
+      ? {
+          ...encounter,
+          dateOfBirth: parseDate(encounter.dateOfBirth).format(DATE_FORMAT_DISPLAY),
+        }
+      : INITIAL_VALUES(),
 
-    // if we're editing an encounter then set the state to contain only the encounter's patient
-    if (encounter) {
-      return this.setState({
-        patientOptions: [
-          {
-            content: encounter.patientName,
-            encounter: null,
-            text: encounter.patientName,
-            value: '0',
-          },
-        ],
-        patientNameIndex: '0',
+    validate: (values) => {
+      const errors: FormikErrors<PatientEncounter> = {};
+
+      if (values.diagnosisType === 'Malignant') {
+        if (!values.diagnosisStage) {
+          errors.diagnosisStage = 'Diagnosis stage is required';
+        }
+      }
+
+      SCORED_FIELDS.forEach((field) => {
+        const scoredFieldName = `${field}Score`;
+
+        if (
+          values[field] &&
+          !isNumeric(values[scoredFieldName]) &&
+          values[scoredFieldName].toLowerCase() !== 'n/a'
+        ) {
+          errors[scoredFieldName] = 'Score is required';
+        }
       });
-    }
 
-    this.setSearchEncounterList('');
-  };
+      if (values.mrn && !/^100\d{7}$/.test(values.mrn)) {
+        errors.mrn = 'If Swedish MRN is provided it must start with 100 followed by 7 digits';
+      }
 
-  setSearchEncounterList = async (searchQuery: string) => {
-    this.setState({ loadingSearchOptions: true });
+      if (!/^600\d{8}$/.test(values.providenceMrn)) {
+        errors.providenceMrn =
+          'Providence MRN is required and must start with 600 followed by 8 digits';
+      }
+
+      NUMERIC_FIELDS.forEach((field) => {
+        if (!isNumeric(values[field])) {
+          errors[field] = 'Must be a valid number';
+        }
+      });
+
+      REQUIRED_FIELDS.forEach((field) => {
+        if (isEmpty(values[field])) {
+          errors[field] = 'This field is required';
+        }
+      });
+
+      const parsedEncounterDate = parseDate(values.encounterDate);
+
+      if (!parsedEncounterDate.isValid()) {
+        errors.encounterDate = 'Must be a valid date';
+      } else if (parsedEncounterDate.isAfter(moment())) {
+        errors.encounterDate = 'Must be today or before';
+      } else if (parsedEncounterDate.isBefore(FIRST_TRACKING_DATE)) {
+        errors.encounterDate = 'Must be on or newer than 12/01/2018';
+      }
+
+      const parsedDateOfBirth = parseDate(values.dateOfBirth);
+
+      if (!parsedDateOfBirth.isValid()) {
+        errors.dateOfBirth = 'Must be a valid date';
+      } else if (parsedDateOfBirth.isAfter(moment())) {
+        errors.dateOfBirth = 'Must be in the past';
+      } else if (
+        values.encounterDate &&
+        parsedDateOfBirth.isBefore(
+          parsedEncounterDate.clone().subtract(OLDEST_POSSIBLE_AGE, 'years'),
+        )
+      ) {
+        errors.dateOfBirth = 'Must be younger than 117 years old';
+      }
+
+      if (!/(0|5)$/.test(values.timeSpent)) {
+        errors.timeSpent = 'Must be rounded to the nearest multiple of 5';
+      }
+
+      return errors;
+    },
+
+    onSubmit: async (values, { setSubmitting }) => {
+      try {
+        if (encounter) {
+          const numAffected = await window.trackingTool.dbUpdate({ _id: encounter._id }, values);
+          if (numAffected !== 1) {
+            return onComplete(new Error('Failed to update encounter'));
+          }
+          return onComplete();
+        }
+
+        await window.trackingTool.dbInsert({
+          ...values,
+          dateOfBirth: parseDate(values.dateOfBirth).format(DATE_FORMAT_DATABASE),
+          patientName: values.patientName.trim(),
+        });
+        setSubmitting(false);
+        onComplete();
+      } catch (err) {
+        onComplete(err as Error);
+      }
+    },
+  });
+
+  const {
+    dirty,
+    errors,
+    isSubmitting,
+    isValid,
+    setFieldTouched,
+    setFieldValue,
+    setValues,
+    submitForm,
+    touched,
+    validateForm,
+    values,
+  } = formik;
+
+  const setSearchEncounterList = useCallback(async (searchQuery: string) => {
+    setLoadingSearchOptions(true);
 
     const docs = (await window.trackingTool.dbSearch({
       encounterType: 'Patient',
@@ -259,7 +352,7 @@ class UnwrappedPatientEncounterForm extends React.Component<
 
     // get the most recent encounter for each patient matching the query,
     // sorted by patient name
-    const patientOptions = chain(docs)
+    const options = chain(docs)
       .sortBy('encounterDate')
       .reverse()
       .uniqBy((doc) => doc.providenceMrn || doc.mrn)
@@ -267,38 +360,83 @@ class UnwrappedPatientEncounterForm extends React.Component<
       .map(docToOption)
       .value();
 
-    this.setState({
-      loadingSearchOptions: false,
-      patientOptions: indexValues(patientOptions),
-    });
-  };
+    setLoadingSearchOptions(false);
+    setPatientOptions(indexValues(options));
+  }, []);
 
-  clearForm = () => {
-    this.props.setValues(INITIAL_VALUES());
-    this.setState({ patientNameIndex: '' });
-  };
+  const setInitialEncounterList = useCallback(() => {
+    // if we're editing an encounter then set the state to contain only the encounter's patient
+    if (encounter) {
+      setPatientOptions([
+        {
+          content: encounter.patientName,
+          encounter: null,
+          text: encounter.patientName,
+          value: '0',
+        },
+      ]);
+      setPatientNameIndex('0');
+      return;
+    }
 
-  componentDidMount() {
-    Mousetrap.bind('ctrl+backspace', this.clearForm);
+    setSearchEncounterList('');
+  }, [encounter, setSearchEncounterList]);
 
-    if (!this.props.encounter && this.patientNameRef) {
-      const input = this.patientNameRef.querySelector('input');
+  const updatePatientIndexAndValue = useCallback(
+    (index: string, enc: PatientEncounter, patientName: string) => {
+      // this is faster than calling setFieldValue multiple times
+      setValues({
+        ...values,
+        patientName,
+        mrn: enc.mrn || '',
+        providenceMrn: enc.providenceMrn || '',
+        dateOfBirth: enc.dateOfBirth,
+        clinic: enc.clinic,
+        limitedEnglishProficiency: !!enc.limitedEnglishProficiency,
+        location: enc.location,
+        md: enc.md,
+        diagnosisType: enc.diagnosisType,
+        diagnosisFreeText: enc.diagnosisFreeText,
+        diagnosisStage: enc.diagnosisStage,
+        transplant: !!enc.transplant,
+      });
+
+      // HACK: validateForm does run automatically after setValues but for some reason it doesn't
+      // contain the newest values at that point, so this is a hack to run it again the next time
+      // through the event loop... it does result in a brief flash of red on the Patient field.
+      setTimeout(() => validateForm());
+
+      setPatientNameIndex(index);
+    },
+    [setValues, values, validateForm],
+  );
+
+  const clearForm = useCallback(() => {
+    setValues(INITIAL_VALUES());
+    setPatientNameIndex('');
+  }, [setValues]);
+
+  useEffect(() => {
+    Mousetrap.bind('ctrl+backspace', clearForm);
+
+    if (!encounter && patientNameRef.current) {
+      const input = patientNameRef.current.querySelector('input');
 
       if (input) {
         input.focus();
       }
     }
 
-    if (this.dateOfBirthRef) {
-      const input = this.dateOfBirthRef.querySelector('input');
+    if (dateOfBirthRef.current) {
+      const input = dateOfBirthRef.current.querySelector('input');
       const body = document.querySelector('body');
 
       if (!input || !body) {
-        return;
+        return () => Mousetrap.unbind('ctrl+backspace');
       }
 
       // pasting into a date field requires a global handler as a workaround
-      body.addEventListener('paste', (e: ClipboardEvent) => {
+      const pasteHandler = (e: ClipboardEvent) => {
         if (document.activeElement !== input) {
           return;
         }
@@ -318,635 +456,470 @@ class UnwrappedPatientEncounterForm extends React.Component<
           return;
         }
 
-        this.props.setFieldValue('dateOfBirth', date.format(DATE_FORMAT_DISPLAY));
-      });
+        setFieldValue('dateOfBirth', date.format(DATE_FORMAT_DISPLAY));
+      };
+
+      body.addEventListener('paste', pasteHandler);
+
+      return () => {
+        Mousetrap.unbind('ctrl+backspace');
+        body.removeEventListener('paste', pasteHandler);
+      };
     }
-  }
 
-  componentWillUnmount() {
-    Mousetrap.unbind('ctrl+backspace');
-  }
+    return () => Mousetrap.unbind('ctrl+backspace');
+    // Run once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  componentDidUpdate() {
-    debug('componentDidUpdate %o', { props: this.props, state: this.state });
-  }
+  useEffect(() => {
+    debug('render %o', { values, patientNameIndex, activeInfoButton });
+  });
 
-  handleBlur = (e: React.FocusEvent, data?: { name: string }) =>
-    this.props.setFieldTouched((data && data.name) || (e.target as HTMLInputElement).name, true);
+  const handleBlur = useCallback(
+    (e: React.FocusEvent, data?: { name: string }) =>
+      setFieldTouched((data && data.name) || (e.target as HTMLInputElement).name, true),
+    [setFieldTouched],
+  );
 
-  handleChange = (
-    _e: React.SyntheticEvent,
-    data: { name?: string; value?: string | string[] | boolean; checked?: boolean },
-  ) => this.props.setFieldValue(data.name!, data.value !== undefined ? data.value : data.checked);
+  const handleChange = useCallback(
+    (
+      _e: React.SyntheticEvent,
+      data: { name?: string; value?: string | string[] | boolean; checked?: boolean },
+    ) => setFieldValue(data.name!, data.value !== undefined ? data.value : data.checked),
+    [setFieldValue],
+  );
 
-  handleChangeTrimmed = (_e: React.SyntheticEvent, data: { name?: string; value?: string }) =>
-    this.props.setFieldValue(data.name!, (data.value || '').trim());
+  const handleChangeTrimmed = useCallback(
+    (_e: React.SyntheticEvent, data: { name?: string; value?: string }) =>
+      setFieldValue(data.name!, (data.value || '').trim()),
+    [setFieldValue],
+  );
 
-  handleLocationChange = (
-    _e: React.SyntheticEvent,
-    data: { value?: string | string[] | boolean },
-  ) => {
-    this.props.setFieldValue('location', data.value);
-    this.props.setFieldValue('clinic', '');
-  };
+  const handleLocationChange = useCallback(
+    (_e: React.SyntheticEvent, data: { value?: string | string[] | boolean }) => {
+      setFieldValue('location', data.value);
+      setFieldValue('clinic', '');
+    },
+    [setFieldValue],
+  );
 
-  handlePatientAddition = (_e: React.SyntheticEvent, { value }: { value: string }) => {
-    this.setState(
-      (state) => ({
-        patientOptions: indexValues([
+  const handlePatientAddition = useCallback(
+    (_e: React.SyntheticEvent, { value }: { value: string }) => {
+      setPatientOptions((prev) =>
+        indexValues([
           {
             content: value,
             'data-encounter': null,
             'data-patient-name': value,
             text: value,
           },
-          ...state.patientOptions,
+          ...prev,
         ]),
-      }),
-      () => {
-        this.updatePatientIndexAndValue('0', INITIAL_VALUES(), value);
-      },
-    );
-  };
+      );
 
-  updatePatientIndexAndValue = (
-    patientNameIndex: string,
-    encounter: PatientEncounter,
-    patientName: string,
-  ) => {
-    const { setValues, validateForm, values } = this.props;
-
-    // this is faster than calling setFieldValue multiple times
-    setValues({
-      ...values,
-      patientName,
-      mrn: encounter.mrn || '',
-      providenceMrn: encounter.providenceMrn || '',
-      dateOfBirth: encounter.dateOfBirth,
-      clinic: encounter.clinic,
-      limitedEnglishProficiency: !!encounter.limitedEnglishProficiency,
-      location: encounter.location,
-      md: encounter.md,
-      diagnosisType: encounter.diagnosisType,
-      diagnosisFreeText: encounter.diagnosisFreeText,
-      diagnosisStage: encounter.diagnosisStage,
-      transplant: !!encounter.transplant,
-    });
-
-    // HACK: validateForm does run automatically after setValues but for some reason it doesn't
-    // contain the newest values at that point, so this is a hack to run it again the next time
-    // through the event loop... it does result in a brief flash of red on the Patient field.
-    setTimeout(() => validateForm());
-
-    this.setState({ patientNameIndex });
-  };
-
-  handlePatientChange = (
-    _e: React.SyntheticEvent,
-    { value, options }: { value: string; options: Array<Record<string, unknown>> },
-  ) => {
-    const selectedOption = options.find((option) => option.value === value);
-
-    if (!selectedOption) {
-      return this.updatePatientIndexAndValue('', INITIAL_VALUES(), '');
-    }
-
-    const encounter = (selectedOption['data-encounter'] as PatientEncounter) || INITIAL_VALUES();
-    const patientName = selectedOption['data-patient-name'] as string;
-
-    this.updatePatientIndexAndValue(selectedOption.value as string, encounter, patientName);
-  };
-
-  // HACK: without creating a new options array here we end up with duplicate additionLabels
-  handlePatientNameSearch = (options: Record<string, unknown>[]) => [...options];
-
-  handlePatientSearchChange = (
-    _e: React.SyntheticEvent,
-    { searchQuery }: { searchQuery: string },
-  ) => {
-    if (searchQuery) {
-      this.setSearchEncounterList(searchQuery);
-    } else {
-      this.setInitialEncounterList();
-    }
-  };
-
-  handleInterventionChange = (_e: React.SyntheticEvent, data: { value: string } | undefined) => {
-    if (!data) {
-      return;
-    }
-
-    this.props.setFieldValue(data.value, true);
-  };
-
-  handleInterventionOnMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.persist();
-
-    this.setState({
-      activeInfoButton: (
-        (e.target as HTMLDivElement).parentElement!.firstChild as HTMLInputElement
-      ).name,
-    });
-  };
-
-  handleInterventionOnMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.persist();
-
-    this.setState((state) => {
-      if (
-        state.activeInfoButton ===
-        ((e.target as HTMLDivElement).parentElement!.firstChild as HTMLInputElement).name
-      ) {
-        return { activeInfoButton: null } as PatientEncounterFormState;
-      }
-
-      return null;
-    });
-  };
-
-  renderField = (intervention: Intervention) => (
-    <Form.Field
-      checked={this.props.values[intervention.fieldName]}
-      control={Checkbox}
-      key={intervention.fieldName}
-      label={
-        // eslint-disable-next-line react-perf/jsx-no-jsx-as-prop
-        <InfoButtonLabel
-          description={intervention.description}
-          name={intervention.name}
-          show={this.state.activeInfoButton === intervention.fieldName}
-        />
-      }
-      name={intervention.fieldName}
-      onBlur={this.handleBlur}
-      onChange={this.handleChange}
-      onMouseEnter={this.handleInterventionOnMouseEnter}
-      onMouseLeave={this.handleInterventionOnMouseLeave}
-      disabled={
-        intervention.editableBy ? !intervention.editableBy.includes(this.props.username) : false
-      }
-    />
+      updatePatientIndexAndValue('0', INITIAL_VALUES(), value);
+    },
+    [updatePatientIndexAndValue],
   );
 
-  renderScoredField = (intervention: Intervention) => {
-    const scoreFieldName = `${intervention.fieldName}Score`;
-    const { errors, touched, values } = this.props;
+  const handlePatientChange = useCallback(
+    (
+      _e: React.SyntheticEvent,
+      { value, options }: { value: string; options: Array<Record<string, unknown>> },
+    ) => {
+      const selectedOption = options.find((option) => option.value === value);
 
-    return (
-      <div className="score-field-wrapper" key={intervention.fieldName}>
-        <Form.Field
-          checked={values[intervention.fieldName]}
-          control={Checkbox}
-          inline
-          label={intervention.name}
-          name={intervention.fieldName}
-          onBlur={this.handleBlur}
-          onChange={this.handleChange}
-          disabled={
-            intervention.editableBy
-              ? !intervention.editableBy.includes(this.props.username)
-              : false
-          }
-        />
+      if (!selectedOption) {
+        return updatePatientIndexAndValue('', INITIAL_VALUES(), '');
+      }
 
-        {this.props.values[intervention.fieldName] && (
-          <Input
-            className="score-field"
-            error={!!(touched[scoreFieldName] && errors[scoreFieldName])}
-            name={scoreFieldName}
-            onBlur={this.handleBlur}
-            onChange={this.handleChange}
-            placeholder="Score"
-            transparent
-            value={values[scoreFieldName]}
-          />
-        )}
-      </div>
+      const enc = (selectedOption['data-encounter'] as PatientEncounter) || INITIAL_VALUES();
+      const patientName = selectedOption['data-patient-name'] as string;
+
+      updatePatientIndexAndValue(selectedOption.value as string, enc, patientName);
+    },
+    [updatePatientIndexAndValue],
+  );
+
+  // HACK: without creating a new options array here we end up with duplicate additionLabels
+  const handlePatientNameSearch = useCallback(
+    (options: Record<string, unknown>[]) => [...options],
+    [],
+  );
+
+  const handlePatientSearchChange = useCallback(
+    (_e: React.SyntheticEvent, { searchQuery }: { searchQuery: string }) => {
+      if (searchQuery) {
+        setSearchEncounterList(searchQuery);
+      } else {
+        setInitialEncounterList();
+      }
+    },
+    [setSearchEncounterList, setInitialEncounterList],
+  );
+
+  const handleInterventionChange = useCallback(
+    (_e: React.SyntheticEvent, data: { value: string } | undefined) => {
+      if (!data) {
+        return;
+      }
+
+      setFieldValue(data.value, true);
+    },
+    [setFieldValue],
+  );
+
+  const handleInterventionOnMouseEnter = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    setActiveInfoButton(
+      ((e.target as HTMLDivElement).parentElement!.firstChild as HTMLInputElement).name,
     );
-  };
+  }, []);
 
-  handleDateOfBirthRef = (ref: HTMLElement) => (this.dateOfBirthRef = ref);
-  handlePatientRef = (ref: HTMLElement) => (this.patientNameRef = ref);
+  const handleInterventionOnMouseLeave = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const { name } = (e.target as HTMLDivElement).parentElement!.firstChild as HTMLInputElement;
+    setActiveInfoButton((prev) => (prev === name ? null : prev));
+  }, []);
 
-  cancelConfirmation = () => this.setState({ confirmingInactiveMd: false });
+  const handleDateOfBirthRef = useCallback((ref: HTMLElement) => {
+    dateOfBirthRef.current = ref;
+  }, []);
 
-  submit = () => {
-    const { isValid, submitForm, values } = this.props;
+  const handlePatientRef = useCallback((ref: HTMLElement) => {
+    patientNameRef.current = ref;
+  }, []);
 
+  const cancelConfirmation = useCallback(() => setConfirmingInactiveMd(false), []);
+
+  const submit = useCallback(() => {
     if (values.md.some(isInactive) && isValid) {
-      this.setState({ confirmingInactiveMd: true });
+      setConfirmingInactiveMd(true);
     } else {
       submitForm();
     }
-  };
+  }, [values.md, isValid, submitForm]);
 
-  render() {
-    const { confirmingInactiveMd, loadingSearchOptions, patientOptions } = this.state;
-    const { dirty, encounter, errors, isSubmitting, onCancel, submitForm, touched, values } =
-      this.props;
-
-    const columns = interventionGroups.map((column, i) => {
-      return (
-        <Grid.Column key={i}>
-          {column.map((group, j) => {
-            return (
-              <Form.Group grouped key={`${i}-${j}`}>
-                <label>{group.label}</label>
-
-                {group.interventions.map((intervention) => {
-                  return intervention.scored
-                    ? this.renderScoredField(intervention)
-                    : this.renderField(intervention);
-                })}
-              </Form.Group>
-            );
-          })}
-        </Grid.Column>
-      );
-    });
-
-    let dateOfBirthLabel = 'Date of Birth';
-
-    if (values.dateOfBirth) {
-      const age = ageYears(parseDate(values.encounterDate), parseDate(values.dateOfBirth));
-
-      if (!isNaN(age)) {
-        dateOfBirthLabel = `Date of Birth (${age} years old)`;
-      }
-    }
-
+  const columns = interventionGroups.map((column, i) => {
     return (
-      <Form size="large">
-        <Header>New Patient Encounter</Header>
+      <Grid.Column key={i}>
+        {column.map((group, j) => {
+          return (
+            <Form.Group grouped key={`${i}-${j}`}>
+              <label>{group.label}</label>
 
-        <EncounterDateField
-          error={!!(touched.encounterDate && errors.encounterDate)}
-          onBlur={this.handleBlur}
-          onChange={this.handleChange}
-          value={values.encounterDate}
-        />
+              {group.interventions.map((intervention: Intervention) => {
+                const disabled = intervention.editableBy
+                  ? !intervention.editableBy.includes(username)
+                  : false;
 
-        <Form.Group widths="equal">
-          {encounter ? (
+                return intervention.scored ? (
+                  <ScoredInterventionField
+                    checked={values[intervention.fieldName]}
+                    disabled={disabled}
+                    fieldName={intervention.fieldName}
+                    key={intervention.fieldName}
+                    name={intervention.name}
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    scoreError={
+                      !!(
+                        touched[`${intervention.fieldName}Score`] &&
+                        errors[`${intervention.fieldName}Score`]
+                      )
+                    }
+                    scoreValue={values[`${intervention.fieldName}Score`]}
+                  />
+                ) : (
+                  <InterventionField
+                    activeInfoButton={activeInfoButton}
+                    checked={values[intervention.fieldName]}
+                    description={intervention.description}
+                    disabled={disabled}
+                    fieldName={intervention.fieldName}
+                    key={intervention.fieldName}
+                    name={intervention.name}
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    onMouseEnter={handleInterventionOnMouseEnter}
+                    onMouseLeave={handleInterventionOnMouseLeave}
+                  />
+                );
+              })}
+            </Form.Group>
+          );
+        })}
+      </Grid.Column>
+    );
+  });
+
+  let dateOfBirthLabel = 'Date of Birth';
+
+  if (values.dateOfBirth) {
+    const age = ageYears(parseDate(values.encounterDate), parseDate(values.dateOfBirth));
+
+    if (!isNaN(age)) {
+      dateOfBirthLabel = `Date of Birth (${age} years old)`;
+    }
+  }
+
+  return (
+    <Form size="large">
+      <Header>New Patient Encounter</Header>
+
+      <EncounterDateField
+        error={!!(touched.encounterDate && errors.encounterDate)}
+        onBlur={handleBlur}
+        onChange={handleChange}
+        value={values.encounterDate}
+      />
+
+      <Form.Group widths="equal">
+        {encounter ? (
+          <Form.Field
+            control={Input}
+            id="input-patient-name"
+            label="Patient Name"
+            name="patientName"
+            onBlur={handleBlur}
+            onChange={handleChange}
+            onClose={handleBlur}
+            placeholder="Last, First Middle"
+            value={values.patientName}
+          />
+        ) : (
+          <Ref innerRef={handlePatientRef}>
             <Form.Field
-              control={Input}
+              additionLabel="Add new patient "
+              allowAdditions
+              control={Dropdown}
+              error={!!(touched.patientName && errors.patientName)}
               id="input-patient-name"
               label="Patient Name"
+              loading={loadingSearchOptions}
               name="patientName"
-              onBlur={this.handleBlur}
-              onChange={this.handleChange}
-              onClose={this.handleBlur}
+              noResultsMessage="Last, First Middle"
+              onAddItem={handlePatientAddition}
+              onBlur={handleBlur}
+              onChange={handlePatientChange}
+              onClose={handleBlur}
+              options={patientOptions}
+              onSearchChange={handlePatientSearchChange}
               placeholder="Last, First Middle"
-              value={values.patientName}
-            />
-          ) : (
-            <Ref innerRef={this.handlePatientRef}>
-              <Form.Field
-                additionLabel="Add new patient "
-                allowAdditions
-                control={Dropdown}
-                error={!!(touched.patientName && errors.patientName)}
-                id="input-patient-name"
-                label="Patient Name"
-                loading={loadingSearchOptions}
-                name="patientName"
-                noResultsMessage="Last, First Middle"
-                onAddItem={this.handlePatientAddition}
-                onBlur={this.handleBlur}
-                onChange={this.handlePatientChange}
-                onClose={this.handleBlur}
-                options={patientOptions}
-                onSearchChange={this.handlePatientSearchChange}
-                placeholder="Last, First Middle"
-                search={this.handlePatientNameSearch}
-                selectOnBlur={false}
-                selection
-                value={this.state.patientNameIndex}
-              />
-            </Ref>
-          )}
-
-          <Form.Field
-            control={Input}
-            disabled={!values.patientName}
-            error={!!(touched.providenceMrn && errors.providenceMrn)}
-            id="input-providence-mrn"
-            label="Providence MRN"
-            name="providenceMrn"
-            onBlur={this.handleBlur}
-            onChange={this.handleChangeTrimmed}
-            value={values.providenceMrn}
-          />
-
-          <Form.Field
-            control={Input}
-            disabled={!values.patientName}
-            error={!!(touched.mrn && errors.mrn)}
-            id="input-mrn"
-            label="MRN"
-            name="mrn"
-            onBlur={this.handleBlur}
-            onChange={this.handleChangeTrimmed}
-            value={values.mrn}
-          />
-
-          <Ref innerRef={this.handleDateOfBirthRef}>
-            <Form.Field
-              control={Input}
-              disabled={!values.patientName}
-              error={!!(touched.dateOfBirth && errors.dateOfBirth)}
-              id="input-date-of-birth"
-              label={dateOfBirthLabel}
-              name="dateOfBirth"
-              onBlur={this.handleBlur}
-              onChange={this.handleChange}
-              value={values.dateOfBirth}
+              search={handlePatientNameSearch}
+              selectOnBlur={false}
+              selection
+              value={patientNameIndex}
             />
           </Ref>
-        </Form.Group>
+        )}
 
+        <Form.Field
+          control={Input}
+          disabled={!values.patientName}
+          error={!!(touched.providenceMrn && errors.providenceMrn)}
+          id="input-providence-mrn"
+          label="Providence MRN"
+          name="providenceMrn"
+          onBlur={handleBlur}
+          onChange={handleChangeTrimmed}
+          value={values.providenceMrn}
+        />
+
+        <Form.Field
+          control={Input}
+          disabled={!values.patientName}
+          error={!!(touched.mrn && errors.mrn)}
+          id="input-mrn"
+          label="MRN"
+          name="mrn"
+          onBlur={handleBlur}
+          onChange={handleChangeTrimmed}
+          value={values.mrn}
+        />
+
+        <Ref innerRef={handleDateOfBirthRef}>
+          <Form.Field
+            control={Input}
+            disabled={!values.patientName}
+            error={!!(touched.dateOfBirth && errors.dateOfBirth)}
+            id="input-date-of-birth"
+            label={dateOfBirthLabel}
+            name="dateOfBirth"
+            onBlur={handleBlur}
+            onChange={handleChange}
+            value={values.dateOfBirth}
+          />
+        </Ref>
+      </Form.Group>
+
+      <Form.Field
+        control={Dropdown}
+        disabled={!values.patientName}
+        error={!!(touched.md && errors.md)}
+        id="input-md"
+        label={MD_LABEL}
+        multiple
+        name="md"
+        onBlur={handleBlur}
+        onChange={handleChange}
+        onClose={handleBlur}
+        options={DOCTOR_OPTIONS}
+        search
+        selection
+        value={values.md}
+      />
+
+      <Form.Group widths="equal">
+        <EncounterLocationField
+          disabled={!values.patientName}
+          error={!!(touched.location && errors.location)}
+          onBlur={handleBlur}
+          onChange={handleLocationChange}
+          value={values.location}
+        />
+
+        <EncounterClinicField
+          disabled={!values.patientName}
+          error={!!(touched.clinic && errors.clinic)}
+          location={values.location}
+          onBlur={handleBlur}
+          onChange={handleChange}
+          value={values.clinic}
+        />
+      </Form.Group>
+
+      <Form.Group widths="equal">
         <Form.Field
           control={Dropdown}
           disabled={!values.patientName}
-          error={!!(touched.md && errors.md)}
-          id="input-md"
-          label={MD_LABEL}
-          multiple
-          name="md"
-          onBlur={this.handleBlur}
-          onChange={this.handleChange}
-          onClose={this.handleBlur}
-          options={DOCTOR_OPTIONS}
-          search
-          selection
-          value={values.md}
-        />
-
-        <Form.Group widths="equal">
-          <EncounterLocationField
-            disabled={!values.patientName}
-            error={!!(touched.location && errors.location)}
-            onBlur={this.handleBlur}
-            onChange={this.handleLocationChange}
-            value={values.location}
-          />
-
-          <EncounterClinicField
-            disabled={!values.patientName}
-            error={!!(touched.clinic && errors.clinic)}
-            location={values.location}
-            onBlur={this.handleBlur}
-            onChange={this.handleChange}
-            value={values.clinic}
-          />
-        </Form.Group>
-
-        <Form.Group widths="equal">
-          <Form.Field
-            control={Dropdown}
-            disabled={!values.patientName}
-            error={!!(touched.diagnosisType && errors.diagnosisType)}
-            id="input-diagnosis-type"
-            label="Diagnosis Type"
-            name="diagnosisType"
-            onBlur={this.handleBlur}
-            onChange={this.handleChange}
-            onClose={this.handleBlur}
-            options={DIAGNOSES}
-            search
-            selection
-            selectOnBlur={false}
-            value={values.diagnosisType}
-          />
-
-          <Form.Field
-            control={Input}
-            disabled
-            error={!!(touched.diagnosisFreeText && errors.diagnosisFreeText)}
-            id="input-diagnosis-free-text"
-            label="Diagnosis"
-            name="diagnosisFreeText"
-            value={values.diagnosisType === 'Malignant' ? values.diagnosisFreeText : ''}
-          />
-
-          <Form.Field
-            control={Dropdown}
-            disabled={!values.patientName || values.diagnosisType !== 'Malignant'}
-            error={!!(touched.diagnosisStage && errors.diagnosisStage)}
-            id="input-diagnosis-stage"
-            label={STAGE_LABEL}
-            name="diagnosisStage"
-            onBlur={this.handleBlur}
-            onChange={this.handleChange}
-            onClose={this.handleBlur}
-            options={STAGES}
-            search
-            selection
-            selectOnBlur={false}
-            value={values.diagnosisType === 'Malignant' ? values.diagnosisStage : ''}
-          />
-        </Form.Group>
-
-        <Form.Group>
-          <Form.Field
-            control={Checkbox}
-            disabled={!values.patientName}
-            id="input-transplant"
-            label={TRANSPLANT_LABEL}
-            name="transplant"
-            onBlur={this.handleBlur}
-            onChange={this.handleChange}
-            checked={values.transplant}
-          />
-
-          <Form.Field
-            control={Checkbox}
-            disabled={!values.patientName}
-            id="input-limited-english-proficiency"
-            label={LIMITED_ENGLISH_PROFICIENCY_LABEL}
-            name="limitedEnglishProficiency"
-            onBlur={this.handleBlur}
-            onChange={this.handleChange}
-            checked={values.limitedEnglishProficiency}
-          />
-        </Form.Group>
-
-        <Divider hidden />
-
-        <Form.Field
-          control={Dropdown}
-          fluid
-          onChange={this.handleInterventionChange}
-          openOnFocus={false}
-          options={interventionOptions}
-          placeholder="Search for an intervention"
+          error={!!(touched.diagnosisType && errors.diagnosisType)}
+          id="input-diagnosis-type"
+          label="Diagnosis Type"
+          name="diagnosisType"
+          onBlur={handleBlur}
+          onChange={handleChange}
+          onClose={handleBlur}
+          options={DIAGNOSES}
           search
           selection
           selectOnBlur={false}
-          selectOnNavigation={false}
-          upward
-          value=""
+          value={values.diagnosisType}
         />
 
-        <Divider hidden />
-
-        <Grid columns={3} divided>
-          <Grid.Row>{columns}</Grid.Row>
-        </Grid>
-
-        <Divider hidden />
-
-        <Form.Group widths="equal">
-          <EncounterTimeSpentField
-            error={!!(touched.timeSpent && errors.timeSpent)}
-            onBlur={this.handleBlur}
-            onChange={this.handleChange}
-            patient
-            value={values.timeSpent}
-          />
-
-          <EncounterNumberOfTasksField
-            error={!!(touched.numberOfTasks && errors.numberOfTasks)}
-            onBlur={this.handleBlur}
-            onChange={this.handleChange}
-            patient
-            value={values.numberOfTasks}
-          />
-        </Form.Group>
-
-        <Divider hidden />
-
-        <Confirm
-          cancelButton="Change"
-          confirmButton="Continue"
-          content="This provider has been marked as inactive. Do you want to continue or change providers?"
-          onCancel={this.cancelConfirmation}
-          onConfirm={submitForm}
-          open={confirmingInactiveMd}
+        <Form.Field
+          control={Input}
+          disabled
+          error={!!(touched.diagnosisFreeText && errors.diagnosisFreeText)}
+          id="input-diagnosis-free-text"
+          label="Diagnosis"
+          name="diagnosisFreeText"
+          value={values.diagnosisType === 'Malignant' ? values.diagnosisFreeText : ''}
         />
 
-        <SubmitButtons
-          isClean={!dirty}
-          isSubmitting={isSubmitting}
-          onCancel={onCancel}
-          submitForm={this.submit}
+        <Form.Field
+          control={Dropdown}
+          disabled={!values.patientName || values.diagnosisType !== 'Malignant'}
+          error={!!(touched.diagnosisStage && errors.diagnosisStage)}
+          id="input-diagnosis-stage"
+          label={STAGE_LABEL}
+          name="diagnosisStage"
+          onBlur={handleBlur}
+          onChange={handleChange}
+          onClose={handleBlur}
+          options={STAGES}
+          search
+          selection
+          selectOnBlur={false}
+          value={values.diagnosisType === 'Malignant' ? values.diagnosisStage : ''}
         />
-      </Form>
-    );
-  }
+      </Form.Group>
+
+      <Form.Group>
+        <Form.Field
+          control={Checkbox}
+          disabled={!values.patientName}
+          id="input-transplant"
+          label={TRANSPLANT_LABEL}
+          name="transplant"
+          onBlur={handleBlur}
+          onChange={handleChange}
+          checked={values.transplant}
+        />
+
+        <Form.Field
+          control={Checkbox}
+          disabled={!values.patientName}
+          id="input-limited-english-proficiency"
+          label={LIMITED_ENGLISH_PROFICIENCY_LABEL}
+          name="limitedEnglishProficiency"
+          onBlur={handleBlur}
+          onChange={handleChange}
+          checked={values.limitedEnglishProficiency}
+        />
+      </Form.Group>
+
+      <Divider hidden />
+
+      <Form.Field
+        control={Dropdown}
+        fluid
+        onChange={handleInterventionChange}
+        openOnFocus={false}
+        options={interventionOptions}
+        placeholder="Search for an intervention"
+        search
+        selection
+        selectOnBlur={false}
+        selectOnNavigation={false}
+        upward
+        value=""
+      />
+
+      <Divider hidden />
+
+      <Grid columns={3} divided>
+        <Grid.Row>{columns}</Grid.Row>
+      </Grid>
+
+      <Divider hidden />
+
+      <Form.Group widths="equal">
+        <EncounterTimeSpentField
+          error={!!(touched.timeSpent && errors.timeSpent)}
+          onBlur={handleBlur}
+          onChange={handleChange}
+          patient
+          value={values.timeSpent}
+        />
+
+        <EncounterNumberOfTasksField
+          error={!!(touched.numberOfTasks && errors.numberOfTasks)}
+          onBlur={handleBlur}
+          onChange={handleChange}
+          patient
+          value={values.numberOfTasks}
+        />
+      </Form.Group>
+
+      <Divider hidden />
+
+      <Confirm
+        cancelButton="Change"
+        confirmButton="Continue"
+        content="This provider has been marked as inactive. Do you want to continue or change providers?"
+        onCancel={cancelConfirmation}
+        onConfirm={submitForm}
+        open={confirmingInactiveMd}
+      />
+
+      <SubmitButtons
+        isClean={!dirty}
+        isSubmitting={isSubmitting}
+        onCancel={onCancel}
+        submitForm={submit}
+      />
+    </Form>
+  );
 }
 
-const RE_NUMERIC = /^\d+$/;
-const isNumeric = (string: string) => RE_NUMERIC.test(string);
-
-export const PatientEncounterForm = withFormik<PatientEncounterFormProps, PatientEncounter>({
-  mapPropsToValues: (props) => {
-    if (props.encounter) {
-      return {
-        ...props.encounter,
-
-        dateOfBirth: parseDate(props.encounter.dateOfBirth).format(DATE_FORMAT_DISPLAY),
-      };
-    }
-
-    return INITIAL_VALUES();
-  },
-
-  validate: (values) => {
-    const errors: FormikErrors<PatientEncounter> = {};
-
-    if (values.diagnosisType === 'Malignant') {
-      if (!values.diagnosisStage) {
-        errors.diagnosisStage = 'Diagnosis stage is required';
-      }
-    }
-
-    SCORED_FIELDS.forEach((field) => {
-      const scoredFieldName = `${field}Score`;
-
-      if (
-        values[field] &&
-        !isNumeric(values[scoredFieldName]) &&
-        values[scoredFieldName].toLowerCase() !== 'n/a'
-      ) {
-        errors[scoredFieldName] = 'Score is required';
-      }
-    });
-
-    if (values.mrn && !/^100\d{7}$/.test(values.mrn)) {
-      errors.mrn = 'If Swedish MRN is provided it must start with 100 followed by 7 digits';
-    }
-
-    if (!/^600\d{8}$/.test(values.providenceMrn)) {
-      errors.providenceMrn =
-        'Providence MRN is required and must start with 600 followed by 8 digits';
-    }
-
-    NUMERIC_FIELDS.forEach((field) => {
-      if (!isNumeric(values[field])) {
-        errors[field] = 'Must be a valid number';
-      }
-    });
-
-    REQUIRED_FIELDS.forEach((field) => {
-      if (isEmpty(values[field])) {
-        errors[field] = 'This field is required';
-      }
-    });
-
-    const parsedEncounterDate = parseDate(values.encounterDate);
-
-    if (!parsedEncounterDate.isValid()) {
-      errors.encounterDate = 'Must be a valid date';
-    } else if (parsedEncounterDate.isAfter(moment())) {
-      errors.encounterDate = 'Must be today or before';
-    } else if (parsedEncounterDate.isBefore(FIRST_TRACKING_DATE)) {
-      errors.encounterDate = 'Must be on or newer than 12/01/2018';
-    }
-
-    const parsedDateOfBirth = parseDate(values.dateOfBirth);
-
-    if (!parsedDateOfBirth.isValid()) {
-      errors.dateOfBirth = 'Must be a valid date';
-    } else if (parsedDateOfBirth.isAfter(moment())) {
-      errors.dateOfBirth = 'Must be in the past';
-    } else if (
-      values.encounterDate &&
-      parsedDateOfBirth.isBefore(
-        parsedEncounterDate.clone().subtract(OLDEST_POSSIBLE_AGE, 'years'),
-      )
-    ) {
-      errors.dateOfBirth = 'Must be younger than 117 years old';
-    }
-
-    if (!/(0|5)$/.test(values.timeSpent)) {
-      errors.timeSpent = 'Must be rounded to the nearest multiple of 5';
-    }
-
-    return errors;
-  },
-
-  handleSubmit: async (values, { props, setSubmitting }) => {
-    const { encounter, onComplete } = props;
-
-    try {
-      if (encounter) {
-        const numAffected = await window.trackingTool.dbUpdate({ _id: encounter._id }, values);
-        if (numAffected !== 1) {
-          return onComplete(new Error('Failed to update encounter'));
-        }
-        return onComplete();
-      }
-
-      await window.trackingTool.dbInsert({
-        ...values,
-        dateOfBirth: parseDate(values.dateOfBirth).format(DATE_FORMAT_DATABASE),
-        patientName: values.patientName.trim(),
-      });
-      setSubmitting(false);
-      onComplete();
-    } catch (err) {
-      onComplete(err as Error);
-    }
-  },
-})(UnwrappedPatientEncounterForm);
+export const PatientEncounterForm = UnwrappedPatientEncounterForm;

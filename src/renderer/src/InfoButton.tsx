@@ -8,17 +8,13 @@ type InfoButtonProps = {
   wide?: boolean | 'very';
 };
 
-export class InfoButton extends React.Component<InfoButtonProps> {
-  render() {
-    const { content, ...rest } = this.props;
-
-    if (!content) {
-      return null;
-    }
-
-    return (
-      // eslint-disable-next-line react/jsx-props-no-spreading
-      <Popup {...rest} content={content} horizontalOffset={12} on="hover" trigger={HELP_ICON} />
-    );
+export function InfoButton({ content, ...rest }: InfoButtonProps) {
+  if (!content) {
+    return null;
   }
+
+  return (
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <Popup {...rest} content={content} horizontalOffset={12} on="hover" trigger={HELP_ICON} />
+  );
 }

@@ -1,7 +1,6 @@
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import './LinkMrnReport.css';
 import moment from 'moment';
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Button, Checkbox, Input, Radio, Table } from 'semantic-ui-react';
 import { chain, Dictionary, each, groupBy, map, sortBy } from 'lodash';
 import { DATE_FORMAT_DATABASE, DATE_FORMAT_DISPLAY } from '../constants';
@@ -270,6 +269,128 @@ interface LinkMrnReportState {
   saveStatuses: { [uniqueId: string]: SAVE_STATUS };
 }
 
+type EncounterRowProps = {
+  canonicalDateOfBirth: string | null;
+  canonicalProvidenceMrn: string | null;
+  canonicalSwedishMrn: string | null;
+  changedRow: { dateOfBirth?: string; mrn?: string; providenceMrn?: string } | undefined;
+  encounter: TransformedEncounter;
+  obfuscated: boolean;
+  onFieldChange: (uniqueId: string, field: string, value: string) => void;
+  onSave: (encounter: TransformedEncounter, mrn: string, providenceMrn: string) => void;
+  saveStatus: SAVE_STATUS | undefined;
+};
+
+function EncounterRow({
+  canonicalDateOfBirth,
+  canonicalProvidenceMrn,
+  canonicalSwedishMrn,
+  changedRow,
+  encounter,
+  obfuscated,
+  onFieldChange,
+  onSave,
+  saveStatus,
+}: EncounterRowProps) {
+  const providenceMrn =
+    encounter.providenceMrn === EXCLUDE_STRING_VALUE ? '' : encounter.providenceMrn;
+  const mrn = encounter.mrn === EXCLUDE_STRING_VALUE ? '' : encounter.mrn;
+  const saveDisabled =
+    !changedRow ||
+    ('mrn' in changedRow && changedRow.mrn === encounter.mrn) ||
+    ('providenceMrn' in changedRow && changedRow.providenceMrn === encounter.providenceMrn);
+
+  const handleDateOfBirthChange = useCallback(
+    (_e: React.SyntheticEvent, data: { value?: string }) => {
+      let dateOfBirth: string;
+
+      try {
+        dateOfBirth = parseDate(data.value).format(DATE_FORMAT_DATABASE);
+      } catch {
+        return;
+      }
+
+      onFieldChange(encounter.uniqueId, 'dateOfBirth', dateOfBirth);
+    },
+    [encounter.uniqueId, onFieldChange],
+  );
+
+  const handleProvidenceMrnChange = useCallback(
+    (_e: React.SyntheticEvent, data: { value?: string }) => {
+      onFieldChange(encounter.uniqueId, 'providenceMrn', data.value);
+    },
+    [encounter.uniqueId, onFieldChange],
+  );
+
+  const handleMrnChange = useCallback(
+    (_e: React.SyntheticEvent, data: { value?: string }) => {
+      onFieldChange(encounter.uniqueId, 'mrn', data.value);
+    },
+    [encounter.uniqueId, onFieldChange],
+  );
+
+  const handleSave = useCallback(
+    () => onSave(encounter, mrn, providenceMrn),
+    [encounter, mrn, providenceMrn, onSave],
+  );
+
+  return (
+    <Table.Row>
+      <Table.Cell>{usernameToName(encounter.username)}</Table.Cell>
+
+      <Table.Cell>
+        {obfuscated ? obfuscateString(encounter.patientName) : encounter.patientName}
+      </Table.Cell>
+
+      <Table.Cell>{encounter.parsedEncounterDate.format(DATE_FORMAT_DISPLAY)}</Table.Cell>
+
+      <Table.Cell>
+        {obfuscated ? (
+          obfuscateDate(encounter.formattedDateOfBirth)
+        ) : (
+          <Input
+            defaultValue={encounter.formattedDateOfBirth}
+            negative={
+              canonicalDateOfBirth && encounter.formattedDateOfBirth !== canonicalDateOfBirth
+            }
+            onChange={handleDateOfBirthChange}
+          />
+        )}
+      </Table.Cell>
+
+      <Table.Cell negative={canonicalProvidenceMrn && providenceMrn !== canonicalProvidenceMrn}>
+        {obfuscated ? (
+          obfuscateNumber(providenceMrn)
+        ) : (
+          <Input defaultValue={providenceMrn} onChange={handleProvidenceMrnChange} />
+        )}
+      </Table.Cell>
+
+      <Table.Cell negative={canonicalSwedishMrn && mrn !== canonicalSwedishMrn}>
+        {obfuscated ? (
+          obfuscateNumber(mrn)
+        ) : (
+          <Input defaultValue={mrn} onChange={handleMrnChange} />
+        )}
+      </Table.Cell>
+
+      <Table.Cell>
+        {!obfuscated && (
+          <Button
+            className="link-mrn-save-button"
+            color={saveStatus === SAVE_STATUS.SAVED ? 'green' : 'blue'}
+            disabled={saveDisabled}
+            loading={saveStatus === SAVE_STATUS.SAVING}
+            onClick={handleSave}
+          >
+            {saveStatus === SAVE_STATUS.SAVED ? 'Saved!' : 'Save'}
+          </Button>
+        )}
+      </Table.Cell>
+    </Table.Row>
+  );
+}
+
 export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnReportState> {
   static whyDidYouRender = {
     logOnDifferentValues: true,
@@ -286,6 +407,73 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
     pendingMatchGroups: [],
     pendingMatchGroupsByType: {},
     saveStatuses: {},
+  };
+
+  handleObfuscatedChange = (_e: React.SyntheticEvent, data: { checked?: boolean }) =>
+    this.setState({ obfuscated: data.checked });
+
+  handleMrnInferenceToggle = () => {
+    this.setState(
+      (state) => ({
+        mrnInferenceEnabled: !state.mrnInferenceEnabled,
+      }),
+      async () => {
+        await this.loadEncounters(this.state.mrnInferenceEnabled);
+      },
+    );
+  };
+
+  handleModeChange = (_e: React.SyntheticEvent, { value }: { value?: string | number }) =>
+    this.setState({ mode: value as MODE });
+
+  handleFieldChange = (uniqueId: string, field: string, value: string) => {
+    this.setState((state) => ({
+      changedRows: {
+        ...state.changedRows,
+        [uniqueId]: {
+          ...state.changedRows[uniqueId],
+          [field]: value,
+        },
+      },
+      saveStatuses: {
+        ...state.saveStatuses,
+        [uniqueId]: SAVE_STATUS.UNSAVED,
+      },
+    }));
+  };
+
+  handleSave = async (encounter: TransformedEncounter, mrn: string, providenceMrn: string) => {
+    const { changedRows } = this.state;
+
+    if (!changedRows[encounter.uniqueId]) {
+      return;
+    }
+
+    const record: Fix = {
+      uniqueId: encounter.uniqueId,
+      dateOfBirth: changedRows[encounter.uniqueId].dateOfBirth || encounter.dateOfBirth,
+      mrn: changedRows[encounter.uniqueId].mrn || mrn,
+      providenceMrn: changedRows[encounter.uniqueId].providenceMrn || providenceMrn,
+    };
+
+    this.setState((state) => ({
+      saveStatuses: {
+        ...state.saveStatuses,
+        [encounter.uniqueId]: SAVE_STATUS.SAVING,
+      },
+    }));
+
+    try {
+      await window.trackingTool.fixesInsert(record);
+      this.setState((state) => ({
+        saveStatuses: {
+          ...state.saveStatuses,
+          [encounter.uniqueId]: SAVE_STATUS.SAVED,
+        },
+      }));
+    } catch (err) {
+      this.setState({ error: err as Error });
+    }
   };
 
   async loadEncounters(mapMrns: boolean) {
@@ -330,38 +518,29 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
         <Checkbox
           checked={obfuscated}
           label="Obfuscate results"
-          onChange={(e, data) => this.setState({ obfuscated: data.checked })}
+          onChange={this.handleObfuscatedChange}
         />
         &nbsp;&nbsp;&nbsp;
         <Checkbox
           checked={mrnInferenceEnabled}
           label="Enable MRN inference"
-          onClick={() => {
-            this.setState(
-              (state) => ({
-                mrnInferenceEnabled: !state.mrnInferenceEnabled,
-              }),
-              async () => {
-                await this.loadEncounters(this.state.mrnInferenceEnabled);
-              },
-            );
-          }}
+          onClick={this.handleMrnInferenceToggle}
         />
         &nbsp;&nbsp;&nbsp;
         <Radio
           label="Make Fixes"
           name="mode"
           value={MODE.MAKE_FIXES}
-          checked={this.state.mode === MODE.MAKE_FIXES}
-          onChange={(_e, { value }) => this.setState({ mode: value as MODE })}
+          checked={mode === MODE.MAKE_FIXES}
+          onChange={this.handleModeChange}
         />
         &nbsp;&nbsp;&nbsp;
         <Radio
           label="Show Fixes"
           name="mode"
           value={MODE.SHOW_FIXES}
-          checked={this.state.mode === MODE.SHOW_FIXES}
-          onChange={(_e, { value }) => this.setState({ mode: value as MODE })}
+          checked={mode === MODE.SHOW_FIXES}
+          onChange={this.handleModeChange}
         />
       </div>
     );
@@ -371,33 +550,6 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
     }
 
     return this.renderShowFixes(header);
-  }
-
-  isSaveDisabled(encounter: TransformedEncounter) {
-    const { changedRows } = this.state;
-
-    // row has not been edited
-    if (!(encounter.uniqueId in changedRows)) {
-      return true;
-    }
-
-    // Swedish MRN has not been changed
-    if (
-      'mrn' in changedRows[encounter.uniqueId] &&
-      changedRows[encounter.uniqueId].mrn === encounter.mrn
-    ) {
-      return true;
-    }
-
-    // Providence MRN has not been changed
-    if (
-      'providenceMrn' in changedRows[encounter.uniqueId] &&
-      changedRows[encounter.uniqueId].providenceMrn === encounter.providenceMrn
-    ) {
-      return true;
-    }
-
-    return false;
   }
 
   renderMakeFixes(header: React.ReactElement) {
@@ -445,175 +597,20 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
                 </Table.Header>
 
                 <Table.Body>
-                  {sortBy(group.encounters, 'encounterDate').map((encounter, j) => {
-                    const providenceMrn =
-                      encounter.providenceMrn === EXCLUDE_STRING_VALUE
-                        ? ''
-                        : encounter.providenceMrn;
-                    const mrn = encounter.mrn === EXCLUDE_STRING_VALUE ? '' : encounter.mrn;
-
-                    const saveDisabled = this.isSaveDisabled(encounter);
-                    const saveStatus = saveStatuses[encounter.uniqueId];
-
-                    return (
-                      <Table.Row key={j}>
-                        <Table.Cell>{usernameToName(encounter.username)}</Table.Cell>
-
-                        <Table.Cell>
-                          {obfuscated
-                            ? obfuscateString(encounter.patientName)
-                            : encounter.patientName}
-                        </Table.Cell>
-
-                        <Table.Cell>
-                          {encounter.parsedEncounterDate.format(DATE_FORMAT_DISPLAY)}
-                        </Table.Cell>
-
-                        <Table.Cell>
-                          {obfuscated ? (
-                            obfuscateDate(encounter.formattedDateOfBirth)
-                          ) : (
-                            <Input
-                              defaultValue={encounter.formattedDateOfBirth}
-                              negative={
-                                group.canonicalDateOfBirth &&
-                                encounter.formattedDateOfBirth !== group.canonicalDateOfBirth
-                              }
-                              onChange={(e, data) => {
-                                let dateOfBirth: string;
-
-                                try {
-                                  dateOfBirth = parseDate(data.value).format(DATE_FORMAT_DATABASE);
-                                } catch {
-                                  return;
-                                }
-
-                                this.setState((state) => ({
-                                  changedRows: {
-                                    ...state.changedRows,
-                                    [encounter.uniqueId]: {
-                                      ...state.changedRows[encounter.uniqueId],
-                                      dateOfBirth,
-                                    },
-                                  },
-                                  saveStatuses: {
-                                    ...state.saveStatuses,
-                                    [encounter.uniqueId]: SAVE_STATUS.UNSAVED,
-                                  },
-                                }));
-                              }}
-                            />
-                          )}
-                        </Table.Cell>
-
-                        <Table.Cell
-                          negative={
-                            group.canonicalProvidenceMrn &&
-                            providenceMrn !== group.canonicalProvidenceMrn
-                          }
-                        >
-                          {obfuscated ? (
-                            obfuscateNumber(providenceMrn)
-                          ) : (
-                            <Input
-                              defaultValue={providenceMrn}
-                              onChange={(e, data) =>
-                                this.setState((state) => ({
-                                  changedRows: {
-                                    ...state.changedRows,
-                                    [encounter.uniqueId]: {
-                                      ...state.changedRows[encounter.uniqueId],
-                                      providenceMrn: data.value,
-                                    },
-                                  },
-                                  saveStatuses: {
-                                    ...state.saveStatuses,
-                                    [encounter.uniqueId]: SAVE_STATUS.UNSAVED,
-                                  },
-                                }))
-                              }
-                            />
-                          )}
-                        </Table.Cell>
-
-                        <Table.Cell
-                          negative={group.canonicalSwedishMrn && mrn !== group.canonicalSwedishMrn}
-                        >
-                          {obfuscated ? (
-                            obfuscateNumber(mrn)
-                          ) : (
-                            <Input
-                              defaultValue={mrn}
-                              onChange={(e, data) =>
-                                this.setState((state) => ({
-                                  changedRows: {
-                                    ...state.changedRows,
-                                    [encounter.uniqueId]: {
-                                      ...state.changedRows[encounter.uniqueId],
-                                      mrn: data.value,
-                                    },
-                                  },
-                                  saveStatuses: {
-                                    ...state.saveStatuses,
-                                    [encounter.uniqueId]: SAVE_STATUS.UNSAVED,
-                                  },
-                                }))
-                              }
-                            />
-                          )}
-                        </Table.Cell>
-
-                        <Table.Cell>
-                          {!obfuscated && (
-                            <Button
-                              className="link-mrn-save-button"
-                              color={saveStatus === SAVE_STATUS.SAVED ? 'green' : 'blue'}
-                              disabled={saveDisabled}
-                              loading={saveStatus === SAVE_STATUS.SAVING}
-                              onClick={async () => {
-                                if (!changedRows[encounter.uniqueId]) {
-                                  return;
-                                }
-
-                                const record: Fix = {
-                                  uniqueId: encounter.uniqueId,
-
-                                  dateOfBirth:
-                                    changedRows[encounter.uniqueId].dateOfBirth ||
-                                    encounter.dateOfBirth,
-
-                                  mrn: changedRows[encounter.uniqueId].mrn || mrn,
-                                  providenceMrn:
-                                    changedRows[encounter.uniqueId].providenceMrn || providenceMrn,
-                                };
-
-                                this.setState((state) => ({
-                                  saveStatuses: {
-                                    ...state.saveStatuses,
-                                    [encounter.uniqueId]: SAVE_STATUS.SAVING,
-                                  },
-                                }));
-
-                                try {
-                                  await window.trackingTool.fixesInsert(record);
-                                  this.setState((state) => ({
-                                    saveStatuses: {
-                                      ...state.saveStatuses,
-                                      [encounter.uniqueId]: SAVE_STATUS.SAVED,
-                                    },
-                                  }));
-                                } catch (err) {
-                                  this.setState({ error: err as Error });
-                                }
-                              }}
-                            >
-                              {saveStatus === SAVE_STATUS.SAVED ? 'Saved!' : 'Save'}
-                            </Button>
-                          )}
-                        </Table.Cell>
-                      </Table.Row>
-                    );
-                  })}
+                  {sortBy(group.encounters, 'encounterDate').map((encounter) => (
+                    <EncounterRow
+                      canonicalDateOfBirth={group.canonicalDateOfBirth}
+                      canonicalProvidenceMrn={group.canonicalProvidenceMrn}
+                      canonicalSwedishMrn={group.canonicalSwedishMrn}
+                      changedRow={changedRows[encounter.uniqueId]}
+                      encounter={encounter}
+                      key={encounter.uniqueId}
+                      obfuscated={obfuscated}
+                      onFieldChange={this.handleFieldChange}
+                      onSave={this.handleSave}
+                      saveStatus={saveStatuses[encounter.uniqueId]}
+                    />
+                  ))}
                 </Table.Body>
               </Table>
             ))}

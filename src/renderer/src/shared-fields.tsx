@@ -1,7 +1,5 @@
-/* eslint-disable max-classes-per-file */
-
 import moment from 'moment';
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   CLINIC_LOCATION_OPTIONS,
   CLINIC_LOCATION_STAFF_OPTIONS,
@@ -27,58 +25,52 @@ type FieldProps = {
 
 export const today = () => moment().format(DATE_FORMAT_DATABASE);
 
-export class EncounterDateField extends React.Component<FieldProps> {
-  render() {
-    const { error, onBlur, onChange, value } = this.props;
-
-    return (
-      <Form.Field
-        control={Input}
-        error={error}
-        id="input-encounter-date"
-        label="Encounter Date"
-        name="encounterDate"
-        onBlur={onBlur}
-        onChange={onChange}
-        type="date"
-        value={value}
-      />
-    );
-  }
+export function EncounterDateField({ error, onBlur, onChange, value }: FieldProps) {
+  return (
+    <Form.Field
+      control={Input}
+      error={error}
+      id="input-encounter-date"
+      label="Encounter Date"
+      name="encounterDate"
+      onBlur={onBlur}
+      onChange={onChange}
+      type="date"
+      value={value}
+    />
+  );
 }
 
 type EncounterLocationFieldProps = FieldProps & {
   locations?: Option[];
 };
 
-export class EncounterLocationField extends React.Component<EncounterLocationFieldProps> {
-  // eslint-disable-next-line react/static-property-placement
-  static defaultProps = {
-    locations: LOCATION_OPTIONS,
-  };
-
-  render() {
-    const { disabled, error, locations, onBlur, onChange, value } = this.props;
-
-    return (
-      <Form.Field
-        control={Dropdown}
-        disabled={!!disabled}
-        error={error}
-        id="input-location"
-        label="Location"
-        name="location"
-        onBlur={onBlur}
-        onChange={onChange}
-        onClose={onBlur}
-        options={locations}
-        search
-        selection
-        selectOnBlur={false}
-        value={value}
-      />
-    );
-  }
+export function EncounterLocationField({
+  disabled,
+  error,
+  locations = LOCATION_OPTIONS,
+  onBlur,
+  onChange,
+  value,
+}: EncounterLocationFieldProps) {
+  return (
+    <Form.Field
+      control={Dropdown}
+      disabled={!!disabled}
+      error={error}
+      id="input-location"
+      label="Location"
+      name="location"
+      onBlur={onBlur}
+      onChange={onChange}
+      onClose={onBlur}
+      options={locations}
+      search
+      selection
+      selectOnBlur={false}
+      value={value}
+    />
+  );
 }
 
 type EncounterClinicFieldProps = FieldProps & {
@@ -88,32 +80,36 @@ type EncounterClinicFieldProps = FieldProps & {
 };
 
 // Used in Patient and Staff encounters
-export class EncounterClinicField extends React.Component<EncounterClinicFieldProps> {
-  render() {
-    const { disabled, error, location, onBlur, onChange, staff, value } = this.props;
-
-    return (
-      <Form.Field
-        control={Dropdown}
-        disabled={!!disabled}
-        error={error}
-        id="input-clinic"
-        label="Clinic"
-        name="clinic"
-        onBlur={onBlur}
-        onChange={onChange}
-        onClose={onBlur}
-        options={
-          (staff ? CLINIC_LOCATION_STAFF_OPTIONS[location] : CLINIC_LOCATION_OPTIONS[location]) ||
-          EMPTY_ARRAY
-        }
-        search
-        selection
-        selectOnBlur={false}
-        value={value}
-      />
-    );
-  }
+export function EncounterClinicField({
+  disabled,
+  error,
+  location,
+  onBlur,
+  onChange,
+  staff,
+  value,
+}: EncounterClinicFieldProps) {
+  return (
+    <Form.Field
+      control={Dropdown}
+      disabled={!!disabled}
+      error={error}
+      id="input-clinic"
+      label="Clinic"
+      name="clinic"
+      onBlur={onBlur}
+      onChange={onChange}
+      onClose={onBlur}
+      options={
+        (staff ? CLINIC_LOCATION_STAFF_OPTIONS[location] : CLINIC_LOCATION_OPTIONS[location]) ||
+        EMPTY_ARRAY
+      }
+      search
+      selection
+      selectOnBlur={false}
+      value={value}
+    />
+  );
 }
 
 const TIME_SPENT_PATIENT_LABEL = (
@@ -154,45 +150,49 @@ type EncounterTimeSpentFieldProps = FieldProps & {
   patient?: boolean;
 };
 
-export class EncounterTimeSpentField extends React.Component<EncounterTimeSpentFieldProps> {
-  render() {
-    const { error, onBlur, onChange, patient, value } = this.props;
-
-    // could require a multiple of 5, could round up automatically
-    return (
-      <Form.Field
-        control={Input}
-        error={error}
-        label={patient ? TIME_SPENT_PATIENT_LABEL : TIME_SPENT_OTHER_LABEL}
-        name="timeSpent"
-        onBlur={onBlur}
-        onChange={onChange}
-        value={value}
-      />
-    );
-  }
+export function EncounterTimeSpentField({
+  error,
+  onBlur,
+  onChange,
+  patient,
+  value,
+}: EncounterTimeSpentFieldProps) {
+  // could require a multiple of 5, could round up automatically
+  return (
+    <Form.Field
+      control={Input}
+      error={error}
+      label={patient ? TIME_SPENT_PATIENT_LABEL : TIME_SPENT_OTHER_LABEL}
+      name="timeSpent"
+      onBlur={onBlur}
+      onChange={onChange}
+      value={value}
+    />
+  );
 }
 
 type EncounterNumberOfTasksFieldProps = FieldProps & {
   patient?: boolean;
 };
 
-export class EncounterNumberOfTasksField extends React.Component<EncounterNumberOfTasksFieldProps> {
-  render() {
-    const { error, onBlur, onChange, patient, value } = this.props;
-
-    return (
-      <Form.Field
-        control={Input}
-        error={error}
-        label={patient ? NUMBER_OF_TASKS_PATIENT_LABEL : NUMBER_OF_TASKS_OTHER_LABEL}
-        name="numberOfTasks"
-        onBlur={onBlur}
-        onChange={onChange}
-        value={value}
-      />
-    );
-  }
+export function EncounterNumberOfTasksField({
+  error,
+  onBlur,
+  onChange,
+  patient,
+  value,
+}: EncounterNumberOfTasksFieldProps) {
+  return (
+    <Form.Field
+      control={Input}
+      error={error}
+      label={patient ? NUMBER_OF_TASKS_PATIENT_LABEL : NUMBER_OF_TASKS_OTHER_LABEL}
+      name="numberOfTasks"
+      onBlur={onBlur}
+      onChange={onChange}
+      value={value}
+    />
+  );
 }
 
 type SubmitButtonsProps = {
@@ -202,34 +202,38 @@ type SubmitButtonsProps = {
   submitForm: () => void;
 };
 
-export class SubmitButtons extends React.Component<SubmitButtonsProps> {
-  render() {
-    const { isClean, isSubmitting, onCancel, submitForm } = this.props;
+export function SubmitButtons({
+  isClean,
+  isSubmitting,
+  onCancel,
+  submitForm,
+}: SubmitButtonsProps) {
+  const cancelTrigger = useMemo(
+    () => <Form.Button content="Cancel" disabled={isSubmitting} negative size="big" />,
+    [isSubmitting],
+  );
+  const cancelContent = useMemo(
+    () => <Form.Button content="Confirm?" onClick={onCancel} />,
+    [onCancel],
+  );
 
-    return (
-      <Form.Group>
-        <Form.Button disabled={isSubmitting} onClick={submitForm} primary size="big">
-          Save Encounter
-        </Form.Button>
+  return (
+    <Form.Group>
+      <Form.Button disabled={isSubmitting} onClick={submitForm} primary size="big">
+        Save Encounter
+      </Form.Button>
 
-        {isClean ? (
-          <Form.Button
-            content="Cancel"
-            disabled={isSubmitting}
-            negative
-            onClick={onCancel}
-            size="big"
-          />
-        ) : (
-          <Popup
-            // eslint-disable-next-line react-perf/jsx-no-jsx-as-prop
-            trigger={<Form.Button content="Cancel" disabled={isSubmitting} negative size="big" />}
-            // eslint-disable-next-line react-perf/jsx-no-jsx-as-prop
-            content={<Form.Button content="Confirm?" onClick={onCancel} />}
-            on="click"
-          />
-        )}
-      </Form.Group>
-    );
-  }
+      {isClean ? (
+        <Form.Button
+          content="Cancel"
+          disabled={isSubmitting}
+          negative
+          onClick={onCancel}
+          size="big"
+        />
+      ) : (
+        <Popup trigger={cancelTrigger} content={cancelContent} on="click" />
+      )}
+    </Form.Group>
+  );
 }

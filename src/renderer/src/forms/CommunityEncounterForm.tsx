@@ -1,5 +1,4 @@
-import React from 'react';
-import { Checkbox, Divider, Dropdown, Form, Grid, Header } from 'semantic-ui-react';
+import React, { useCallback, useState } from 'react';
 import { COMMUNITY_LOCATION_OPTIONS } from '../options';
 import {
   communityInitialInterventionValues,
@@ -7,6 +6,7 @@ import {
   communityInterventionOptions,
   InitialCommunityInterventionValues,
 } from '../patient-interventions';
+import { Divider, Dropdown, Form, Grid, Header } from 'semantic-ui-react';
 import {
   EncounterDateField,
   EncounterLocationField,
@@ -15,9 +15,9 @@ import {
   SubmitButtons,
   today,
 } from '../shared-fields';
-import { EncounterFormProps, Intervention } from '../types';
-import { FormikErrors, FormikProps, withFormik } from 'formik';
-import { InfoButtonLabel } from '../InfoButtonLabel';
+import { EncounterFormProps } from '../types';
+import { FormikErrors, useFormik } from 'formik';
+import { InterventionField } from '../components/InterventionField';
 import { isEmpty } from 'lodash';
 
 export type CommunityEncounter = InitialCommunityInterventionValues & {
@@ -48,214 +48,199 @@ type CommunityEncounterFormProps = {
   encounter: CommunityEncounter | null;
 } & EncounterFormProps;
 
-type CommunityEncounterFormState = {
-  activeInfoButton: string | null;
-};
+function UnwrappedCommunityEncounterForm({
+  encounter,
+  onCancel,
+  onComplete,
+}: CommunityEncounterFormProps) {
+  const [activeInfoButton, setActiveInfoButton] = useState<string | null>(null);
 
-class UnwrappedCommunityEncounterForm extends React.Component<
-  CommunityEncounterFormProps & FormikProps<CommunityEncounter>,
-  CommunityEncounterFormState
-> {
-  state = {
-    activeInfoButton: null,
-  };
+  const formik = useFormik<CommunityEncounter>({
+    initialValues: encounter || INITIAL_VALUES(),
 
-  handleBlur = (e: React.FocusEvent, data?: { name: string }) =>
-    this.props.setFieldTouched((data && data.name) || (e.target as HTMLInputElement).name, true);
+    validate: (values) => {
+      const errors: FormikErrors<CommunityEncounter> = {};
 
-  handleChange = (
-    _e: React.SyntheticEvent,
-    data: { name?: string; value?: string | string[] | boolean; checked?: boolean },
-  ) => this.props.setFieldValue(data.name!, data.value !== undefined ? data.value : data.checked);
+      NUMERIC_FIELDS.forEach((field) => {
+        if (!/^\d+$/.test(values[field])) {
+          errors[field] = 'Field must be a number';
+        }
+      });
 
-  handleInterventionChange = (_e: React.SyntheticEvent, data: { value: string } | undefined) => {
-    if (!data) {
-      return;
-    }
+      REQUIRED_FIELDS.forEach((field) => {
+        if (isEmpty(values[field])) {
+          errors[field] = 'Field is required';
+        }
+      });
 
-    this.props.setFieldValue(data.value, true);
-  };
+      return errors;
+    },
 
-  handleInterventionOnMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.persist();
-    this.setState({
-      activeInfoButton: ((e.target as HTMLDivElement).parentElement.firstChild as HTMLInputElement)
-        .name,
-    });
-  };
+    onSubmit: async (values, { setSubmitting }) => {
+      try {
+        if (encounter) {
+          const numAffected = await window.trackingTool.dbUpdate({ _id: encounter._id }, values);
+          if (numAffected !== 1) {
+            return onComplete(new Error('Failed to update encounter'));
+          }
+          return onComplete();
+        }
 
-  handleInterventionOnMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.persist();
-    this.setState((state) => {
-      if (
-        state.activeInfoButton ===
-        ((e.target as HTMLDivElement).parentElement.firstChild as HTMLInputElement).name
-      ) {
-        return { activeInfoButton: null } as CommunityEncounterFormState;
+        await window.trackingTool.dbInsert(values);
+        setSubmitting(false);
+        onComplete();
+      } catch (err) {
+        onComplete(err as Error);
       }
+    },
+  });
 
-      return null;
-    });
-  };
+  const {
+    dirty,
+    errors,
+    isSubmitting,
+    setFieldTouched,
+    setFieldValue,
+    submitForm,
+    touched,
+    values,
+  } = formik;
 
-  // TODO put this somewhere else
-  renderField = (intervention: Intervention) => (
-    <Form.Field
-      checked={this.props.values[intervention.fieldName]}
-      control={Checkbox}
-      key={intervention.fieldName}
-      label={
-        // eslint-disable-next-line react-perf/jsx-no-jsx-as-prop
-        <InfoButtonLabel
-          description={intervention.description}
-          name={intervention.name}
-          show={this.state.activeInfoButton === intervention.fieldName}
-        />
-      }
-      name={intervention.fieldName}
-      onBlur={this.handleBlur}
-      onChange={this.handleChange}
-      onMouseEnter={this.handleInterventionOnMouseEnter}
-      onMouseLeave={this.handleInterventionOnMouseLeave}
-    />
+  const handleBlur = useCallback(
+    (e: React.FocusEvent, data?: { name: string }) =>
+      setFieldTouched((data && data.name) || (e.target as HTMLInputElement).name, true),
+    [setFieldTouched],
   );
 
-  render() {
-    const { dirty, errors, isSubmitting, onCancel, submitForm, touched, values } = this.props;
+  const handleChange = useCallback(
+    (
+      _e: React.SyntheticEvent,
+      data: { name?: string; value?: string | string[] | boolean; checked?: boolean },
+    ) => setFieldValue(data.name!, data.value !== undefined ? data.value : data.checked),
+    [setFieldValue],
+  );
 
-    const columns = communityInterventionGroups.map((column, i) => {
-      return (
-        <Grid.Column key={i}>
-          {column.map((group, j) => {
-            return (
-              <Form.Group grouped key={`${i}-${j}`}>
-                <label>{group.label}</label>
+  const handleInterventionChange = useCallback(
+    (_e: React.SyntheticEvent, data: { value: string } | undefined) => {
+      if (!data) {
+        return;
+      }
 
-                {group.interventions.map((intervention) => this.renderField(intervention))}
-              </Form.Group>
-            );
-          })}
-        </Grid.Column>
-      );
-    });
+      setFieldValue(data.value, true);
+    },
+    [setFieldValue],
+  );
 
-    return (
-      <Form size="large">
-        <Header>New Community Encounter</Header>
-
-        <EncounterDateField
-          error={!!(touched.encounterDate && errors.encounterDate)}
-          onBlur={this.handleBlur}
-          onChange={this.handleChange}
-          value={values.encounterDate}
-        />
-
-        <EncounterLocationField
-          error={!!(touched.location && errors.location)}
-          locations={COMMUNITY_LOCATION_OPTIONS}
-          onBlur={this.handleBlur}
-          onChange={this.handleChange}
-          value={values.location}
-        />
-
-        <Divider hidden />
-
-        <Form.Field
-          control={Dropdown}
-          fluid
-          onChange={this.handleInterventionChange}
-          openOnFocus={false}
-          options={communityInterventionOptions}
-          placeholder="Search for an intervention"
-          search
-          selection
-          selectOnBlur={false}
-          selectOnNavigation={false}
-          upward
-          value=""
-        />
-
-        <Divider hidden />
-
-        <Grid columns={3} divided>
-          <Grid.Row>{columns}</Grid.Row>
-        </Grid>
-
-        <Divider hidden />
-
-        <Form.Group widths="equal">
-          <EncounterTimeSpentField
-            error={!!(touched.timeSpent && errors.timeSpent)}
-            onBlur={this.handleBlur}
-            onChange={this.handleChange}
-            value={values.timeSpent}
-          />
-
-          <EncounterNumberOfTasksField
-            error={!!(touched.numberOfTasks && errors.numberOfTasks)}
-            onBlur={this.handleBlur}
-            onChange={this.handleChange}
-            value={values.numberOfTasks}
-          />
-        </Form.Group>
-
-        <Divider hidden />
-
-        <SubmitButtons
-          isClean={!dirty}
-          isSubmitting={isSubmitting}
-          onCancel={onCancel}
-          submitForm={submitForm}
-        />
-      </Form>
+  const handleInterventionOnMouseEnter = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    setActiveInfoButton(
+      ((e.target as HTMLDivElement).parentElement!.firstChild as HTMLInputElement).name,
     );
-  }
+  }, []);
+
+  const handleInterventionOnMouseLeave = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const { name } = (e.target as HTMLDivElement).parentElement!.firstChild as HTMLInputElement;
+    setActiveInfoButton((prev) => (prev === name ? null : prev));
+  }, []);
+
+  const columns = communityInterventionGroups.map((column, i) => {
+    return (
+      <Grid.Column key={i}>
+        {column.map((group, j) => {
+          return (
+            <Form.Group grouped key={`${i}-${j}`}>
+              <label>{group.label}</label>
+
+              {group.interventions.map((intervention) => (
+                <InterventionField
+                  activeInfoButton={activeInfoButton}
+                  checked={values[intervention.fieldName]}
+                  description={intervention.description}
+                  fieldName={intervention.fieldName}
+                  key={intervention.fieldName}
+                  name={intervention.name}
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  onMouseEnter={handleInterventionOnMouseEnter}
+                  onMouseLeave={handleInterventionOnMouseLeave}
+                />
+              ))}
+            </Form.Group>
+          );
+        })}
+      </Grid.Column>
+    );
+  });
+
+  return (
+    <Form size="large">
+      <Header>New Community Encounter</Header>
+
+      <EncounterDateField
+        error={!!(touched.encounterDate && errors.encounterDate)}
+        onBlur={handleBlur}
+        onChange={handleChange}
+        value={values.encounterDate}
+      />
+
+      <EncounterLocationField
+        error={!!(touched.location && errors.location)}
+        locations={COMMUNITY_LOCATION_OPTIONS}
+        onBlur={handleBlur}
+        onChange={handleChange}
+        value={values.location}
+      />
+
+      <Divider hidden />
+
+      <Form.Field
+        control={Dropdown}
+        fluid
+        onChange={handleInterventionChange}
+        openOnFocus={false}
+        options={communityInterventionOptions}
+        placeholder="Search for an intervention"
+        search
+        selection
+        selectOnBlur={false}
+        selectOnNavigation={false}
+        upward
+        value=""
+      />
+
+      <Divider hidden />
+
+      <Grid columns={3} divided>
+        <Grid.Row>{columns}</Grid.Row>
+      </Grid>
+
+      <Divider hidden />
+
+      <Form.Group widths="equal">
+        <EncounterTimeSpentField
+          error={!!(touched.timeSpent && errors.timeSpent)}
+          onBlur={handleBlur}
+          onChange={handleChange}
+          value={values.timeSpent}
+        />
+
+        <EncounterNumberOfTasksField
+          error={!!(touched.numberOfTasks && errors.numberOfTasks)}
+          onBlur={handleBlur}
+          onChange={handleChange}
+          value={values.numberOfTasks}
+        />
+      </Form.Group>
+
+      <Divider hidden />
+
+      <SubmitButtons
+        isClean={!dirty}
+        isSubmitting={isSubmitting}
+        onCancel={onCancel}
+        submitForm={submitForm}
+      />
+    </Form>
+  );
 }
 
-export const CommunityEncounterForm = withFormik<CommunityEncounterFormProps, CommunityEncounter>({
-  mapPropsToValues: (props) => {
-    if (props.encounter) {
-      return props.encounter;
-    }
-
-    return INITIAL_VALUES();
-  },
-
-  validate: (values) => {
-    const errors: FormikErrors<CommunityEncounter> = {};
-
-    NUMERIC_FIELDS.forEach((field) => {
-      if (!/^\d+$/.test(values[field])) {
-        errors[field] = 'Field must be a number';
-      }
-    });
-
-    REQUIRED_FIELDS.forEach((field) => {
-      if (isEmpty(values[field])) {
-        errors[field] = 'Field is required';
-      }
-    });
-
-    return errors;
-  },
-
-  handleSubmit: async (values, { props, setSubmitting }) => {
-    const { encounter, onComplete } = props;
-
-    try {
-      if (encounter) {
-        const numAffected = await window.trackingTool.dbUpdate({ _id: encounter._id }, values);
-        if (numAffected !== 1) {
-          return onComplete(new Error('Failed to update encounter'));
-        }
-        return onComplete();
-      }
-
-      await window.trackingTool.dbInsert(values);
-      setSubmitting(false);
-      onComplete();
-    } catch (err) {
-      onComplete(err as Error);
-    }
-  },
-})(UnwrappedCommunityEncounterForm);
+export const CommunityEncounterForm = UnwrappedCommunityEncounterForm;

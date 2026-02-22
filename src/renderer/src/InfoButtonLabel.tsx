@@ -7,14 +7,10 @@ type InfoButtonLabelProps = {
   show: boolean;
 };
 
-export class InfoButtonLabel extends React.Component<InfoButtonLabelProps> {
-  render() {
-    const { description, name, show } = this.props;
-
-    return (
-      <label>
-        {name} {show && <InfoButton content={description} />}
-      </label>
-    );
-  }
+export function InfoButtonLabel({ description, name, show }: InfoButtonLabelProps) {
+  return (
+    <label>
+      {name} {show && <InfoButton content={description} />}
+    </label>
+  );
 }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Divider, Form, Header, Radio } from 'semantic-ui-react';
 import {
   EncounterDateField,
@@ -8,7 +8,7 @@ import {
 } from '../shared-fields';
 import { EncounterFormProps } from '../types';
 import { find, isEmpty } from 'lodash';
-import { FormikErrors, FormikProps, withFormik } from 'formik';
+import { FormikErrors, useFormik } from 'formik';
 import { InfoButtonLabel } from '../InfoButtonLabel';
 import { nameToFieldName } from '../patient-interventions';
 
@@ -117,155 +117,181 @@ type OtherEncounterFormProps = {
   encounter: OtherEncounter | null;
 } & EncounterFormProps;
 
-type OtherEncounterFormState = {
+function OtherActivityField({
+  activeInfoButton,
+  activity,
+  onBlur,
+  onMouseEnter,
+  onMouseLeave,
+  option,
+  setFieldValue,
+}: {
   activeInfoButton: string | null;
-};
-
-class UnwrappedOtherEncounterForm extends React.Component<
-  OtherEncounterFormProps & FormikProps<OtherEncounter>,
-  OtherEncounterFormState
-> {
-  state = {
-    activeInfoButton: null,
-  };
-
-  handleBlur = (e: React.FocusEvent, data?: { name: string }) =>
-    this.props.setFieldTouched((data && data.name) || (e.target as HTMLInputElement).name, true);
-
-  handleChange = (
-    _e: React.SyntheticEvent,
-    data: { name?: string; value?: string | string[] | boolean; checked?: boolean },
-  ) => this.props.setFieldValue(data.name!, data.value !== undefined ? data.value : data.checked);
-
-  handleOptionOnMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.persist();
-    this.setState({
-      activeInfoButton: (
-        (e.target as HTMLDivElement).parentElement!.firstChild as HTMLInputElement
-      ).name,
-    });
-  };
-
-  handleOptionOnMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.persist();
-    this.setState((state) => {
-      if (
-        state.activeInfoButton ===
-        ((e.target as HTMLDivElement).parentElement!.firstChild as HTMLInputElement).name
-      ) {
-        return { activeInfoButton: null } as OtherEncounterFormState;
-      }
-
-      return null;
-    });
-  };
-
-  // TODO put this somewhere else
-  renderField = (option: Option) => (
-    <Form.Field
-      checked={this.props.values.activity === option.fieldName}
-      control={Radio}
-      key={option.fieldName}
-      label={
-        // eslint-disable-next-line react-perf/jsx-no-jsx-as-prop
-        <InfoButtonLabel
-          description={option.description}
-          name={option.name}
-          show={this.state.activeInfoButton === option.fieldName}
-        />
-      }
-      name={option.fieldName}
-      onBlur={this.handleBlur}
-      // eslint-disable-next-line react-perf/jsx-no-new-function-as-prop
-      onChange={() => this.props.setFieldValue('activity', option.fieldName)}
-      onMouseEnter={this.handleOptionOnMouseEnter}
-      onMouseLeave={this.handleOptionOnMouseLeave}
-    />
+  activity: string;
+  onBlur: (e: React.FocusEvent, data?: { name: string }) => void;
+  onMouseEnter: (e: React.MouseEvent<HTMLDivElement>) => void;
+  onMouseLeave: (e: React.MouseEvent<HTMLDivElement>) => void;
+  option: Option;
+  setFieldValue: (field: string, value: unknown) => void;
+}) {
+  const label = useMemo(
+    () => (
+      <InfoButtonLabel
+        description={option.description}
+        name={option.name}
+        show={activeInfoButton === option.fieldName}
+      />
+    ),
+    [option.description, option.name, activeInfoButton, option.fieldName],
   );
 
-  render() {
-    const { dirty, errors, isSubmitting, onCancel, submitForm, touched, values } = this.props;
-    const options = OTHER_ENCOUNTER_OPTIONS.map((option) => this.renderField(option));
+  const handleChange = useCallback(
+    () => setFieldValue('activity', option.fieldName),
+    [setFieldValue, option.fieldName],
+  );
 
-    return (
-      <Form size="large">
-        <Header>New Other Encounter</Header>
-
-        <Form.Group widths="equal">
-          <EncounterDateField
-            error={!!(touched.encounterDate && errors.encounterDate)}
-            onBlur={this.handleBlur}
-            onChange={this.handleChange}
-            value={values.encounterDate}
-          />
-
-          <EncounterTimeSpentField
-            error={!!(touched.timeSpent && errors.timeSpent)}
-            onBlur={this.handleBlur}
-            onChange={this.handleChange}
-            value={values.timeSpent}
-          />
-        </Form.Group>
-
-        <Form.Group grouped>{options}</Form.Group>
-
-        <Divider hidden />
-
-        <SubmitButtons
-          isClean={!dirty}
-          isSubmitting={isSubmitting}
-          onCancel={onCancel}
-          submitForm={submitForm}
-        />
-      </Form>
-    );
-  }
+  return (
+    <Form.Field
+      checked={activity === option.fieldName}
+      control={Radio}
+      label={label}
+      name={option.fieldName}
+      onBlur={onBlur}
+      onChange={handleChange}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    />
+  );
 }
 
-export const OtherEncounterForm = withFormik<OtherEncounterFormProps, OtherEncounter>({
-  mapPropsToValues: (props) => {
-    if (props.encounter) {
-      return props.encounter;
-    }
+function UnwrappedOtherEncounterForm({
+  encounter,
+  onCancel,
+  onComplete,
+}: OtherEncounterFormProps) {
+  const [activeInfoButton, setActiveInfoButton] = useState<string | null>(null);
 
-    return INITIAL_VALUES();
-  },
+  const formik = useFormik<OtherEncounter>({
+    initialValues: encounter || INITIAL_VALUES(),
 
-  validate: (values) => {
-    const errors: FormikErrors<OtherEncounter> = {};
+    validate: (values) => {
+      const errors: FormikErrors<OtherEncounter> = {};
 
-    NUMERIC_FIELDS.forEach((field) => {
-      if (!/^\d+$/.test(values[field])) {
-        errors[field] = 'Field must be a valid number';
-      }
-    });
-
-    REQUIRED_FIELDS.forEach((field) => {
-      if (isEmpty(values[field])) {
-        errors[field] = 'Field is required';
-      }
-    });
-
-    return errors;
-  },
-
-  handleSubmit: async (values, { props, setSubmitting }) => {
-    const { encounter, onComplete } = props;
-
-    try {
-      if (encounter) {
-        const numAffected = await window.trackingTool.dbUpdate({ _id: encounter._id }, values);
-        if (numAffected !== 1) {
-          return onComplete(new Error('Failed to update encounter'));
+      NUMERIC_FIELDS.forEach((field) => {
+        if (!/^\d+$/.test(values[field])) {
+          errors[field] = 'Field must be a valid number';
         }
-        return onComplete();
-      }
+      });
 
-      await window.trackingTool.dbInsert(values);
-      setSubmitting(false);
-      onComplete();
-    } catch (err) {
-      onComplete(err as Error);
-    }
-  },
-})(UnwrappedOtherEncounterForm);
+      REQUIRED_FIELDS.forEach((field) => {
+        if (isEmpty(values[field])) {
+          errors[field] = 'Field is required';
+        }
+      });
+
+      return errors;
+    },
+
+    onSubmit: async (values, { setSubmitting }) => {
+      try {
+        if (encounter) {
+          const numAffected = await window.trackingTool.dbUpdate({ _id: encounter._id }, values);
+          if (numAffected !== 1) {
+            return onComplete(new Error('Failed to update encounter'));
+          }
+          return onComplete();
+        }
+
+        await window.trackingTool.dbInsert(values);
+        setSubmitting(false);
+        onComplete();
+      } catch (err) {
+        onComplete(err as Error);
+      }
+    },
+  });
+
+  const {
+    dirty,
+    errors,
+    isSubmitting,
+    setFieldTouched,
+    setFieldValue,
+    submitForm,
+    touched,
+    values,
+  } = formik;
+
+  const handleBlur = useCallback(
+    (e: React.FocusEvent, data?: { name: string }) =>
+      setFieldTouched((data && data.name) || (e.target as HTMLInputElement).name, true),
+    [setFieldTouched],
+  );
+
+  const handleChange = useCallback(
+    (
+      _e: React.SyntheticEvent,
+      data: { name?: string; value?: string | string[] | boolean; checked?: boolean },
+    ) => setFieldValue(data.name!, data.value !== undefined ? data.value : data.checked),
+    [setFieldValue],
+  );
+
+  const handleOptionOnMouseEnter = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    setActiveInfoButton(
+      ((e.target as HTMLDivElement).parentElement!.firstChild as HTMLInputElement).name,
+    );
+  }, []);
+
+  const handleOptionOnMouseLeave = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const { name } = (e.target as HTMLDivElement).parentElement!.firstChild as HTMLInputElement;
+    setActiveInfoButton((prev) => (prev === name ? null : prev));
+  }, []);
+
+  const options = OTHER_ENCOUNTER_OPTIONS.map((option) => (
+    <OtherActivityField
+      activeInfoButton={activeInfoButton}
+      activity={values.activity}
+      key={option.fieldName}
+      onBlur={handleBlur}
+      onMouseEnter={handleOptionOnMouseEnter}
+      onMouseLeave={handleOptionOnMouseLeave}
+      option={option}
+      setFieldValue={setFieldValue}
+    />
+  ));
+
+  return (
+    <Form size="large">
+      <Header>New Other Encounter</Header>
+
+      <Form.Group widths="equal">
+        <EncounterDateField
+          error={!!(touched.encounterDate && errors.encounterDate)}
+          onBlur={handleBlur}
+          onChange={handleChange}
+          value={values.encounterDate}
+        />
+
+        <EncounterTimeSpentField
+          error={!!(touched.timeSpent && errors.timeSpent)}
+          onBlur={handleBlur}
+          onChange={handleChange}
+          value={values.timeSpent}
+        />
+      </Form.Group>
+
+      <Form.Group grouped>{options}</Form.Group>
+
+      <Divider hidden />
+
+      <SubmitButtons
+        isClean={!dirty}
+        isSubmitting={isSubmitting}
+        onCancel={onCancel}
+        submitForm={submitForm}
+      />
+    </Form>
+  );
+}
+
+export const OtherEncounterForm = UnwrappedOtherEncounterForm;
