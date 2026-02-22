@@ -8,16 +8,17 @@
   },
   "version": "8.31.0",
   "private": true,
-  "homepage": "./",
-  "main": "public/electron.js",
+  "main": "dist-electron/main/index.js",
   "build": {
     "appId": "com.beaugunderson.tracking-tool",
     "files": [
-      "build/**/*",
+      "dist/**/*",
+      "dist-electron/**/*",
       "node_modules/**/*"
     ],
     "directories": {
-      "buildResources": "assets"
+      "buildResources": "assets",
+      "output": "release"
     },
     "mac": {
       "category": "public.app-category.healthcare-fitness",
@@ -43,18 +44,14 @@
     }
   },
   "scripts": {
-    "build": "react-scripts build",
-    "dist": "rm -rf dist/ && ./build-windows.sh",
-    "dist-mac": "electron-builder --mac",
-    "dist-win": "electron-builder --win",
-    "eject": "react-scripts eject",
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "test": "vitest --dir src",
     "eslint": "eslint --config .eslintrc.js --fix --ext .js,.jsx,.ts,.tsx --report-unused-disable-directives src",
-    "pack": "electron-builder --dir --mac --win",
-    "predist": "yarn build",
-    "prepack": "yarn build",
-    "postinstall": "electron-builder install-app-deps",
-    "start": "concurrently \"cross-env BROWSER=none yarn react-scripts start\" \"wait-on http://127.0.0.1:3000 && electron .\"",
-    "test": "yarn react-scripts test --silent"
+    "dist": "rm -rf dist/ && ./build-windows.sh",
+    "dist-mac": "yarn build && electron-builder --mac",
+    "dist-win": "electron-builder --win",
+    "postinstall": "electron-builder install-app-deps"
   },
   "resolutions": {
     "fsevents": "^2.3.3",
@@ -72,7 +69,6 @@
     "electron-context-menu": "^3.1.1",
     "electron-default-menu": "^1.0.2",
     "electron-devtools-installer": "^3.2.0",
-    "electron-is-dev": "^2.0.0",
     "electron-log": "^4.4.1",
     "electron-store": "^8.0.0",
     "formik": "^2.2.9",
@@ -86,7 +82,6 @@
     "parse-full-name": "^1.2.5",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "react-scripts": "^5.0.1",
     "reductio": "^1.0.0",
     "semantic-ui-css": "^2.4.1",
     "semantic-ui-react": "^2.0.3",
@@ -102,7 +97,6 @@
     "@types/debug": "^4.1.7",
     "@types/faker": "^5.5.8",
     "@types/glob": "^7.1.4",
-    "@types/jest": "^29",
     "@types/levenshtein-edit-distance": "^3.0.2",
     "@types/lodash": "^4.14.172",
     "@types/mousetrap": "^1.6.8",
@@ -115,8 +109,7 @@
     "@types/xregexp": "^4.4.0",
     "@typescript-eslint/eslint-plugin": "^8",
     "@typescript-eslint/parser": "^8",
-    "concurrently": "^6.2.1",
-    "cross-env": "^7.0.3",
+    "@vitejs/plugin-react": "^4",
     "delectron": "^0.0.1-security",
     "devtron": "^1.4.0",
     "electron": "^33.0.0",
@@ -134,6 +127,7 @@
     "eslint-plugin-sort-imports-es6-autofix": "^0.6.0",
     "eslint_d": "^13",
     "faker": "^5.5.3",
+    "jsdom": "^25",
     "prettier": "^3",
     "release-it": "^14.11.6",
     "sass": "^1.43.4",
@@ -142,12 +136,10 @@
     "stylelint-declaration-block-no-ignored-properties": "^2.4.0",
     "stylelint-no-unsupported-browser-features": "^5.0.1",
     "typescript": "^5",
-    "wait-on": "^6.0.0"
-  },
-  "jest": {
-    "transformIgnorePatterns": [
-      "node_modules/(?!(double-metaphone|levenshtein-edit-distance|reductio|crossfilter2|d3|d3-.*|internmap|delaunator|robust-predicates|dc)/)"
-    ]
+    "vite": "^6",
+    "vite-electron-plugin": "^0.8.3",
+    "vite-plugin-electron-renderer": "^0.14.6",
+    "vitest": "^3"
   },
   "browserslist": [
     "Electron 33.0"

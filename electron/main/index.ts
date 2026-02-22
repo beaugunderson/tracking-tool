@@ -1,12 +1,11 @@
-const isDev = require('electron-is-dev');
-const path = require('path');
-const { app, BrowserWindow, dialog, globalShortcut, ipcMain, Menu, shell } = require('electron');
-const defaultMenu = require('electron-default-menu');
+import defaultMenu from 'electron-default-menu';
+import { app, BrowserWindow, dialog, globalShortcut, Menu, shell } from 'electron';
+import { join } from 'node:path';
 
-require('electron-context-menu')({ showSaveImageAs: true });
-require('./ipc-handlers');
+import 'electron-context-menu';
+import './ipc-handlers';
 
-let mainWindow;
+let mainWindow: BrowserWindow | null = null;
 let showExitPrompt = true;
 
 const createWindow = () => {
@@ -19,23 +18,25 @@ const createWindow = () => {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false,
-      preload: path.join(__dirname, 'preload.js'),
+      preload: join(__dirname, '../preload/index.js'),
     },
     height: 860,
     width: 1280,
   });
 
-  mainWindow.loadURL(
-    isDev ? 'http://localhost:3000' : `file://${path.join(__dirname, '../build/index.html')}`
-  );
+  if (process.env.VITE_DEV_SERVER_URL) {
+    mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
+  } else {
+    mainWindow.loadFile(join(__dirname, '../../dist/index.html'));
+  }
 
   mainWindow.once('ready-to-show', () => {
-    mainWindow.show();
+    mainWindow!.show();
   });
 
   // Forward find-in-page results to the renderer
   mainWindow.webContents.on('found-in-page', (_event, result) => {
-    mainWindow.webContents.send('find:result', result);
+    mainWindow!.webContents.send('find:result', result);
   });
 
   mainWindow.on('focus', () => {
@@ -61,7 +62,7 @@ const createWindow = () => {
 
     e.preventDefault();
 
-    const response = await dialog.showMessageBox(mainWindow, {
+    const response = await dialog.showMessageBox(mainWindow!, {
       type: 'question',
       buttons: ['&Yes', '&No'],
       normalizeAccessKeys: true,
@@ -73,7 +74,7 @@ const createWindow = () => {
 
     if (response.response === 0) {
       showExitPrompt = false;
-      mainWindow.close();
+      mainWindow!.close();
     }
   });
 };

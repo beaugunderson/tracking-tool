@@ -1,5 +1,5 @@
 import './GridReport.css';
-import * as Moment from 'moment';
+import Moment from 'moment';
 import React from 'react';
 import { Button, Checkbox, CheckboxProps, Table } from 'semantic-ui-react';
 import { extendMoment } from 'moment-range';
@@ -12,7 +12,7 @@ import { transform, TransformedEncounter } from './data';
 
 const log = { debug: (...args: any[]) => window.trackingTool.logDebug(...args) };
 
-const moment = extendMoment(Moment);
+const moment = extendMoment(Moment as any);
 
 function formatCount(count: number) {
   if (count === 0) {

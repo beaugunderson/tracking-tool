@@ -1,3 +1,5 @@
+import { vi } from 'vitest';
+
 // Minimal mock for window.trackingTool so tests that transitively import
 // modules using the Electron IPC bridge don't crash at import time.
 (window as any).trackingTool = {
@@ -5,41 +7,41 @@
   platform: 'darwin',
   pathSep: '/',
 
-  configGet: jest.fn().mockResolvedValue(''),
-  configSet: jest.fn().mockResolvedValue(undefined),
+  configGet: vi.fn().mockResolvedValue(''),
+  configSet: vi.fn().mockResolvedValue(undefined),
 
-  fsExists: jest.fn().mockResolvedValue(false),
-  fsMkdir: jest.fn().mockResolvedValue(undefined),
-  fsCopyFile: jest.fn().mockResolvedValue(undefined),
+  fsExists: vi.fn().mockResolvedValue(false),
+  fsMkdir: vi.fn().mockResolvedValue(undefined),
+  fsCopyFile: vi.fn().mockResolvedValue(undefined),
 
-  showOpenDialog: jest.fn().mockResolvedValue({ canceled: true, filePaths: [] }),
-  writeClipboard: jest.fn(),
+  showOpenDialog: vi.fn().mockResolvedValue({ canceled: true, filePaths: [] }),
+  writeClipboard: vi.fn(),
 
-  getAppVersion: jest.fn().mockResolvedValue('0.0.0-test'),
-  getAppPath: jest.fn().mockResolvedValue('/tmp'),
-  getOsName: jest.fn().mockResolvedValue('test'),
-  getStorePath: jest.fn().mockResolvedValue('/tmp'),
+  getAppVersion: vi.fn().mockResolvedValue('0.0.0-test'),
+  getAppPath: vi.fn().mockResolvedValue('/tmp'),
+  getOsName: vi.fn().mockResolvedValue('test'),
+  getStorePath: vi.fn().mockResolvedValue('/tmp'),
 
-  dbOpen: jest.fn().mockResolvedValue(undefined),
-  dbSearch: jest.fn().mockResolvedValue([]),
-  dbFindAll: jest.fn().mockResolvedValue([]),
-  dbInsert: jest.fn().mockResolvedValue({}),
-  dbUpdate: jest.fn().mockResolvedValue(0),
-  dbRemove: jest.fn().mockResolvedValue(0),
+  dbOpen: vi.fn().mockResolvedValue(undefined),
+  dbSearch: vi.fn().mockResolvedValue([]),
+  dbFindAll: vi.fn().mockResolvedValue([]),
+  dbInsert: vi.fn().mockResolvedValue({}),
+  dbUpdate: vi.fn().mockResolvedValue(0),
+  dbRemove: vi.fn().mockResolvedValue(0),
 
-  fixesOpen: jest.fn().mockResolvedValue(undefined),
-  fixesInsert: jest.fn().mockResolvedValue({}),
-  fixesGetAll: jest.fn().mockResolvedValue([]),
+  fixesOpen: vi.fn().mockResolvedValue(undefined),
+  fixesInsert: vi.fn().mockResolvedValue({}),
+  fixesGetAll: vi.fn().mockResolvedValue([]),
 
-  reportTransform: jest.fn().mockResolvedValue([]),
+  reportTransform: vi.fn().mockResolvedValue([]),
 
-  findInPage: jest.fn(),
-  stopFindInPage: jest.fn(),
-  onFindResult: jest.fn().mockReturnValue(() => {}),
-  onFindRequested: jest.fn().mockReturnValue(() => {}),
+  findInPage: vi.fn(),
+  stopFindInPage: vi.fn(),
+  onFindResult: vi.fn().mockReturnValue(() => {}),
+  onFindRequested: vi.fn().mockReturnValue(() => {}),
 
-  logDebug: jest.fn(),
-  logError: jest.fn(),
+  logDebug: vi.fn(),
+  logError: vi.fn(),
 
-  openExternal: jest.fn(),
+  openExternal: vi.fn(),
 };

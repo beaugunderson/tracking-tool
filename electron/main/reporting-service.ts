@@ -1,25 +1,24 @@
-const DataStore = require('nedb');
-const fs = require('fs');
-const os = require('os');
-const path = require('path');
-const glob = require('glob');
-const rimraf = require('rimraf');
-const log = require('electron-log');
-const moment = require('moment');
-const async = require('async');
-const { isEqual, pick, findLast } = require('lodash');
+import DataStore from 'nedb';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import glob from 'glob';
+import log from 'electron-log';
+import moment from 'moment';
+import async from 'async';
+import { isEqual, pick, findLast } from 'lodash';
 
 const DATE_FORMAT_DATABASE = 'YYYY-MM-DD';
 
 // Match the renderer's two-digit year parsing
-moment.parseTwoDigitYear = function parseTwoDigitYear(yearString) {
+(moment as any).parseTwoDigitYear = function parseTwoDigitYear(yearString: string) {
   const currentYear = moment().year() - 2000;
   const year = parseInt(yearString, 10);
   if (year <= currentYear) return 2000 + year;
   return 1900 + year;
 };
 
-function parseDate(date) {
+function parseDate(date: string | undefined) {
   return moment(
     date ? date.trim() : '',
     ['MM/DD/YYYY', 'M/D/YYYY', 'M/D/YY', 'MM-DD-YYYY', 'M-D-YYYY', 'M-D-YY', 'YYYY-MM-DD'],
@@ -29,7 +28,13 @@ function parseDate(date) {
 
 // --- Data migrations (moved from src/data.ts) ---
 
-const migrations = [
+interface Migration {
+  id: string;
+  query: object;
+  transform: (encounter: any) => any;
+}
+
+const migrations: Migration[] = [
   {
     id: '0b0ac661-956b-43e4-a130-7fba4425651f',
     query: { encounterType: 'patient' },
@@ -79,28 +84,28 @@ const migrations = [
   },
 ];
 
-function applyMigrations(dataStore) {
+export function applyMigrations(dataStore: DataStore): Promise<DataStore> {
   return new Promise((resolve, reject) => {
     async.eachSeries(
       migrations,
-      (migration, cbMigration) => {
-        dataStore.findOne({ migration: migration.id }, {}, (findErr, found) => {
+      (migration: Migration, cbMigration: (err?: Error | null) => void) => {
+        dataStore.findOne({ migration: migration.id }, {}, (findErr: Error | null, found: any) => {
           if (findErr) return cbMigration(findErr);
           if (found) return cbMigration();
 
-          dataStore.find(migration.query, {}, (queryErr, results) => {
+          dataStore.find(migration.query, {}, (queryErr: Error | null, results: any[]) => {
             if (queryErr) return cbMigration(queryErr);
 
             async.eachSeries(
               results,
-              (result, cbEncounter) => {
+              (result: any, cbEncounter: (err?: Error | null) => void) => {
                 const transformed = migration.transform(result);
                 if (!isEqual(result, transformed)) {
                   dataStore.update(
                     { _id: transformed._id },
                     transformed,
                     {},
-                    (updateErr, n) => {
+                    (updateErr: Error | null, n: number) => {
                       if (updateErr || n !== 1) {
                         cbEncounter(updateErr || new Error(`Update failed for _id "${transformed._id}"`));
                       } else {
@@ -112,15 +117,15 @@ function applyMigrations(dataStore) {
                   cbEncounter();
                 }
               },
-              (encounterErr) => {
+              (encounterErr?: Error | null) => {
                 if (encounterErr) return cbMigration(encounterErr);
-                dataStore.insert({ migration: migration.id }, cbMigration);
+                dataStore.insert({ migration: migration.id }, cbMigration as any);
               }
             );
           });
         });
       },
-      (err) => {
+      (err?: Error | null) => {
         if (err) reject(err);
         else resolve(dataStore);
       }
@@ -130,28 +135,28 @@ function applyMigrations(dataStore) {
 
 // --- I/O functions ---
 
-function openDataStore(filename) {
+export function openDataStore(filename: string): DataStore {
   return new DataStore({
     autoload: true,
-    compareStrings: (a, b) => a.toLowerCase().localeCompare(b.toLowerCase()),
+    compareStrings: (a: string, b: string) => a.toLowerCase().localeCompare(b.toLowerCase()),
     filename,
     timestampData: true,
   });
 }
 
-async function getEncounterFiles(rootPath) {
+async function getEncounterFiles(rootPath: string): Promise<string[]> {
   return new Promise((resolve, reject) => {
-    glob(path.join(rootPath, '*', 'encounters.json'), (err, files) => {
+    glob(path.join(rootPath, '*', 'encounters.json'), (err: Error | null, files: string[]) => {
       if (err) reject(err);
       else resolve(files);
     });
   });
 }
 
-async function copyEncounterFiles(rootPath) {
+async function copyEncounterFiles(rootPath: string) {
   const copyPath = fs.mkdtempSync(path.join(os.tmpdir(), 'reporting-'));
   const encounterFiles = await getEncounterFiles(rootPath);
-  const copiedFiles = [];
+  const copiedFiles: { username: string; filename: string }[] = [];
 
   for (const file of encounterFiles) {
     log.debug(`copyEncounterFiles: copying "${file}"`);
@@ -165,7 +170,7 @@ async function copyEncounterFiles(rootPath) {
   return { files: copiedFiles, temporaryDirectory: copyPath };
 }
 
-async function copyFixFile(fixesFilePath) {
+async function copyFixFile(fixesFilePath: string) {
   const copyPath = fs.mkdtempSync(path.join(os.tmpdir(), 'fixes-'));
   const destination = path.join(copyPath, 'fixes.json');
 
@@ -177,7 +182,7 @@ async function copyFixFile(fixesFilePath) {
   return { file: destination, temporaryDirectory: copyPath };
 }
 
-async function getAllEncounters(filename) {
+async function getAllEncounters(filename: string): Promise<any[]> {
   log.debug(`getAllEncounters: "${filename}"`);
   const dataStore = openDataStore(filename);
   const migratedStore = await applyMigrations(dataStore);
@@ -185,7 +190,7 @@ async function getAllEncounters(filename) {
   return new Promise((resolve, reject) => {
     migratedStore.find(
       { encounterType: { $exists: true } },
-      (err, results) => {
+      (err: Error | null, results: any[]) => {
         if (err) {
           log.debug(`getAllEncounters: error "${err}"`);
           reject(err);
@@ -197,7 +202,7 @@ async function getAllEncounters(filename) {
   });
 }
 
-async function getFixes(filename) {
+export async function getFixes(filename: string): Promise<any[]> {
   log.debug(`getFixes: "${filename}"`);
   if (!fs.existsSync(filename)) return [];
 
@@ -211,7 +216,7 @@ async function getFixes(filename) {
     dataStore
       .find({})
       .sort({ createdAt: 1 })
-      .exec((err, results) => {
+      .exec((err: Error | null, results: any[]) => {
         if (err) reject(err);
         else resolve(results);
       });
@@ -223,21 +228,25 @@ async function getFixes(filename) {
  * runs migrations, applies fixes, and returns raw (non-transformed) encounters.
  * The renderer calls transformEncounters() on the result.
  */
-async function transform({ rootPath, mapMrns = true, fixMrns = true }) {
+export async function transform({ rootPath, mapMrns = true, fixMrns = true }: {
+  rootPath: string;
+  mapMrns?: boolean;
+  fixMrns?: boolean;
+}) {
   log.debug('transform: copying encounter files');
 
   const fixesFilePath = path.join(rootPath, 'fixes', 'fixes.json');
 
-  let fixes = [];
+  let fixes: any[] = [];
   if (fixMrns) {
     const fixFile = await copyFixFile(fixesFilePath);
     fixes = await getFixes(fixFile.file);
     log.debug(`transform: removing temp "${fixFile.temporaryDirectory}"`);
-    rimraf.sync(fixFile.temporaryDirectory, { glob: false });
+    fs.rmSync(fixFile.temporaryDirectory, { recursive: true, force: true });
   }
 
   const copiedUserEncounters = await copyEncounterFiles(rootPath);
-  const allEncounters = [];
+  const allEncounters: any[] = [];
 
   for (const copiedUserEncounter of copiedUserEncounters.files) {
     log.debug(`transform: getting encounters for "${copiedUserEncounter.filename}"`);
@@ -262,10 +271,8 @@ async function transform({ rootPath, mapMrns = true, fixMrns = true }) {
   }
 
   log.debug(`transform: removing temp "${copiedUserEncounters.temporaryDirectory}"`);
-  rimraf.sync(copiedUserEncounters.temporaryDirectory, { glob: false });
+  fs.rmSync(copiedUserEncounters.temporaryDirectory, { recursive: true, force: true });
 
   log.debug(`transform: returning ${allEncounters.length} raw encounters`);
   return allEncounters;
 }
-
-module.exports = { applyMigrations, openDataStore, transform, getFixes };

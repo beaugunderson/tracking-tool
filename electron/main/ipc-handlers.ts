@@ -1,18 +1,19 @@
-const { ipcMain, dialog, clipboard, shell, app, BrowserWindow } = require('electron');
-const ElectronStore = require('electron-store');
-const DataStore = require('nedb');
-const fs = require('fs');
-const os = require('os');
-const path = require('path');
-const log = require('electron-log');
-const reportingService = require('./reporting-service');
+import ElectronStore from 'electron-store';
+import DataStore from 'nedb';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import log from 'electron-log';
+import { ipcMain, dialog, clipboard, shell, app, BrowserWindow } from 'electron';
+
+import * as reportingService from './reporting-service';
 
 const store = new ElectronStore();
 
-let encountersDb = null;
-let fixesDb = null;
+let encountersDb: DataStore | null = null;
+let fixesDb: DataStore | null = null;
 
-function escapeRegExp(string) {
+function escapeRegExp(string: string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
@@ -25,34 +26,34 @@ ipcMain.handle('app:getStorePath', () => store.path);
 
 // --- Config ---
 
-ipcMain.handle('config:get', (_event, key) => store.get(key));
-ipcMain.handle('config:set', (_event, key, value) => store.set(key, value));
+ipcMain.handle('config:get', (_event, key: string) => store.get(key));
+ipcMain.handle('config:set', (_event, key: string, value: unknown) => store.set(key, value));
 
 // --- Filesystem ---
 
-ipcMain.handle('fs:exists', (_event, filePath) => fs.existsSync(filePath));
-ipcMain.handle('fs:mkdir', (_event, dirPath) => fs.mkdirSync(dirPath));
-ipcMain.handle('fs:copyFile', (_event, src, dest) => fs.copyFileSync(src, dest));
+ipcMain.handle('fs:exists', (_event, filePath: string) => fs.existsSync(filePath));
+ipcMain.handle('fs:mkdir', (_event, dirPath: string) => fs.mkdirSync(dirPath));
+ipcMain.handle('fs:copyFile', (_event, src: string, dest: string) => fs.copyFileSync(src, dest));
 
 // --- Path ---
 
-ipcMain.handle('path:join', (_event, ...segments) => path.join(...segments));
+ipcMain.handle('path:join', (_event, ...segments: string[]) => path.join(...segments));
 
 // --- Dialog ---
 
-ipcMain.handle('dialog:showOpen', async (event, options) => {
+ipcMain.handle('dialog:showOpen', async (event, options: Electron.OpenDialogOptions) => {
   const win = BrowserWindow.fromWebContents(event.sender);
-  return dialog.showOpenDialog(win, options);
+  return dialog.showOpenDialog(win!, options);
 });
 
 // --- Clipboard ---
 
-ipcMain.handle('clipboard:write', (_event, text) => clipboard.writeText(text));
+ipcMain.handle('clipboard:write', (_event, text: string) => clipboard.writeText(text));
 
 // --- Database ---
 
-ipcMain.handle('db:open', async (_event, username) => {
-  const rootPath = store.get('root-path');
+ipcMain.handle('db:open', async (_event, username: string) => {
+  const rootPath = store.get('root-path') as string;
   const filename = path.join(rootPath, username, 'encounters.json');
 
   log.debug(`db:open: opening "${filename}"`);
@@ -63,11 +64,15 @@ ipcMain.handle('db:open', async (_event, username) => {
   log.debug('db:open: migrations complete');
 });
 
-ipcMain.handle('db:search', async (_event, params) => {
+ipcMain.handle('db:search', async (_event, params: {
+  encounterType?: string;
+  patientNamePattern?: string;
+  encounterDate?: string;
+}) => {
   if (!encountersDb) throw new Error('Database not opened');
 
   const { encounterType, patientNamePattern, encounterDate } = params;
-  const criteria = { encounterType: { $exists: true } };
+  const criteria: Record<string, unknown> = { encounterType: { $exists: true } };
 
   if (encounterType && encounterType !== 'All') {
     criteria.encounterType = encounterType.toLowerCase();
@@ -82,7 +87,7 @@ ipcMain.handle('db:search', async (_event, params) => {
   }
 
   return new Promise((resolve, reject) => {
-    encountersDb.find(criteria).exec((err, docs) => {
+    encountersDb!.find(criteria).exec((err: Error | null, docs: unknown[]) => {
       if (err) reject(err);
       else resolve(docs);
     });
@@ -93,40 +98,40 @@ ipcMain.handle('db:findAll', async () => {
   if (!encountersDb) throw new Error('Database not opened');
 
   return new Promise((resolve, reject) => {
-    encountersDb.find({}, (err, docs) => {
+    encountersDb!.find({}, (err: Error | null, docs: unknown[]) => {
       if (err) reject(err);
       else resolve(docs);
     });
   });
 });
 
-ipcMain.handle('db:insert', async (_event, doc) => {
+ipcMain.handle('db:insert', async (_event, doc: object) => {
   if (!encountersDb) throw new Error('Database not opened');
 
   return new Promise((resolve, reject) => {
-    encountersDb.insert(doc, (err, newDoc) => {
+    encountersDb!.insert(doc, (err: Error | null, newDoc: unknown) => {
       if (err) reject(err);
       else resolve(newDoc);
     });
   });
 });
 
-ipcMain.handle('db:update', async (_event, query, doc) => {
+ipcMain.handle('db:update', async (_event, query: object, doc: object) => {
   if (!encountersDb) throw new Error('Database not opened');
 
   return new Promise((resolve, reject) => {
-    encountersDb.update(query, doc, {}, (err, numberOfUpdated) => {
+    encountersDb!.update(query, doc, {}, (err: Error | null, numberOfUpdated: number) => {
       if (err) reject(err);
       else resolve(numberOfUpdated);
     });
   });
 });
 
-ipcMain.handle('db:remove', async (_event, query) => {
+ipcMain.handle('db:remove', async (_event, query: object) => {
   if (!encountersDb) throw new Error('Database not opened');
 
   return new Promise((resolve, reject) => {
-    encountersDb.remove(query, {}, (err, numberOfRemoved) => {
+    encountersDb!.remove(query, {}, (err: Error | null, numberOfRemoved: number) => {
       if (err) reject(err);
       else resolve(numberOfRemoved);
     });
@@ -136,7 +141,7 @@ ipcMain.handle('db:remove', async (_event, query) => {
 // --- Fixes ---
 
 ipcMain.handle('fixes:open', async () => {
-  const rootPath = store.get('root-path');
+  const rootPath = store.get('root-path') as string;
   const fixesDir = path.join(rootPath, 'fixes');
   const backupDir = path.join(fixesDir, 'backups');
   const fixesFile = path.join(fixesDir, 'fixes.json');
@@ -149,17 +154,17 @@ ipcMain.handle('fixes:open', async () => {
 
   fixesDb = new DataStore({
     autoload: true,
-    compareStrings: (a, b) => a.toLowerCase().localeCompare(b.toLowerCase()),
+    compareStrings: (a: string, b: string) => a.toLowerCase().localeCompare(b.toLowerCase()),
     filename: fixesFile,
     timestampData: true,
   });
 });
 
-ipcMain.handle('fixes:insert', async (_event, doc) => {
+ipcMain.handle('fixes:insert', async (_event, doc: object) => {
   if (!fixesDb) throw new Error('Fixes database not opened');
 
   return new Promise((resolve, reject) => {
-    fixesDb.insert(doc, (err, newDoc) => {
+    fixesDb!.insert(doc, (err: Error | null, newDoc: unknown) => {
       if (err) reject(err);
       else resolve(newDoc);
     });
@@ -167,7 +172,7 @@ ipcMain.handle('fixes:insert', async (_event, doc) => {
 });
 
 ipcMain.handle('fixes:getAll', async () => {
-  const rootPath = store.get('root-path');
+  const rootPath = store.get('root-path') as string;
   const fixesFile = path.join(rootPath, 'fixes', 'fixes.json');
 
   if (!fs.existsSync(fixesFile)) return [];
@@ -175,10 +180,10 @@ ipcMain.handle('fixes:getAll', async () => {
   // Use fixesDb if already open, otherwise open a temporary instance
   if (fixesDb) {
     return new Promise((resolve, reject) => {
-      fixesDb
+      fixesDb!
         .find({})
         .sort({ createdAt: 1 })
-        .exec((err, docs) => {
+        .exec((err: Error | null, docs: unknown[]) => {
           if (err) reject(err);
           else resolve(docs);
         });
@@ -190,14 +195,14 @@ ipcMain.handle('fixes:getAll', async () => {
 
 // --- Reporting ---
 
-ipcMain.handle('reporting:transform', async (_event, options) => {
-  const rootPath = store.get('root-path');
+ipcMain.handle('reporting:transform', async (_event, options: { mapMrns?: boolean; fixMrns?: boolean }) => {
+  const rootPath = store.get('root-path') as string;
   return reportingService.transform({ ...options, rootPath });
 });
 
 // --- Find in page ---
 
-ipcMain.handle('find:findInPage', (event, text, options) => {
+ipcMain.handle('find:findInPage', (event, text: string, options?: Electron.FindInPageOptions) => {
   if (text) {
     event.sender.findInPage(text, options || {});
   }
@@ -209,9 +214,9 @@ ipcMain.handle('find:stop', (event) => {
 
 // --- Logging ---
 
-ipcMain.on('log:debug', (_event, ...args) => log.debug(...args));
-ipcMain.on('log:error', (_event, ...args) => log.error(...args));
+ipcMain.on('log:debug', (_event, ...args: unknown[]) => log.debug(...args));
+ipcMain.on('log:error', (_event, ...args: unknown[]) => log.error(...args));
 
 // --- Shell ---
 
-ipcMain.handle('shell:openExternal', (_event, url) => shell.openExternal(url));
+ipcMain.handle('shell:openExternal', (_event, url: string) => shell.openExternal(url));
