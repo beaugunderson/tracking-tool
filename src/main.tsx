@@ -1,12 +1,12 @@
 import 'semantic-ui-css/semantic.min.css';
 
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import { ErrorBoundary } from './ErrorBoundary';
 
-ReactDOM.render(
+const root = createRoot(document.getElementById('root')!);
+root.render(
   <ErrorBoundary>
     <App />
   </ErrorBoundary>,
-  document.getElementById('root'),
 );

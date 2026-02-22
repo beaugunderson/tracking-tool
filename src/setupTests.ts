@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest';
 import { vi } from 'vitest';
 
 // Minimal mock for window.trackingTool so tests that transitively import
