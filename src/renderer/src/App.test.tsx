@@ -1,6 +1,6 @@
-import { render, screen, act, fireEvent } from '@testing-library/react';
-import { vi } from 'vitest';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { App } from './App';
+import { vi } from 'vitest';
 
 // Helper: render App, wait for async componentDidMount
 async function renderApp() {

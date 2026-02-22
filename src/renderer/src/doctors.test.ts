@@ -1,4 +1,4 @@
-import { DOCTORS, RAW_DOCTORS, isInactive } from './doctors';
+import { DOCTORS, isInactive, RAW_DOCTORS } from './doctors';
 
 describe('isInactive', () => {
   it('returns false for active doctor', () => {

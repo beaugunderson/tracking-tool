@@ -1,20 +1,20 @@
 import moment from 'moment';
-import { PatientEncounter } from '../forms/PatientEncounterForm';
 import {
   ageYears,
   EXCLUDE_NUMBER_VALUE,
   EXCLUDE_STRING_VALUE,
   parseDate,
-  transformEncounter,
-  transformEncounters,
   SCORE_DECLINED,
+  SCORE_MAY_INDICATE_COGNITIVE_IMPAIRMENT,
   SCORE_MILD_MINIMAL_OR_NONE,
   SCORE_MODERATE,
   SCORE_MODERATELY_SEVERE,
-  SCORE_SEVERE,
   SCORE_NORMAL,
-  SCORE_MAY_INDICATE_COGNITIVE_IMPAIRMENT,
+  SCORE_SEVERE,
+  transformEncounter,
+  transformEncounters,
 } from './data';
+import { PatientEncounter } from '../forms/PatientEncounterForm';
 
 function makeEncounter(overrides: Partial<PatientEncounter> = {}): PatientEncounter {
   return {
@@ -251,15 +251,18 @@ describe('transformEncounter', () => {
     });
 
     it('capitalizes encounter type', () => {
-      expect(transformEncounter(makeEncounter({ encounterType: 'patient' })).formattedEncounterType)
-        .toBe('Patient');
+      expect(
+        transformEncounter(makeEncounter({ encounterType: 'patient' })).formattedEncounterType,
+      ).toBe('Patient');
       expect(
         transformEncounter(makeEncounter({ encounterType: 'community' })).formattedEncounterType,
       ).toBe('Community');
-      expect(transformEncounter(makeEncounter({ encounterType: 'staff' })).formattedEncounterType)
-        .toBe('Staff');
-      expect(transformEncounter(makeEncounter({ encounterType: 'other' })).formattedEncounterType)
-        .toBe('Other');
+      expect(
+        transformEncounter(makeEncounter({ encounterType: 'staff' })).formattedEncounterType,
+      ).toBe('Staff');
+      expect(
+        transformEncounter(makeEncounter({ encounterType: 'other' })).formattedEncounterType,
+      ).toBe('Other');
     });
   });
 
@@ -332,24 +335,30 @@ describe('transformEncounter', () => {
     });
 
     it('boundary: 9 is mild, 10 is moderate', () => {
-      expect(transformEncounter(makeEncounter({ phq: true, phqScore: '9' })).phqScoreLabel)
-        .toBe(SCORE_MILD_MINIMAL_OR_NONE);
-      expect(transformEncounter(makeEncounter({ phq: true, phqScore: '10' })).phqScoreLabel)
-        .toBe(SCORE_MODERATE);
+      expect(transformEncounter(makeEncounter({ phq: true, phqScore: '9' })).phqScoreLabel).toBe(
+        SCORE_MILD_MINIMAL_OR_NONE,
+      );
+      expect(transformEncounter(makeEncounter({ phq: true, phqScore: '10' })).phqScoreLabel).toBe(
+        SCORE_MODERATE,
+      );
     });
 
     it('boundary: 14 is moderate, 15 is moderately severe', () => {
-      expect(transformEncounter(makeEncounter({ phq: true, phqScore: '14' })).phqScoreLabel)
-        .toBe(SCORE_MODERATE);
-      expect(transformEncounter(makeEncounter({ phq: true, phqScore: '15' })).phqScoreLabel)
-        .toBe(SCORE_MODERATELY_SEVERE);
+      expect(transformEncounter(makeEncounter({ phq: true, phqScore: '14' })).phqScoreLabel).toBe(
+        SCORE_MODERATE,
+      );
+      expect(transformEncounter(makeEncounter({ phq: true, phqScore: '15' })).phqScoreLabel).toBe(
+        SCORE_MODERATELY_SEVERE,
+      );
     });
 
     it('boundary: 19 is moderately severe, 20 is severe', () => {
-      expect(transformEncounter(makeEncounter({ phq: true, phqScore: '19' })).phqScoreLabel)
-        .toBe(SCORE_MODERATELY_SEVERE);
-      expect(transformEncounter(makeEncounter({ phq: true, phqScore: '20' })).phqScoreLabel)
-        .toBe(SCORE_SEVERE);
+      expect(transformEncounter(makeEncounter({ phq: true, phqScore: '19' })).phqScoreLabel).toBe(
+        SCORE_MODERATELY_SEVERE,
+      );
+      expect(transformEncounter(makeEncounter({ phq: true, phqScore: '20' })).phqScoreLabel).toBe(
+        SCORE_SEVERE,
+      );
     });
   });
 
@@ -370,10 +379,12 @@ describe('transformEncounter', () => {
     });
 
     it('boundary: 25 is impairment, 26 is normal', () => {
-      expect(transformEncounter(makeEncounter({ moca: true, mocaScore: '25' })).mocaScoreLabel)
-        .toBe(SCORE_MAY_INDICATE_COGNITIVE_IMPAIRMENT);
-      expect(transformEncounter(makeEncounter({ moca: true, mocaScore: '26' })).mocaScoreLabel)
-        .toBe(SCORE_NORMAL);
+      expect(
+        transformEncounter(makeEncounter({ moca: true, mocaScore: '25' })).mocaScoreLabel,
+      ).toBe(SCORE_MAY_INDICATE_COGNITIVE_IMPAIRMENT);
+      expect(
+        transformEncounter(makeEncounter({ moca: true, mocaScore: '26' })).mocaScoreLabel,
+      ).toBe(SCORE_NORMAL);
     });
   });
 

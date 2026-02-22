@@ -1,6 +1,6 @@
 import {
-  CLINIC_LOCATIONS,
   CLINIC_LOCATION_STAFF_OPTIONS,
+  CLINIC_LOCATIONS,
   CLINICS,
   COMMUNITY_LOCATION_OPTIONS,
   LOCATIONS,
@@ -41,7 +41,7 @@ describe('COMMUNITY_LOCATION_OPTIONS', () => {
 
 describe('CLINIC_LOCATION_STAFF_OPTIONS', () => {
   it('adds Treatment Center to Ballard', () => {
-    const values = CLINIC_LOCATION_STAFF_OPTIONS['Ballard'].map((o) => o.value);
+    const values = CLINIC_LOCATION_STAFF_OPTIONS.Ballard.map((o) => o.value);
     expect(values).toContain(TREATMENT_CENTER);
   });
 
@@ -51,12 +51,12 @@ describe('CLINIC_LOCATION_STAFF_OPTIONS', () => {
   });
 
   it('adds Treatment Center to Edmonds', () => {
-    const values = CLINIC_LOCATION_STAFF_OPTIONS['Edmonds'].map((o) => o.value);
+    const values = CLINIC_LOCATION_STAFF_OPTIONS.Edmonds.map((o) => o.value);
     expect(values).toContain(TREATMENT_CENTER);
   });
 
   it('adds Treatment Center to Issaquah', () => {
-    const values = CLINIC_LOCATION_STAFF_OPTIONS['Issaquah'].map((o) => o.value);
+    const values = CLINIC_LOCATION_STAFF_OPTIONS.Issaquah.map((o) => o.value);
     expect(values).toContain(TREATMENT_CENTER);
   });
 
