@@ -6,7 +6,7 @@
     "type": "git",
     "url": "https://github.com/beaugunderson/tracking-tool.git"
   },
-  "version": "8.32.0",
+  "version": "8.33.0",
   "private": true,
   "main": "out/main/index.js",
   "build": {
