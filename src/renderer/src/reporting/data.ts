@@ -378,6 +378,12 @@ export function transformEncounters(encounters: PatientEncounter[], mapMrns = tr
     .map((encounter) => transformEncounter(encounter, providenceMapping, swedishMapping));
 }
 
+export interface ReportProgress {
+  phase: string;
+  current: number;
+  total: number;
+}
+
 /**
  * Full reporting pipeline. The main process handles I/O (file copying, NeDB,
  * migrations, fixes), then we run transformEncounters on the raw results.
@@ -385,7 +391,17 @@ export function transformEncounters(encounters: PatientEncounter[], mapMrns = tr
 export async function transform(
   mapMrns: boolean = true,
   fixMrns: boolean = true,
+  onProgress?: (progress: ReportProgress) => void,
 ): Promise<TransformedEncounter[]> {
-  const rawEncounters = await window.trackingTool.reportTransform({ mapMrns, fixMrns });
-  return transformEncounters(rawEncounters as PatientEncounter[], mapMrns);
+  let cleanup: (() => void) | undefined;
+  if (onProgress) {
+    cleanup = window.trackingTool.onReportProgress(onProgress);
+  }
+  try {
+    const rawEncounters = await window.trackingTool.reportTransform({ mapMrns, fixMrns });
+    onProgress?.({ phase: 'Transforming encounters', current: 0, total: 0 });
+    return transformEncounters(rawEncounters as PatientEncounter[], mapMrns);
+  } finally {
+    cleanup?.();
+  }
 }

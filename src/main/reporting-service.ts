@@ -1,12 +1,12 @@
+import async from 'async';
 import DataStore from '@seald-io/nedb';
 import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
-import { glob } from 'glob';
 import log from 'electron-log';
 import moment from 'moment';
-import async from 'async';
-import { isEqual, pick, findLast } from 'lodash';
+import os from 'node:os';
+import path from 'node:path';
+import { findLast, isEqual, pick } from 'lodash';
+import { glob } from 'glob';
 
 const DATE_FORMAT_DATABASE = 'YYYY-MM-DD';
 
@@ -22,7 +22,7 @@ function parseDate(date: string | undefined) {
   return moment(
     date ? date.trim() : '',
     ['MM/DD/YYYY', 'M/D/YYYY', 'M/D/YY', 'MM-DD-YYYY', 'M-D-YYYY', 'M-D-YY', 'YYYY-MM-DD'],
-    true
+    true,
   );
 }
 
@@ -107,11 +107,13 @@ export function applyMigrations(dataStore: DataStore): Promise<DataStore> {
                     {},
                     (updateErr: Error | null, n: number) => {
                       if (updateErr || n !== 1) {
-                        cbEncounter(updateErr || new Error(`Update failed for _id "${transformed._id}"`));
+                        cbEncounter(
+                          updateErr || new Error(`Update failed for _id "${transformed._id}"`),
+                        );
                       } else {
                         cbEncounter();
                       }
-                    }
+                    },
                   );
                 } else {
                   cbEncounter();
@@ -120,7 +122,7 @@ export function applyMigrations(dataStore: DataStore): Promise<DataStore> {
               (encounterErr?: Error | null) => {
                 if (encounterErr) return cbMigration(encounterErr);
                 dataStore.insert({ migration: migration.id }, cbMigration as any);
-              }
+              },
             );
           });
         });
@@ -128,7 +130,7 @@ export function applyMigrations(dataStore: DataStore): Promise<DataStore> {
       (err?: Error | null) => {
         if (err) reject(err);
         else resolve(dataStore);
-      }
+      },
     );
   });
 }
@@ -144,19 +146,40 @@ export function openDataStore(filename: string): DataStore {
   });
 }
 
-async function getEncounterFiles(rootPath: string): Promise<string[]> {
-  return glob(path.join(rootPath, '*', 'encounters.json'));
+export interface ReportProgress {
+  phase: string;
+  current: number;
+  total: number;
 }
 
-async function copyEncounterFiles(rootPath: string) {
+type ProgressCallback = (progress: ReportProgress) => void;
+
+/** Normalize a glob pattern for cross-platform use (glob v10+ treats backslashes as escapes). */
+export function normalizeGlobPattern(pattern: string): string {
+  return pattern.replaceAll('\\', '/');
+}
+
+/** Extract username from an encounter file path (works with both / and \ separators). */
+export function usernameFromEncounterPath(filePath: string): string {
+  return path.basename(path.dirname(filePath));
+}
+
+async function getEncounterFiles(rootPath: string): Promise<string[]> {
+  const pattern = normalizeGlobPattern(path.join(rootPath, '*', 'encounters.json'));
+  return glob(pattern);
+}
+
+async function copyEncounterFiles(rootPath: string, onProgress?: ProgressCallback) {
   const copyPath = fs.mkdtempSync(path.join(os.tmpdir(), 'reporting-'));
   const encounterFiles = await getEncounterFiles(rootPath);
   const copiedFiles: { username: string; filename: string }[] = [];
+  const total = encounterFiles.length;
 
-  for (const file of encounterFiles) {
+  for (let i = 0; i < total; i++) {
+    const file = encounterFiles[i];
+    const username = usernameFromEncounterPath(file);
+    onProgress?.({ phase: `Copying data for ${username}`, current: i + 1, total });
     log.debug(`copyEncounterFiles: copying "${file}"`);
-    const parts = path.dirname(file).split(path.sep);
-    const username = parts[parts.length - 1];
     const destination = path.join(copyPath, `${username}.json`);
     fs.copyFileSync(file, destination);
     copiedFiles.push({ username, filename: destination });
@@ -192,7 +215,7 @@ async function getAllEncounters(filename: string): Promise<any[]> {
         } else {
           resolve(results);
         }
-      }
+      },
     );
   });
 }
@@ -223,10 +246,15 @@ export async function getFixes(filename: string): Promise<any[]> {
  * runs migrations, applies fixes, and returns raw (non-transformed) encounters.
  * The renderer calls transformEncounters() on the result.
  */
-export async function transform({ rootPath, mapMrns = true, fixMrns = true }: {
+export async function transform({
+  rootPath,
+  fixMrns = true,
+  onProgress,
+}: {
   rootPath: string;
   mapMrns?: boolean;
   fixMrns?: boolean;
+  onProgress?: ProgressCallback;
 }) {
   log.debug('transform: copying encounter files');
 
@@ -234,19 +262,29 @@ export async function transform({ rootPath, mapMrns = true, fixMrns = true }: {
 
   let fixes: any[] = [];
   if (fixMrns) {
+    onProgress?.({ phase: 'Loading fixes', current: 0, total: 0 });
     const fixFile = await copyFixFile(fixesFilePath);
     fixes = await getFixes(fixFile.file);
     log.debug(`transform: removing temp "${fixFile.temporaryDirectory}"`);
     fs.rmSync(fixFile.temporaryDirectory, { recursive: true, force: true });
   }
 
-  const copiedUserEncounters = await copyEncounterFiles(rootPath);
+  const copiedUserEncounters = await copyEncounterFiles(rootPath, onProgress);
   const allEncounters: any[] = [];
+  const total = copiedUserEncounters.files.length;
 
-  for (const copiedUserEncounter of copiedUserEncounters.files) {
+  for (let i = 0; i < total; i++) {
+    const copiedUserEncounter = copiedUserEncounters.files[i];
+    onProgress?.({
+      phase: `Loading encounters for ${copiedUserEncounter.username}`,
+      current: i + 1,
+      total,
+    });
     log.debug(`transform: getting encounters for "${copiedUserEncounter.filename}"`);
     const encounters = await getAllEncounters(copiedUserEncounter.filename);
-    log.debug(`transform: got ${encounters.length} encounters for "${copiedUserEncounter.filename}"`);
+    log.debug(
+      `transform: got ${encounters.length} encounters for "${copiedUserEncounter.filename}"`,
+    );
 
     for (const encounter of encounters) {
       if (fixMrns && encounter.encounterType === 'patient') {
@@ -256,7 +294,7 @@ export async function transform({ rootPath, mapMrns = true, fixMrns = true }: {
           'dateOfBirth',
           'mrn',
           'providenceMrn',
-          'uniqueId'
+          'uniqueId',
         );
         allEncounters.push({ ...encounter, ...fix, username: copiedUserEncounter.username });
       } else {
@@ -267,6 +305,8 @@ export async function transform({ rootPath, mapMrns = true, fixMrns = true }: {
 
   log.debug(`transform: removing temp "${copiedUserEncounters.temporaryDirectory}"`);
   fs.rmSync(copiedUserEncounters.temporaryDirectory, { recursive: true, force: true });
+
+  onProgress?.({ phase: 'Processing encounters', current: total, total });
 
   log.debug(`transform: returning ${allEncounters.length} raw encounters`);
   return allEncounters;

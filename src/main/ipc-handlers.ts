@@ -1,10 +1,10 @@
-import ElectronStore from 'electron-store';
 import DataStore from '@seald-io/nedb';
+import ElectronStore from 'electron-store';
 import fs from 'node:fs';
+import log from 'electron-log';
 import os from 'node:os';
 import path from 'node:path';
-import log from 'electron-log';
-import { ipcMain, dialog, clipboard, shell, app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, clipboard, dialog, ipcMain, shell } from 'electron';
 
 import * as reportingService from './reporting-service';
 
@@ -64,35 +64,41 @@ ipcMain.handle('db:open', async (_event, username: string) => {
   log.debug('db:open: migrations complete');
 });
 
-ipcMain.handle('db:search', async (_event, params: {
-  encounterType?: string;
-  patientNamePattern?: string;
-  encounterDate?: string;
-}) => {
-  if (!encountersDb) throw new Error('Database not opened');
+ipcMain.handle(
+  'db:search',
+  async (
+    _event,
+    params: {
+      encounterType?: string;
+      patientNamePattern?: string;
+      encounterDate?: string;
+    },
+  ) => {
+    if (!encountersDb) throw new Error('Database not opened');
 
-  const { encounterType, patientNamePattern, encounterDate } = params;
-  const criteria: Record<string, unknown> = { encounterType: { $exists: true } };
+    const { encounterType, patientNamePattern, encounterDate } = params;
+    const criteria: Record<string, unknown> = { encounterType: { $exists: true } };
 
-  if (encounterType && encounterType !== 'All') {
-    criteria.encounterType = encounterType.toLowerCase();
-  }
+    if (encounterType && encounterType !== 'All') {
+      criteria.encounterType = encounterType.toLowerCase();
+    }
 
-  if (patientNamePattern) {
-    criteria.patientName = new RegExp(escapeRegExp(patientNamePattern), 'i');
-  }
+    if (patientNamePattern) {
+      criteria.patientName = new RegExp(escapeRegExp(patientNamePattern), 'i');
+    }
 
-  if (encounterDate) {
-    criteria.encounterDate = encounterDate;
-  }
+    if (encounterDate) {
+      criteria.encounterDate = encounterDate;
+    }
 
-  return new Promise((resolve, reject) => {
-    encountersDb!.find(criteria).exec((err: Error | null, docs: unknown[]) => {
-      if (err) reject(err);
-      else resolve(docs);
+    return new Promise((resolve, reject) => {
+      encountersDb!.find(criteria).exec((err: Error | null, docs: unknown[]) => {
+        if (err) reject(err);
+        else resolve(docs);
+      });
     });
-  });
-});
+  },
+);
 
 ipcMain.handle('db:findAll', async () => {
   if (!encountersDb) throw new Error('Database not opened');
@@ -195,10 +201,17 @@ ipcMain.handle('fixes:getAll', async () => {
 
 // --- Reporting ---
 
-ipcMain.handle('reporting:transform', async (_event, options: { mapMrns?: boolean; fixMrns?: boolean }) => {
-  const rootPath = store.get('root-path') as string;
-  return reportingService.transform({ ...options, rootPath });
-});
+ipcMain.handle(
+  'reporting:transform',
+  async (event, options: { mapMrns?: boolean; fixMrns?: boolean }) => {
+    const rootPath = store.get('root-path') as string;
+    return reportingService.transform({
+      ...options,
+      rootPath,
+      onProgress: (progress) => event.sender.send('reporting:progress', progress),
+    });
+  },
+);
 
 // --- Find in page ---
 

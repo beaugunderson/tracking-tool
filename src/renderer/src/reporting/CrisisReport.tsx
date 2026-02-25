@@ -1,6 +1,6 @@
 import React from 'react';
 import { DATE_FORMAT_DISPLAY } from '../constants';
-import { EXCLUDE_STRING_VALUE, transform, TransformedEncounter } from './data';
+import { EXCLUDE_STRING_VALUE, ReportProgress, transform, TransformedEncounter } from './data';
 import { Icon, Table } from 'semantic-ui-react';
 import { PageLoader } from '../components/PageLoader';
 import { sortBy } from 'lodash';
@@ -10,6 +10,8 @@ interface CrisisReportProps {}
 
 interface CrisisReportState {
   encounters: TransformedEncounter[] | null;
+  loadProgress?: ReportProgress | null;
+  loadStartTime?: number;
 }
 
 export class CrisisReport extends React.Component<CrisisReportProps, CrisisReportState> {
@@ -22,14 +24,20 @@ export class CrisisReport extends React.Component<CrisisReportProps, CrisisRepor
   };
 
   async componentDidMount() {
-    this.setState({ encounters: await transform() });
+    this.setState({ loadStartTime: Date.now() });
+    const encounters = await transform(true, true, (loadProgress) =>
+      this.setState({ loadProgress }),
+    );
+    this.setState({ encounters, loadProgress: null });
   }
 
   render() {
     const { encounters } = this.state;
 
     if (!encounters) {
-      return <PageLoader />;
+      return (
+        <PageLoader progress={this.state.loadProgress} startTime={this.state.loadStartTime} />
+      );
     }
 
     const crisisEncounters = sortBy(

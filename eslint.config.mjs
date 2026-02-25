@@ -28,10 +28,7 @@ export default tseslint.config(
   prettierConfig,
 
   {
-    ignores: [
-      'out/**',
-      'release/**',
-    ],
+    ignores: ['out/**', 'release/**'],
   },
 
   {
@@ -72,6 +69,7 @@ export default tseslint.config(
       'import/order': 'off',
       'import/prefer-default-export': 'off',
       'lines-between-class-members': 'off',
+      'no-await-in-loop': 'off',
       'no-case-declarations': 'off',
       'no-cond-assign': ['error', 'except-parens'],
       'no-continue': 'off',

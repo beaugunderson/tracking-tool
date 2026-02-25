@@ -45,7 +45,7 @@
   "scripts": {
     "dev": "electron-vite dev",
     "build": "tsc --noEmit && electron-vite build",
-    "test": "vitest --dir src/renderer/src",
+    "test": "vitest",
     "eslint": "eslint --fix --report-unused-disable-directives src/renderer/src",
     "dist-mac": "pnpm build && electron-builder --mac",
     "dist-win": "electron-builder --win",

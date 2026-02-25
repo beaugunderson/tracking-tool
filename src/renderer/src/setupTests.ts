@@ -35,6 +35,7 @@ window.trackingTool = {
   fixesGetAll: vi.fn().mockResolvedValue([]),
 
   reportTransform: vi.fn().mockResolvedValue([]),
+  onReportProgress: vi.fn().mockReturnValue(() => {}),
 
   findInPage: vi.fn(),
   stopFindInPage: vi.fn(),

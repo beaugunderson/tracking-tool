@@ -2,7 +2,7 @@ import moment from 'moment';
 import React from 'react';
 import { DATE_FORMAT_DISPLAY, FIRST_TRACKING_DATE, OLDEST_POSSIBLE_AGE } from '../constants';
 import { ENCOUNTER_TYPE_NAMES } from '../options';
-import { EXCLUDE_STRING_VALUE, transform, TransformedEncounter } from './data';
+import { EXCLUDE_STRING_VALUE, ReportProgress, transform, TransformedEncounter } from './data';
 import { Icon, Table } from 'semantic-ui-react';
 import { PageLoader } from '../components/PageLoader';
 import { sortBy } from 'lodash';
@@ -12,6 +12,8 @@ interface DataAuditReportProps {}
 
 interface DataAuditReportState {
   encounters: TransformedEncounter[] | null;
+  loadProgress?: ReportProgress | null;
+  loadStartTime?: number;
 }
 
 export class DataAuditReport extends React.Component<DataAuditReportProps, DataAuditReportState> {
@@ -24,14 +26,20 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
   };
 
   async componentDidMount() {
-    this.setState({ encounters: await transform() });
+    this.setState({ loadStartTime: Date.now() });
+    const encounters = await transform(true, true, (loadProgress) =>
+      this.setState({ loadProgress }),
+    );
+    this.setState({ encounters, loadProgress: null });
   }
 
   render() {
     const { encounters } = this.state;
 
     if (!encounters) {
-      return <PageLoader />;
+      return (
+        <PageLoader progress={this.state.loadProgress} startTime={this.state.loadStartTime} />
+      );
     }
 
     const now = moment();

@@ -51,6 +51,9 @@ interface TrackingToolAPI {
 
   // Reporting
   reportTransform(options: { mapMrns?: boolean; fixMrns?: boolean }): Promise<Encounter[]>;
+  onReportProgress(
+    callback: (progress: { phase: string; current: number; total: number }) => void,
+  ): () => void;
 
   // Find in page
   findInPage(text: string, options?: { forward?: boolean; findNext?: boolean }): Promise<void>;

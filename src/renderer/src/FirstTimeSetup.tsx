@@ -22,7 +22,6 @@ export class FirstTimeSetup extends React.Component<FirstTimeSetupProps, FirstTi
 
   async componentDidMount() {
     for (const defaultPath of DEFAULT_PATHS) {
-      // eslint-disable-next-line no-await-in-loop
       if (await window.trackingTool.fsExists(defaultPath)) {
         this.setState({ defaultPathExists: true });
         return;
@@ -33,7 +32,6 @@ export class FirstTimeSetup extends React.Component<FirstTimeSetupProps, FirstTi
 
   firstPathThatExists = async (): Promise<string | null> => {
     for (const defaultPath of DEFAULT_PATHS) {
-      // eslint-disable-next-line no-await-in-loop
       if (await window.trackingTool.fsExists(defaultPath)) {
         return defaultPath;
       }

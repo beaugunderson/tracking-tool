@@ -6,7 +6,7 @@ import { extendMoment } from 'moment-range';
 import { isIntern } from '../usernames';
 import { MONTHLY_REPORT_OPTIONS, ROW_TYPE } from '../options';
 import { PageLoader } from '../components/PageLoader';
-import { transform, TransformedEncounter } from './data';
+import { ReportProgress, transform, TransformedEncounter } from './data';
 
 // import { maxBy, minBy } from 'lodash';
 
@@ -30,6 +30,8 @@ interface GridReportProps {}
 interface GridReportState {
   encounters: TransformedEncounter[] | null;
   filterDocumentationTasks?: boolean;
+  loadProgress?: ReportProgress | null;
+  loadStartTime?: number;
 }
 
 export class GridReport extends React.Component<GridReportProps, GridReportState> {
@@ -52,11 +54,14 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
   async componentDidMount() {
     log.debug('GridReport componentDidMount');
 
-    const encounters = await transform();
+    this.setState({ loadStartTime: Date.now() });
+    const encounters = await transform(true, true, (loadProgress) =>
+      this.setState({ loadProgress }),
+    );
 
     log.debug(`GridReport componentDidMount: loaded ${encounters.length} encounters`);
 
-    this.setState({ encounters });
+    this.setState({ encounters, loadProgress: null });
   }
 
   rowsForPermutation(
@@ -150,7 +155,9 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
     const { encounters } = this.state;
 
     if (!encounters) {
-      return <PageLoader />;
+      return (
+        <PageLoader progress={this.state.loadProgress} startTime={this.state.loadStartTime} />
+      );
     }
 
     const header = (

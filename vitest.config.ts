@@ -6,6 +6,11 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
+    include: ['src/renderer/src/**/*.test.{ts,tsx}', 'src/main/**/*.test.ts'],
     setupFiles: './src/renderer/src/setupTests.ts',
+    environmentMatchGlobs: [
+      // Main process tests run in Node (no jsdom, no renderer setup)
+      ['src/main/**/*.test.ts', 'node'],
+    ],
   },
 });

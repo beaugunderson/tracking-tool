@@ -18,6 +18,7 @@ import {
 import {
   EXCLUDE_NUMBER_VALUE,
   EXCLUDE_STRING_VALUE,
+  ReportProgress,
   SCORE_DECLINED,
   SCORE_MAY_INDICATE_COGNITIVE_IMPAIRMENT,
   SCORE_MILD_MINIMAL_OR_NONE,
@@ -126,6 +127,8 @@ interface ReportState {
   forceIndividualView: boolean;
   hideDocumentationAndCareCoordination: boolean;
   hideSocialWorkers?: boolean;
+  loadProgress?: ReportProgress | null;
+  loadStartTime?: number;
   // screenshotData?: string;
   windowWidth?: number;
 }
@@ -151,7 +154,11 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
 
     window.addEventListener('resize', this.resize);
 
-    this.setState({ encounters: await transform() }, async () => this.renderCharts());
+    this.setState({ loadStartTime: Date.now() });
+    const encounters = await transform(true, true, (loadProgress) =>
+      this.setState({ loadProgress }),
+    );
+    this.setState({ encounters, loadProgress: null }, async () => this.renderCharts());
   }
 
   componentWillUnmount() {
@@ -1113,7 +1120,9 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     } = this.state;
 
     if (!encounters) {
-      return <PageLoader />;
+      return (
+        <PageLoader progress={this.state.loadProgress} startTime={this.state.loadStartTime} />
+      );
     }
 
     return (

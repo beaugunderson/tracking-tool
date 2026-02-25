@@ -45,6 +45,16 @@ contextBridge.exposeInMainWorld('trackingTool', {
 
   // Reporting
   reportTransform: (options: object) => ipcRenderer.invoke('reporting:transform', options),
+  onReportProgress: (
+    callback: (progress: { phase: string; current: number; total: number }) => void,
+  ) => {
+    const handler = (
+      _event: Electron.IpcRendererEvent,
+      progress: { phase: string; current: number; total: number },
+    ) => callback(progress);
+    ipcRenderer.on('reporting:progress', handler);
+    return () => ipcRenderer.removeListener('reporting:progress', handler);
+  },
 
   // Find in page
   findInPage: (text: string, options?: object) =>

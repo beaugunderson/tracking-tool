@@ -5,7 +5,13 @@ import { Button, Checkbox, Input, Radio, Table } from 'semantic-ui-react';
 import { chain, Dictionary, each, groupBy, map, sortBy } from 'lodash';
 import { DATE_FORMAT_DATABASE, DATE_FORMAT_DISPLAY } from '../constants';
 import { ErrorMessage } from '../ErrorMessage';
-import { EXCLUDE_STRING_VALUE, parseDate, transform, TransformedEncounter } from './data';
+import {
+  EXCLUDE_STRING_VALUE,
+  parseDate,
+  ReportProgress,
+  transform,
+  TransformedEncounter,
+} from './data';
 import { Fix } from '../data';
 import {
   namesRepresentSamePerson,
@@ -266,6 +272,8 @@ interface LinkMrnReportState {
   obfuscated: boolean;
   pendingMatchGroups: Group[];
   pendingMatchGroupsByType: Dictionary<Group[]>;
+  loadProgress?: ReportProgress | null;
+  loadStartTime?: number;
   saveStatuses: { [uniqueId: string]: SAVE_STATUS };
 }
 
@@ -477,8 +485,11 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
   };
 
   async loadEncounters(mapMrns: boolean) {
-    this.setState({ encounters: null, fixes: null }, async () => {
-      const allEncounters = await transform(mapMrns);
+    this.setState({ encounters: null, fixes: null, loadStartTime: Date.now() }, async () => {
+      const allEncounters = await transform(mapMrns, true, (loadProgress) =>
+        this.setState({ loadProgress }),
+      );
+      this.setState({ loadProgress: null });
       const encounters = allEncounters.filter(
         (encounter) => encounter.encounterType === 'patient',
       );
@@ -510,7 +521,9 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
     }
 
     if (!encounters) {
-      return <PageLoader />;
+      return (
+        <PageLoader progress={this.state.loadProgress} startTime={this.state.loadStartTime} />
+      );
     }
 
     const header = (
