@@ -8,6 +8,7 @@ import { findLast, isEqual, pick } from 'lodash';
 import { formatDatabase, parseDate } from '../shared/date-utils';
 import { glob } from 'glob';
 import { isAfter, subYears } from 'date-fns';
+import { transformEncounters } from '../shared/transform';
 
 // --- Data migrations (moved from src/data.ts) ---
 
@@ -226,11 +227,12 @@ export async function getFixes(filename: string): Promise<any[]> {
 
 /**
  * Main reporting pipeline. Copies encounter files to temp, opens NeDB,
- * runs migrations, applies fixes, and returns raw (non-transformed) encounters.
- * The renderer calls transformEncounters() on the result.
+ * runs migrations, applies fixes, transforms encounters, and returns
+ * the transformed result (with Date fields that survive IPC structured clone).
  */
 export async function transform({
   rootPath,
+  mapMrns = true,
   fixMrns = true,
   onProgress,
 }: {
@@ -291,6 +293,8 @@ export async function transform({
 
   onProgress?.({ phase: 'Processing encounters', current: total, total });
 
-  log.debug(`transform: returning ${allEncounters.length} raw encounters`);
-  return allEncounters;
+  log.debug(`transform: transforming ${allEncounters.length} encounters`);
+  const transformed = transformEncounters(allEncounters, mapMrns);
+  log.debug(`transform: returning ${transformed.length} transformed encounters`);
+  return transformed;
 }
