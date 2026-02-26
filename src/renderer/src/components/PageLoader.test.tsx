@@ -1,6 +1,6 @@
 import { PageLoader } from './PageLoader';
 import { render, screen } from '@testing-library/react';
-import type { ReportProgress } from '../reporting/data';
+import type { ReportProgress } from '../../../shared/transform';
 
 describe('PageLoader', () => {
   it('renders loading text with no progress', () => {

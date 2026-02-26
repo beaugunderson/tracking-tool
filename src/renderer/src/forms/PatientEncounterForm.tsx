@@ -2,7 +2,7 @@ import './form.css';
 import Debug from 'debug';
 import Mousetrap from 'mousetrap';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ageYears, parseDate } from '../reporting/data';
+import { ageInYears, formatDatabase, formatDisplay, parseDate } from '../../../shared/date-utils';
 import { chain, isEmpty, isNaN, pick } from 'lodash';
 import {
   Checkbox,
@@ -28,7 +28,6 @@ import {
 } from '../shared-fields';
 import { EncounterFormProps, Intervention } from '../types';
 import { FIRST_TRACKING_DATE, OLDEST_POSSIBLE_AGE } from '../constants';
-import { formatDatabase, formatDisplay } from '../../../shared/date-utils';
 import {
   formatDistanceToNowStrict,
   isAfter,
@@ -671,7 +670,7 @@ function UnwrappedPatientEncounterForm({
     const dobDate = parseDate(values.dateOfBirth);
 
     if (encDate && dobDate) {
-      const age = ageYears(encDate, dobDate);
+      const age = ageInYears(encDate, dobDate);
 
       if (!isNaN(age)) {
         dateOfBirthLabel = `Date of Birth (${age} years old)`;

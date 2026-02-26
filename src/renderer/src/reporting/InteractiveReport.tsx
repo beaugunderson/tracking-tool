@@ -19,7 +19,7 @@ import {
 import {
   EXCLUDE_NUMBER_VALUE,
   EXCLUDE_STRING_VALUE,
-  ReportProgress,
+  type ReportProgress,
   SCORE_DECLINED,
   SCORE_MAY_INDICATE_COGNITIVE_IMPAIRMENT,
   SCORE_MILD_MINIMAL_OR_NONE,
@@ -27,9 +27,8 @@ import {
   SCORE_MODERATELY_SEVERE,
   SCORE_NORMAL,
   SCORE_SEVERE,
-  transform,
-  TransformedEncounter,
-} from './data';
+  type TransformedEncounter,
+} from '../../../shared/transform';
 import {
   isBoolean,
   isNaN,
@@ -46,6 +45,7 @@ import {
 import { MENTAL_HEALTH_INTERVENTION_NAMES } from '../patient-interventions';
 import { OTHER_ENCOUNTER_OPTIONS } from '../forms/OtherEncounterForm';
 import { PageLoader } from '../components/PageLoader';
+import { transform } from './load-encounters';
 import { usernameToName } from '../usernames';
 
 const log = { debug: (...args: unknown[]) => window.trackingTool.logDebug(...args) };

@@ -9,6 +9,67 @@ import { parse } from 'date-fns';
 
 const DATE_FORMAT_DATABASE = 'yyyy-MM-dd';
 
+/** Raw encounter record from NeDB. Patient-only fields are optional. */
+export interface RawEncounter {
+  _id?: string;
+  username?: string;
+  encounterDate: string;
+  encounterType: 'patient' | 'community' | 'staff' | 'other';
+  timeSpent: string;
+  numberOfTasks?: string;
+  location?: string;
+  clinic?: string;
+  // Patient-specific
+  dateOfBirth?: string;
+  patientName?: string;
+  mrn?: string;
+  providenceMrn?: string;
+  md?: string[];
+  documentation?: boolean;
+  diagnosisFreeText?: string;
+  diagnosisStage?: string;
+  diagnosisType?: string;
+  limitedEnglishProficiency?: boolean;
+  transplant?: boolean;
+  // Scored assessments (patient)
+  gad?: boolean;
+  gadScore?: string;
+  moca?: boolean;
+  mocaScore?: string;
+  phq?: boolean;
+  phqScore?: string;
+  // Other encounter
+  activity?: string;
+  // Intervention boolean fields (dynamic)
+  [key: string]: unknown;
+}
+
+export interface TransformedEncounter extends RawEncounter {
+  ageBucket?: AgeBucket | null;
+  formattedDateOfBirth?: string;
+  parsedDateOfBirth?: Date;
+  parsedEncounterDate: Date;
+  formattedEncounterType: string;
+  doctorPrimary: string;
+  interventions: string[];
+  numberOfInterventions: number;
+  parsedNumberOfTasks: number;
+  parsedNumberOfTasksMinusDocumentation: number;
+  gadScoreLabel?: string;
+  mocaScoreLabel?: string;
+  phqScoreLabel?: string;
+  providenceOrSwedishMrn: string;
+  tests: string[];
+  timeSpentHours: number;
+  uniqueId: string;
+}
+
+export interface ReportProgress {
+  phase: string;
+  current: number;
+  total: number;
+}
+
 export type AgeBucket = '<= 39 years' | '40 to 64 years' | '>= 65 years';
 
 export const EXCLUDE_NUMBER_VALUE = -666;
@@ -100,10 +161,10 @@ const TYPES_WITH_INTERVENTIONS = ['patient', 'community'];
 type MrnMapping = { [mrn: string]: string } | undefined;
 
 export function transformEncounter(
-  encounter: any,
+  encounter: RawEncounter,
   providenceMapping: MrnMapping = undefined,
   swedishMapping: MrnMapping = undefined,
-): any {
+): TransformedEncounter {
   let ageBucket: AgeBucket | undefined;
   let parsedDateOfBirth: Date | undefined;
 
@@ -136,9 +197,9 @@ export function transformEncounter(
     ? Math.max(parsedNumberOfTasks - 1, 0)
     : parsedNumberOfTasks;
 
-  let gadScoreLabel: string;
-  let mocaScoreLabel: string;
-  let phqScoreLabel: string;
+  let gadScoreLabel: string | undefined;
+  let mocaScoreLabel: string | undefined;
+  let phqScoreLabel: string | undefined;
 
   if (encounter.gad && RE_SCORE.test(encounter.gadScore)) {
     gadScoreLabel = scoreGad(encounter.gadScore);
@@ -226,7 +287,7 @@ export function transformEncounter(
   };
 }
 
-export function inferMrns(encounters: any[]): [MrnMapping, MrnMapping] {
+export function inferMrns(encounters: RawEncounter[]): [MrnMapping, MrnMapping] {
   const providenceMapping: MrnMapping = {};
   const swedishMapping: MrnMapping = {};
 
@@ -290,19 +351,22 @@ export function inferMrns(encounters: any[]): [MrnMapping, MrnMapping] {
   return [providenceMapping, swedishMapping];
 }
 
-export function transformEncounters(encounters: any[], mapMrns = true) {
+export function transformEncounters(
+  encounters: RawEncounter[],
+  mapMrns = true,
+): TransformedEncounter[] {
   let providenceMapping: MrnMapping;
   let swedishMapping: MrnMapping;
 
   if (mapMrns) {
     [providenceMapping, swedishMapping] = inferMrns(
-      encounters.filter((encounter: any) => encounter.encounterType === 'patient'),
+      encounters.filter((encounter) => encounter.encounterType === 'patient'),
     );
   }
 
   return encounters
-    .filter((encounter: any) =>
+    .filter((encounter) =>
       ['community', 'patient', 'other', 'staff'].includes(encounter.encounterType),
     )
-    .map((encounter: any) => transformEncounter(encounter, providenceMapping, swedishMapping));
+    .map((encounter) => transformEncounter(encounter, providenceMapping, swedishMapping));
 }

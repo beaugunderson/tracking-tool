@@ -1,5 +1,5 @@
 import { constructPendingMatchGroups } from './LinkMrnReport';
-import { EXCLUDE_STRING_VALUE, TransformedEncounter } from './data';
+import { EXCLUDE_STRING_VALUE, type TransformedEncounter } from '../../../shared/transform';
 
 describe('constructPendingMatches', () => {
   it('should find different MRNs for the same patient', () => {

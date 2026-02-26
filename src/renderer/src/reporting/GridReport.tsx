@@ -5,7 +5,8 @@ import { eachMonthOfInterval, format, parse, startOfMonth } from 'date-fns';
 import { isIntern } from '../usernames';
 import { MONTHLY_REPORT_OPTIONS, ROW_TYPE } from '../options';
 import { PageLoader } from '../components/PageLoader';
-import { ReportProgress, transform, TransformedEncounter } from './data';
+import { type ReportProgress, type TransformedEncounter } from '../../../shared/transform';
+import { transform } from './load-encounters';
 
 const log = { debug: (...args: unknown[]) => window.trackingTool.logDebug(...args) };
 

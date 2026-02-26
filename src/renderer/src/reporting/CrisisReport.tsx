@@ -1,9 +1,14 @@
 import React from 'react';
-import { EXCLUDE_STRING_VALUE, ReportProgress, transform, TransformedEncounter } from './data';
+import {
+  EXCLUDE_STRING_VALUE,
+  type ReportProgress,
+  type TransformedEncounter,
+} from '../../../shared/transform';
 import { formatDisplay } from '../../../shared/date-utils';
 import { Icon, Table } from 'semantic-ui-react';
 import { PageLoader } from '../components/PageLoader';
 import { sortBy } from 'lodash';
+import { transform } from './load-encounters';
 import { usernameToName } from '../usernames';
 
 interface CrisisReportProps {}

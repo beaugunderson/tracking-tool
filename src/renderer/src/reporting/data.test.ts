@@ -1,5 +1,4 @@
-import { EXCLUDE_STRING_VALUE, inferMrns } from './data';
-import { PatientEncounter } from '../forms/PatientEncounterForm';
+import { EXCLUDE_STRING_VALUE, inferMrns, type RawEncounter } from '../../../shared/transform';
 
 describe('inferMrns', () => {
   it('should infer MRNSs', () => {
@@ -17,7 +16,7 @@ describe('inferMrns', () => {
 
       { mrn: 's5', providenceMrn: 'p5' },
       { mrn: 's6', providenceMrn: 'p5' },
-    ] as PatientEncounter[];
+    ] as RawEncounter[];
 
     const [providenceMapping, swedishMapping] = inferMrns(encounters);
 

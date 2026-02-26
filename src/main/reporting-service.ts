@@ -8,14 +8,14 @@ import { findLast, isEqual, pick } from 'lodash';
 import { formatDatabase, parseDate } from '../shared/date-utils';
 import { glob } from 'glob';
 import { isAfter, subYears } from 'date-fns';
-import { transformEncounters } from '../shared/transform';
+import { type RawEncounter, type ReportProgress, transformEncounters } from '../shared/transform';
 
 // --- Data migrations (moved from src/data.ts) ---
 
 interface Migration {
   id: string;
   query: object;
-  transform: (encounter: any) => any;
+  transform: (encounter: RawEncounter) => RawEncounter;
 }
 
 const migrations: Migration[] = [
@@ -128,12 +128,6 @@ export function openDataStore(filename: string): DataStore {
     filename,
     timestampData: true,
   });
-}
-
-export interface ReportProgress {
-  phase: string;
-  current: number;
-  total: number;
 }
 
 type ProgressCallback = (progress: ReportProgress) => void;

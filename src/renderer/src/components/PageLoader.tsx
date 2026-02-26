@@ -1,5 +1,5 @@
 import { Dimmer, Loader, Message, Progress, Segment } from 'semantic-ui-react';
-import type { ReportProgress } from '../reporting/data';
+import type { ReportProgress } from '../../../shared/transform';
 
 type PageLoaderProps = {
   error?: string | null;

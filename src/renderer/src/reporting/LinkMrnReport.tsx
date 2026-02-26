@@ -5,13 +5,11 @@ import { chain, Dictionary, each, groupBy, map, sortBy } from 'lodash';
 import { ErrorMessage } from '../ErrorMessage';
 import {
   EXCLUDE_STRING_VALUE,
-  parseDate,
-  ReportProgress,
-  transform,
-  TransformedEncounter,
-} from './data';
+  type ReportProgress,
+  type TransformedEncounter,
+} from '../../../shared/transform';
 import { Fix } from '../data';
-import { formatDatabase, formatDisplay } from '../../../shared/date-utils';
+import { formatDatabase, formatDisplay, parseDate } from '../../../shared/date-utils';
 import {
   namesRepresentSamePerson,
   obfuscateDate,
@@ -19,6 +17,7 @@ import {
   obfuscateString,
 } from '../utilities';
 import { PageLoader } from '../components/PageLoader';
+import { transform } from './load-encounters';
 import { usernameToName } from '../usernames';
 
 function hasMultipleMrns(encounters: TransformedEncounter[]) {

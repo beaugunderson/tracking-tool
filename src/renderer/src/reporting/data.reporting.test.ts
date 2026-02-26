@@ -1,8 +1,7 @@
+import { ageInYears, formatDatabase, parseDate } from '../../../shared/date-utils';
 import {
-  ageYears,
   EXCLUDE_NUMBER_VALUE,
   EXCLUDE_STRING_VALUE,
-  parseDate,
   SCORE_DECLINED,
   SCORE_MAY_INDICATE_COGNITIVE_IMPAIRMENT,
   SCORE_MILD_MINIMAL_OR_NONE,
@@ -12,8 +11,7 @@ import {
   SCORE_SEVERE,
   transformEncounter,
   transformEncounters,
-} from './data';
-import { formatDatabase } from '../../../shared/date-utils';
+} from '../../../shared/transform';
 import { PatientEncounter } from '../forms/PatientEncounterForm';
 
 function makeEncounter(overrides: Partial<PatientEncounter> = {}): PatientEncounter {
@@ -186,23 +184,23 @@ describe('parseDate', () => {
   });
 });
 
-describe('ageYears', () => {
+describe('ageInYears', () => {
   it('calculates age in whole years', () => {
     const encounter = new Date(2023, 5, 15);
     const dob = new Date(1980, 0, 1);
-    expect(ageYears(encounter, dob)).toBe(43);
+    expect(ageInYears(encounter, dob)).toBe(43);
   });
 
   it('returns age before birthday in the encounter year', () => {
     const encounter = new Date(2023, 5, 15);
     const dob = new Date(1980, 6, 1);
-    expect(ageYears(encounter, dob)).toBe(42);
+    expect(ageInYears(encounter, dob)).toBe(42);
   });
 
   it('returns age on birthday', () => {
     const encounter = new Date(2023, 5, 15);
     const dob = new Date(1980, 5, 15);
-    expect(ageYears(encounter, dob)).toBe(43);
+    expect(ageInYears(encounter, dob)).toBe(43);
   });
 });
 

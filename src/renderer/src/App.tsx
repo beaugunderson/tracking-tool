@@ -25,7 +25,7 @@ import { MENTAL_HEALTH_FIELD_NAMES } from './patient-interventions';
 import { PageLoader } from './components/PageLoader';
 import { PatientEncounter, PatientEncounterForm } from './forms/PatientEncounterForm';
 import { StaffEncounter, StaffEncounterForm } from './forms/StaffEncounterForm';
-import { transformEncounter, transformEncounters } from './reporting/data';
+import { transformEncounter, transformEncounters } from '../../shared/transform';
 
 function currentUserIn(users: string[]) {
   return users.indexOf(window.trackingTool.username) !== -1;

@@ -1,12 +1,17 @@
 import React from 'react';
 import { ENCOUNTER_TYPE_NAMES } from '../options';
-import { EXCLUDE_STRING_VALUE, ReportProgress, transform, TransformedEncounter } from './data';
+import {
+  EXCLUDE_STRING_VALUE,
+  type ReportProgress,
+  type TransformedEncounter,
+} from '../../../shared/transform';
 import { FIRST_TRACKING_DATE, OLDEST_POSSIBLE_AGE } from '../constants';
 import { formatDisplay } from '../../../shared/date-utils';
 import { Icon, Table } from 'semantic-ui-react';
 import { isAfter, isBefore, subYears } from 'date-fns';
 import { PageLoader } from '../components/PageLoader';
 import { sortBy } from 'lodash';
+import { transform } from './load-encounters';
 import { usernameToName } from '../usernames';
 
 interface DataAuditReportProps {}
