@@ -267,13 +267,14 @@ interface LinkMrnReportState {
   encounters: TransformedEncounter[];
   error?: Error;
   fixes: Fix[];
+  loadError?: string | null;
+  loadProgress?: ReportProgress | null;
+  loadStartTime?: number;
   mode: MODE;
   mrnInferenceEnabled: boolean;
   obfuscated: boolean;
   pendingMatchGroups: Group[];
   pendingMatchGroupsByType: Dictionary<Group[]>;
-  loadProgress?: ReportProgress | null;
-  loadStartTime?: number;
   saveStatuses: { [uniqueId: string]: SAVE_STATUS };
 }
 
@@ -486,25 +487,29 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
 
   async loadEncounters(mapMrns: boolean) {
     this.setState({ encounters: null, fixes: null, loadStartTime: Date.now() }, async () => {
-      const allEncounters = await transform(mapMrns, true, (loadProgress) =>
-        this.setState({ loadProgress }),
-      );
-      this.setState({ loadProgress: null });
-      const encounters = allEncounters.filter(
-        (encounter) => encounter.encounterType === 'patient',
-      );
+      try {
+        const allEncounters = await transform(mapMrns, true, (loadProgress) =>
+          this.setState({ loadProgress }),
+        );
+        this.setState({ loadProgress: null });
+        const encounters = allEncounters.filter(
+          (encounter) => encounter.encounterType === 'patient',
+        );
 
-      const fixes = await window.trackingTool.fixesGetAll();
+        const fixes = await window.trackingTool.fixesGetAll();
 
-      const pendingMatchGroups = constructPendingMatchGroups(encounters);
-      const pendingMatchGroupsByType = groupBy(pendingMatchGroups, 'type');
+        const pendingMatchGroups = constructPendingMatchGroups(encounters);
+        const pendingMatchGroupsByType = groupBy(pendingMatchGroups, 'type');
 
-      this.setState({
-        encounters,
-        fixes,
-        pendingMatchGroups,
-        pendingMatchGroupsByType,
-      });
+        this.setState({
+          encounters,
+          fixes,
+          pendingMatchGroups,
+          pendingMatchGroupsByType,
+        });
+      } catch (err) {
+        this.setState({ loadError: err instanceof Error ? err.message : String(err) });
+      }
     });
   }
 
@@ -522,7 +527,11 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
 
     if (!encounters) {
       return (
-        <PageLoader progress={this.state.loadProgress} startTime={this.state.loadStartTime} />
+        <PageLoader
+          error={this.state.loadError}
+          progress={this.state.loadProgress}
+          startTime={this.state.loadStartTime}
+        />
       );
     }
 

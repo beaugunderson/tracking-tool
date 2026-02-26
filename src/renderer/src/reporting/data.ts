@@ -1,7 +1,7 @@
 import moment from 'moment';
-import { clone, isEqual, isNaN, isNumber } from 'lodash';
 import { DATE_FORMAT_DATABASE, DATE_FORMAT_DISPLAY } from '../constants';
 import { INTERVENTIONS } from '../patient-interventions';
+import { isNaN, isNumber } from 'lodash';
 import { PatientEncounter } from '../forms/PatientEncounterForm';
 
 export type AgeBucket = '<= 39 years' | '40 to 64 years' | '>= 65 years';
@@ -298,15 +298,10 @@ export function inferMrns(encounters: PatientEncounter[]): [MrnMapping, MrnMappi
   const providenceMapping: MrnMapping = {};
   const swedishMapping: MrnMapping = {};
 
-  let lastProvidenceMapping: MrnMapping;
-  let lastSwedishMapping: MrnMapping;
+  let changed = true;
 
-  while (
-    !isEqual(lastProvidenceMapping, providenceMapping) ||
-    !isEqual(lastSwedishMapping, swedishMapping)
-  ) {
-    lastProvidenceMapping = clone(providenceMapping);
-    lastSwedishMapping = clone(swedishMapping);
+  while (changed) {
+    changed = false;
 
     for (const encounter of encounters) {
       if (!encounter.mrn || !encounter.providenceMrn) {
@@ -326,6 +321,7 @@ export function inferMrns(encounters: PatientEncounter[]): [MrnMapping, MrnMappi
       if (!currentProvidenceMapping && !currentSwedishMapping) {
         providenceMapping[encounter.providenceMrn] = encounter.mrn;
         swedishMapping[encounter.mrn] = encounter.providenceMrn;
+        changed = true;
       }
 
       if (
@@ -334,6 +330,7 @@ export function inferMrns(encounters: PatientEncounter[]): [MrnMapping, MrnMappi
       ) {
         providenceMapping[encounter.providenceMrn] = EXCLUDE_STRING_VALUE;
         swedishMapping[encounter.mrn] = EXCLUDE_STRING_VALUE;
+        changed = true;
       }
     }
   }
@@ -400,6 +397,10 @@ export async function transform(
   try {
     const rawEncounters = await window.trackingTool.reportTransform({ mapMrns, fixMrns });
     onProgress?.({ phase: 'Transforming encounters', current: 0, total: 0 });
+    // Yield to let the UI render the progress update before the synchronous transform
+    await new Promise((resolve) => {
+      setTimeout(resolve, 0);
+    });
     return transformEncounters(rawEncounters as PatientEncounter[], mapMrns);
   } finally {
     cleanup?.();

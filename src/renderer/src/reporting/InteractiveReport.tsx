@@ -127,6 +127,7 @@ interface ReportState {
   forceIndividualView: boolean;
   hideDocumentationAndCareCoordination: boolean;
   hideSocialWorkers?: boolean;
+  loadError?: string | null;
   loadProgress?: ReportProgress | null;
   loadStartTime?: number;
   // screenshotData?: string;
@@ -155,10 +156,14 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     window.addEventListener('resize', this.resize);
 
     this.setState({ loadStartTime: Date.now() });
-    const encounters = await transform(true, true, (loadProgress) =>
-      this.setState({ loadProgress }),
-    );
-    this.setState({ encounters, loadProgress: null }, async () => this.renderCharts());
+    try {
+      const encounters = await transform(true, true, (loadProgress) =>
+        this.setState({ loadProgress }),
+      );
+      this.setState({ encounters, loadProgress: null }, async () => this.renderCharts());
+    } catch (err) {
+      this.setState({ loadError: err instanceof Error ? err.message : String(err) });
+    }
   }
 
   componentWillUnmount() {
@@ -1121,7 +1126,11 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
 
     if (!encounters) {
       return (
-        <PageLoader progress={this.state.loadProgress} startTime={this.state.loadStartTime} />
+        <PageLoader
+          error={this.state.loadError}
+          progress={this.state.loadProgress}
+          startTime={this.state.loadStartTime}
+        />
       );
     }
 

@@ -1,7 +1,8 @@
-import { Dimmer, Loader, Progress, Segment } from 'semantic-ui-react';
+import { Dimmer, Loader, Message, Progress, Segment } from 'semantic-ui-react';
 import type { ReportProgress } from '../reporting/data';
 
 type PageLoaderProps = {
+  error?: string | null;
   progress?: ReportProgress | null;
   startTime?: number;
   status?: string[];
@@ -14,7 +15,18 @@ function formatEta(seconds: number): string {
   return `~${minutes}m ${secs}s remaining`;
 }
 
-export function PageLoader({ progress, startTime, status }: PageLoaderProps) {
+export function PageLoader({ error, progress, startTime, status }: PageLoaderProps) {
+  if (error) {
+    return (
+      <Segment placeholder>
+        <Message negative>
+          <Message.Header>Error loading report</Message.Header>
+          <p>{error}</p>
+        </Message>
+      </Segment>
+    );
+  }
+
   let eta: string | undefined;
   if (progress && startTime && progress.total > 0 && progress.current > 0) {
     const elapsed = (Date.now() - startTime) / 1000;

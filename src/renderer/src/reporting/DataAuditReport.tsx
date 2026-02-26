@@ -12,6 +12,7 @@ interface DataAuditReportProps {}
 
 interface DataAuditReportState {
   encounters: TransformedEncounter[] | null;
+  loadError?: string | null;
   loadProgress?: ReportProgress | null;
   loadStartTime?: number;
 }
@@ -27,10 +28,14 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
 
   async componentDidMount() {
     this.setState({ loadStartTime: Date.now() });
-    const encounters = await transform(true, true, (loadProgress) =>
-      this.setState({ loadProgress }),
-    );
-    this.setState({ encounters, loadProgress: null });
+    try {
+      const encounters = await transform(true, true, (loadProgress) =>
+        this.setState({ loadProgress }),
+      );
+      this.setState({ encounters, loadProgress: null });
+    } catch (err) {
+      this.setState({ loadError: err instanceof Error ? err.message : String(err) });
+    }
   }
 
   render() {
@@ -38,7 +43,11 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
 
     if (!encounters) {
       return (
-        <PageLoader progress={this.state.loadProgress} startTime={this.state.loadStartTime} />
+        <PageLoader
+          error={this.state.loadError}
+          progress={this.state.loadProgress}
+          startTime={this.state.loadStartTime}
+        />
       );
     }
 

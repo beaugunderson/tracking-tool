@@ -30,6 +30,7 @@ interface GridReportProps {}
 interface GridReportState {
   encounters: TransformedEncounter[] | null;
   filterDocumentationTasks?: boolean;
+  loadError?: string | null;
   loadProgress?: ReportProgress | null;
   loadStartTime?: number;
 }
@@ -55,13 +56,17 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
     log.debug('GridReport componentDidMount');
 
     this.setState({ loadStartTime: Date.now() });
-    const encounters = await transform(true, true, (loadProgress) =>
-      this.setState({ loadProgress }),
-    );
+    try {
+      const encounters = await transform(true, true, (loadProgress) =>
+        this.setState({ loadProgress }),
+      );
 
-    log.debug(`GridReport componentDidMount: loaded ${encounters.length} encounters`);
+      log.debug(`GridReport componentDidMount: loaded ${encounters.length} encounters`);
 
-    this.setState({ encounters, loadProgress: null });
+      this.setState({ encounters, loadProgress: null });
+    } catch (err) {
+      this.setState({ loadError: err instanceof Error ? err.message : String(err) });
+    }
   }
 
   rowsForPermutation(
@@ -156,7 +161,11 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
 
     if (!encounters) {
       return (
-        <PageLoader progress={this.state.loadProgress} startTime={this.state.loadStartTime} />
+        <PageLoader
+          error={this.state.loadError}
+          progress={this.state.loadProgress}
+          startTime={this.state.loadStartTime}
+        />
       );
     }
 
