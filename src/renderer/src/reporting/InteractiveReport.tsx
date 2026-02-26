@@ -3,6 +3,7 @@ import 'dc/dist/style/dc.css';
 import * as d3 from 'd3';
 import * as dc from 'dc';
 import crossfilter from 'crossfilter2';
+import { format, getISODay, isWithinInterval, parse } from 'date-fns';
 // import mergeImg from 'merge-img';
 import React from 'react';
 import reductio from 'reductio';
@@ -179,17 +180,17 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       !this.state.dateTo
     ) {
       const firstEncounter = minBy(this.state.encounters, (encounter) =>
-        encounter.parsedEncounterDate.valueOf(),
+        encounter.parsedEncounterDate.getTime(),
       );
 
       const lastEncounter = maxBy(this.state.encounters, (encounter) =>
-        encounter.parsedEncounterDate.valueOf(),
+        encounter.parsedEncounterDate.getTime(),
       );
 
       if (firstEncounter && lastEncounter) {
         this.setState({
-          dateFrom: firstEncounter.parsedEncounterDate.format('YYYY-MM-DD'),
-          dateTo: lastEncounter.parsedEncounterDate.format('YYYY-MM-DD'),
+          dateFrom: format(firstEncounter.parsedEncounterDate, 'yyyy-MM-dd'),
+          dateTo: format(lastEncounter.parsedEncounterDate, 'yyyy-MM-dd'),
         });
       }
     }
@@ -263,8 +264,10 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     let filteredEncounters = encounters;
 
     if (dateFrom && dateTo) {
+      const from = parse(dateFrom, 'yyyy-MM-dd', new Date());
+      const to = parse(dateTo, 'yyyy-MM-dd', new Date());
       filteredEncounters = encounters.filter((encounter) =>
-        encounter.parsedEncounterDate.isBetween(dateFrom, dateTo, null, '[]'),
+        isWithinInterval(encounter.parsedEncounterDate, { start: from, end: to }),
       );
     }
 
@@ -465,7 +468,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     // #endregion
 
     // #region encounters by day
-    const encounterDateDimension = ndx.dimension((d) => d.parsedEncounterDate.format('YYYY-MM'));
+    const encounterDateDimension = ndx.dimension((d) => format(d.parsedEncounterDate, 'yyyy-MM'));
     const encounterDateGroup = encounterDateDimension
       .group()
       .reduceSum((d) => d.parsedNumberOfTasks);
@@ -499,7 +502,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
 
     // #region day of week
     const dayOfWeekDimension = ndx.dimension((d) => {
-      const weekday = d.parsedEncounterDate.isoWeekday();
+      const weekday = getISODay(d.parsedEncounterDate);
 
       // exclude weekend days
       if (weekday > 5) {

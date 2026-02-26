@@ -1,21 +1,15 @@
 import './GridReport.css';
-import Moment from 'moment';
 import React from 'react';
 import { Button, Checkbox, CheckboxProps, Table } from 'semantic-ui-react';
-import { extendMoment } from 'moment-range';
+import { eachMonthOfInterval, format, parse, startOfMonth } from 'date-fns';
 import { isIntern } from '../usernames';
 import { MONTHLY_REPORT_OPTIONS, ROW_TYPE } from '../options';
 import { PageLoader } from '../components/PageLoader';
 import { ReportProgress, transform, TransformedEncounter } from './data';
 
-// import { maxBy, minBy } from 'lodash';
-
 const log = { debug: (...args: unknown[]) => window.trackingTool.logDebug(...args) };
 
 const OVERFLOW_AUTO_STYLE: React.CSSProperties = { overflowX: 'auto' };
-
-// @ts-expect-error moment-range typing mismatch with moment
-const moment = extendMoment(Moment);
 
 function formatCount(count: number) {
   if (count === 0) {
@@ -73,7 +67,7 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
     clinic: string,
     location: string,
     types: readonly ROW_TYPE[],
-    months: Moment.Moment[],
+    months: Date[],
   ) {
     log.debug(`rowsForPemutation: ${clinic}, ${location}, [${types.join(', ')}]`);
 
@@ -97,7 +91,7 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
             (encounter.encounterType === 'community' &&
               encounter.location === location &&
               clinic === 'Community')) &&
-          encounter.encounterDate.slice(0, 7) === months[i].format('YYYY-MM')
+          encounter.encounterDate.slice(0, 7) === format(months[i], 'yyyy-MM')
         ) {
           if (encounter.encounterType === 'staff') {
             staff[i] += encounter[field];
@@ -120,7 +114,7 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
             <Table.Cell>{clinic}</Table.Cell>
             <Table.Cell>OSW</Table.Cell>
             {nonInterns.map((count, i) => (
-              <Table.Cell key={months[i].format('YYYY-MM')} textAlign="right">
+              <Table.Cell key={format(months[i], 'yyyy-MM')} textAlign="right">
                 {formatCount(count)}
               </Table.Cell>
             ))}
@@ -133,7 +127,7 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
             <Table.Cell>{clinic}</Table.Cell>
             <Table.Cell>Interns</Table.Cell>
             {interns.map((count, i) => (
-              <Table.Cell key={months[i].format('YYYY-MM')} textAlign="right">
+              <Table.Cell key={format(months[i], 'yyyy-MM')} textAlign="right">
                 {formatCount(count)}
               </Table.Cell>
             ))}
@@ -146,7 +140,7 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
             <Table.Cell>{clinic}</Table.Cell>
             <Table.Cell>Staff Support</Table.Cell>
             {staff.map((count, i) => (
-              <Table.Cell key={months[i].format('YYYY-MM')} textAlign="right">
+              <Table.Cell key={format(months[i], 'yyyy-MM')} textAlign="right">
                 {formatCount(count)}
               </Table.Cell>
             ))}
@@ -190,17 +184,13 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
     log.debug(`GridComponent render: rendering ${encounters.length} encounters`);
 
     function monthStart(date: string) {
-      return moment(date, 'YYYY-MM-DD').startOf('month');
+      return startOfMonth(parse(date, 'yyyy-MM-dd', new Date()));
     }
 
-    // has issues with automatic calculation when people enter the wrong encounter date
-    // const min = monthStart(minBy(encounters, 'encounterDate').encounterDate);
-    // const max = monthStart(maxBy(encounters, 'encounterDate').encounterDate);
-
     const min = monthStart('2018-12-01');
-    const max = monthStart(moment().format('YYYY-MM-DD'));
+    const max = monthStart(format(new Date(), 'yyyy-MM-dd'));
 
-    const months = Array.from(moment.range(min, max).by('month'));
+    const months = eachMonthOfInterval({ start: min, end: max });
 
     // show newest month first
     months.reverse();
@@ -219,8 +209,8 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
                 <Table.HeaderCell>Clinic</Table.HeaderCell>
                 <Table.HeaderCell>Staff</Table.HeaderCell>
                 {months.map((month) => (
-                  <Table.HeaderCell key={`${month.format('YYYY-MM')}`} textAlign="right">
-                    {month.format('YYYY-MM')}
+                  <Table.HeaderCell key={format(month, 'yyyy-MM')} textAlign="right">
+                    {format(month, 'yyyy-MM')}
                   </Table.HeaderCell>
                 ))}
               </Table.Row>

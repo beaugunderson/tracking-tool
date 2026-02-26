@@ -1,7 +1,6 @@
 import './App.scss';
 
 import className from 'classnames';
-import moment from 'moment';
 import React from 'react';
 import { Button, Confirm, Dropdown, Icon, Input, Statistic, Table } from 'semantic-ui-react';
 import { chain, sumBy } from 'lodash';
@@ -9,14 +8,16 @@ import { ChooseUserForm } from './ChooseUserForm';
 import { CommunityEncounter, CommunityEncounterForm } from './forms/CommunityEncounterForm';
 import { CrisisReport } from './reporting/CrisisReport';
 import { DataAuditReport } from './reporting/DataAuditReport';
-import { DATE_FORMAT_DATABASE, DATE_FORMAT_DISPLAY } from './constants';
+import { DATE_FORMAT_DISPLAY } from './constants';
 import { Encounter } from './types';
 import { ENCOUNTER_TYPE_NAMES, ENCOUNTER_TYPES } from './options';
+import { endOfMonth, format, isWithinInterval, startOfMonth } from 'date-fns';
 import { ensureUserDirectoryExists, initStore, rootPathExists } from './store';
 import { ErrorMessage } from './ErrorMessage';
 import { fieldNameToName, OtherEncounter, OtherEncounterForm } from './forms/OtherEncounterForm';
 import { FindBar } from './components/FindBar';
 import { FirstTimeSetup } from './FirstTimeSetup';
+import { formatDatabase, parseDate } from '../../shared/date-utils';
 import { GridReport } from './reporting/GridReport';
 import { InteractiveReport, ReportAudience } from './reporting/InteractiveReport';
 import { LinkMrnReport } from './reporting/LinkMrnReport';
@@ -149,12 +150,10 @@ export class App extends React.Component<{}, AppState> {
   searchPatients = async () => {
     const { encounterSearchDate, encounterSearchPatientName, encounterSearchType } = this.state;
 
-    const encounterSearchMoment = moment(encounterSearchDate);
+    const parsedSearchDate = parseDate(encounterSearchDate);
 
     const isDefaultCriteria =
-      encounterSearchType === 'All' &&
-      !encounterSearchPatientName &&
-      !encounterSearchMoment.isValid();
+      encounterSearchType === 'All' && !encounterSearchPatientName && !parsedSearchDate;
 
     try {
       const docs = await window.trackingTool.dbSearch({
@@ -163,9 +162,7 @@ export class App extends React.Component<{}, AppState> {
           encounterSearchType === 'All' || encounterSearchType === 'Patient'
             ? encounterSearchPatientName
             : undefined,
-        encounterDate: encounterSearchMoment.isValid()
-          ? encounterSearchMoment.format(DATE_FORMAT_DATABASE)
-          : undefined,
+        encounterDate: parsedSearchDate ? formatDatabase(parsedSearchDate) : undefined,
       });
 
       const resultsToReturn = isDefaultCriteria ? 50 : 500;
@@ -188,12 +185,11 @@ export class App extends React.Component<{}, AppState> {
     try {
       const results = await window.trackingTool.dbFindAll();
 
-      const monthStart = moment().startOf('month');
-      const monthEnd = moment().endOf('month');
+      const now = new Date();
+      const monthInterval = { start: startOfMonth(now), end: endOfMonth(now) };
 
       const monthEncounters = transformEncounters(results as PatientEncounter[]).filter(
-        (encounter) =>
-          encounter.parsedEncounterDate.isBetween(monthStart, monthEnd, undefined, '[]'),
+        (encounter) => isWithinInterval(encounter.parsedEncounterDate, monthInterval),
       );
 
       const gads = monthEncounters.filter((encounter) => !!encounter.gad).length;
@@ -669,7 +665,7 @@ export class App extends React.Component<{}, AppState> {
                     </Button>
                   </Table.Cell>
                   <Table.Cell>
-                    {transformed.parsedEncounterDate.format(DATE_FORMAT_DISPLAY)}
+                    {format(transformed.parsedEncounterDate, DATE_FORMAT_DISPLAY)}
                   </Table.Cell>
                   <Table.Cell>
                     {ENCOUNTER_TYPE_NAMES[doc.encounterType] || 'Patient'}

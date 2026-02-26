@@ -1,9 +1,7 @@
 import './LinkMrnReport.css';
-import moment from 'moment';
 import React, { useCallback } from 'react';
 import { Button, Checkbox, Input, Radio, Table } from 'semantic-ui-react';
 import { chain, Dictionary, each, groupBy, map, sortBy } from 'lodash';
-import { DATE_FORMAT_DATABASE, DATE_FORMAT_DISPLAY } from '../constants';
 import { ErrorMessage } from '../ErrorMessage';
 import {
   EXCLUDE_STRING_VALUE,
@@ -13,6 +11,7 @@ import {
   TransformedEncounter,
 } from './data';
 import { Fix } from '../data';
+import { formatDatabase, formatDisplay } from '../../../shared/date-utils';
 import {
   namesRepresentSamePerson,
   obfuscateDate,
@@ -311,15 +310,10 @@ function EncounterRow({
 
   const handleDateOfBirthChange = useCallback(
     (_e: React.SyntheticEvent, data: { value?: string }) => {
-      let dateOfBirth: string;
+      const parsed = parseDate(data.value);
+      if (!parsed) return;
 
-      try {
-        dateOfBirth = parseDate(data.value).format(DATE_FORMAT_DATABASE);
-      } catch {
-        return;
-      }
-
-      onFieldChange(encounter.uniqueId, 'dateOfBirth', dateOfBirth);
+      onFieldChange(encounter.uniqueId, 'dateOfBirth', formatDatabase(parsed));
     },
     [encounter.uniqueId, onFieldChange],
   );
@@ -351,7 +345,7 @@ function EncounterRow({
         {obfuscated ? obfuscateString(encounter.patientName) : encounter.patientName}
       </Table.Cell>
 
-      <Table.Cell>{encounter.parsedEncounterDate.format(DATE_FORMAT_DISPLAY)}</Table.Cell>
+      <Table.Cell>{formatDisplay(encounter.parsedEncounterDate)}</Table.Cell>
 
       <Table.Cell>
         {obfuscated ? (
@@ -676,10 +670,15 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
             {sortBy(fixes, 'createdAt').map((fix, i) => {
               return (
                 <Table.Row key={i}>
-                  <Table.Cell>{moment(fix.createdAt).format(DATE_FORMAT_DISPLAY)}</Table.Cell>
+                  <Table.Cell>{formatDisplay(new Date(fix.createdAt))}</Table.Cell>
                   <Table.Cell>{fix.uniqueId}</Table.Cell>
                   <Table.Cell>
-                    {fix.dateOfBirth ? parseDate(fix.dateOfBirth).format(DATE_FORMAT_DISPLAY) : ''}
+                    {fix.dateOfBirth
+                      ? (() => {
+                          const d = parseDate(fix.dateOfBirth);
+                          return d ? formatDisplay(d) : '';
+                        })()
+                      : ''}
                   </Table.Cell>
                   <Table.Cell>{fix.providenceMrn}</Table.Cell>
                   <Table.Cell>{fix.mrn}</Table.Cell>

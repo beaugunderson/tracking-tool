@@ -1,9 +1,10 @@
-import moment from 'moment';
 import React from 'react';
-import { DATE_FORMAT_DISPLAY, FIRST_TRACKING_DATE, OLDEST_POSSIBLE_AGE } from '../constants';
 import { ENCOUNTER_TYPE_NAMES } from '../options';
 import { EXCLUDE_STRING_VALUE, ReportProgress, transform, TransformedEncounter } from './data';
+import { FIRST_TRACKING_DATE, OLDEST_POSSIBLE_AGE } from '../constants';
+import { formatDisplay } from '../../../shared/date-utils';
 import { Icon, Table } from 'semantic-ui-react';
+import { isAfter, isBefore, subYears } from 'date-fns';
 import { PageLoader } from '../components/PageLoader';
 import { sortBy } from 'lodash';
 import { usernameToName } from '../usernames';
@@ -51,7 +52,7 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
       );
     }
 
-    const now = moment();
+    const now = new Date();
 
     function abnormalDateOfBirth(encounter: TransformedEncounter) {
       if (encounter.encounterType !== 'patient') {
@@ -59,17 +60,19 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
       }
 
       return (
-        encounter.parsedEncounterDate
-          .clone()
-          .subtract(OLDEST_POSSIBLE_AGE, 'years')
-          .isAfter(encounter.parsedDateOfBirth) || encounter.parsedEncounterDate.isAfter(now)
+        (encounter.parsedDateOfBirth &&
+          isAfter(
+            subYears(encounter.parsedEncounterDate, OLDEST_POSSIBLE_AGE),
+            encounter.parsedDateOfBirth,
+          )) ||
+        isAfter(encounter.parsedEncounterDate, now)
       );
     }
 
     function abnormalEncounterDate(encounter: TransformedEncounter) {
       return (
-        encounter.parsedEncounterDate.isAfter(now) ||
-        encounter.parsedEncounterDate.isBefore(FIRST_TRACKING_DATE)
+        isAfter(encounter.parsedEncounterDate, now) ||
+        isBefore(encounter.parsedEncounterDate, FIRST_TRACKING_DATE)
       );
     }
 
@@ -129,7 +132,7 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
                 <Table.Cell>{ENCOUNTER_TYPE_NAMES[encounter.encounterType]}</Table.Cell>
                 <Table.Cell>{usernameToName(encounter.username)}</Table.Cell>
                 <Table.Cell negative={abnormalEncounterDate(encounter)}>
-                  {encounter.parsedEncounterDate.format(DATE_FORMAT_DISPLAY)}
+                  {formatDisplay(encounter.parsedEncounterDate)}
                 </Table.Cell>
                 <Table.Cell negative={abnormalDateOfBirth(encounter)}>
                   {encounter.formattedDateOfBirth}

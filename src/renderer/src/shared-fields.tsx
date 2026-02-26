@@ -1,4 +1,3 @@
-import moment from 'moment';
 import React, { useMemo } from 'react';
 import {
   CLINIC_LOCATION_OPTIONS,
@@ -6,8 +5,8 @@ import {
   LOCATION_OPTIONS,
   Option,
 } from './options';
-import { DATE_FORMAT_DATABASE } from './constants';
 import { Dropdown, Form, Input, Popup } from 'semantic-ui-react';
+import { formatDatabase } from '../../shared/date-utils';
 import { InfoButton } from './InfoButton';
 
 const EMPTY_ARRAY: never[] = [] as never[];
@@ -23,7 +22,7 @@ type FieldProps = {
   ) => void;
 };
 
-export const today = () => moment().format(DATE_FORMAT_DATABASE);
+export const today = () => formatDatabase(new Date());
 
 export function EncounterDateField({ error, onBlur, onChange, value }: FieldProps) {
   return (

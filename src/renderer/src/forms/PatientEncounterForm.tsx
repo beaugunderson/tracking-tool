@@ -1,6 +1,5 @@
 import './form.css';
 import Debug from 'debug';
-import moment from 'moment';
 import Mousetrap from 'mousetrap';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ageYears, parseDate } from '../reporting/data';
@@ -16,12 +15,6 @@ import {
   Input,
   Ref,
 } from 'semantic-ui-react';
-import {
-  DATE_FORMAT_DATABASE,
-  DATE_FORMAT_DISPLAY,
-  FIRST_TRACKING_DATE,
-  OLDEST_POSSIBLE_AGE,
-} from '../constants';
 import { DIAGNOSES, STAGES } from '../options';
 import { DOCTORS, isInactive } from '../doctors';
 import {
@@ -34,6 +27,16 @@ import {
   today,
 } from '../shared-fields';
 import { EncounterFormProps, Intervention } from '../types';
+import { FIRST_TRACKING_DATE, OLDEST_POSSIBLE_AGE } from '../constants';
+import { formatDatabase, formatDisplay } from '../../../shared/date-utils';
+import {
+  formatDistanceToNowStrict,
+  isAfter,
+  isBefore,
+  startOfDay,
+  subDays,
+  subYears,
+} from 'date-fns';
 import { FormikErrors, useFormik } from 'formik';
 import { InfoButton } from '../InfoButton';
 import {
@@ -106,18 +109,24 @@ const REQUIRED_FIELDS = [
 const SCORED_FIELDS = ['phq', 'gad', 'moca'];
 
 const docToOption = (doc: PatientEncounter) => {
-  const _today = moment().hour(0).minute(0).second(0).millisecond(0);
+  const _today = startOfDay(new Date());
+  const yesterday = subDays(_today, 1);
 
-  let relativeTime = moment(doc.encounterDate).from(_today);
+  const parsedEncDate = parseDate(doc.encounterDate);
+  let relativeTime: string;
 
-  if (doc.encounterDate === _today.format(DATE_FORMAT_DATABASE)) {
+  if (parsedEncDate && formatDatabase(parsedEncDate) === formatDatabase(_today)) {
     relativeTime = 'today';
-  } else if (doc.encounterDate === _today.subtract(1, 'day').format(DATE_FORMAT_DATABASE)) {
+  } else if (parsedEncDate && formatDatabase(parsedEncDate) === formatDatabase(yesterday)) {
     relativeTime = 'yesterday';
+  } else if (parsedEncDate) {
+    relativeTime = formatDistanceToNowStrict(parsedEncDate, { addSuffix: true });
+  } else {
+    relativeTime = '';
   }
 
   const dateOfBirth = parseDate(doc.dateOfBirth);
-  const formattedDateOfBirth = dateOfBirth.format('M/D/YYYY');
+  const formattedDateOfBirth = dateOfBirth ? formatDisplay(dateOfBirth) : '';
 
   return {
     // displayed in the search results as a row
@@ -227,7 +236,10 @@ function UnwrappedPatientEncounterForm({
     initialValues: encounter
       ? {
           ...encounter,
-          dateOfBirth: parseDate(encounter.dateOfBirth).format(DATE_FORMAT_DISPLAY),
+          dateOfBirth: (() => {
+            const d = parseDate(encounter.dateOfBirth);
+            return d ? formatDisplay(d) : encounter.dateOfBirth;
+          })(),
         }
       : INITIAL_VALUES(),
 
@@ -275,25 +287,24 @@ function UnwrappedPatientEncounterForm({
 
       const parsedEncounterDate = parseDate(values.encounterDate);
 
-      if (!parsedEncounterDate.isValid()) {
+      if (!parsedEncounterDate) {
         errors.encounterDate = 'Must be a valid date';
-      } else if (parsedEncounterDate.isAfter(moment())) {
+      } else if (isAfter(parsedEncounterDate, new Date())) {
         errors.encounterDate = 'Must be today or before';
-      } else if (parsedEncounterDate.isBefore(FIRST_TRACKING_DATE)) {
+      } else if (isBefore(parsedEncounterDate, FIRST_TRACKING_DATE)) {
         errors.encounterDate = 'Must be on or newer than 12/01/2018';
       }
 
       const parsedDateOfBirth = parseDate(values.dateOfBirth);
 
-      if (!parsedDateOfBirth.isValid()) {
+      if (!parsedDateOfBirth) {
         errors.dateOfBirth = 'Must be a valid date';
-      } else if (parsedDateOfBirth.isAfter(moment())) {
+      } else if (isAfter(parsedDateOfBirth, new Date())) {
         errors.dateOfBirth = 'Must be in the past';
       } else if (
         values.encounterDate &&
-        parsedDateOfBirth.isBefore(
-          parsedEncounterDate.clone().subtract(OLDEST_POSSIBLE_AGE, 'years'),
-        )
+        parsedEncounterDate &&
+        isBefore(parsedDateOfBirth, subYears(parsedEncounterDate, OLDEST_POSSIBLE_AGE))
       ) {
         errors.dateOfBirth = 'Must be younger than 117 years old';
       }
@@ -315,9 +326,10 @@ function UnwrappedPatientEncounterForm({
           return onComplete();
         }
 
+        const parsedDob = parseDate(values.dateOfBirth);
         await window.trackingTool.dbInsert({
           ...values,
-          dateOfBirth: parseDate(values.dateOfBirth).format(DATE_FORMAT_DATABASE),
+          dateOfBirth: parsedDob ? formatDatabase(parsedDob) : values.dateOfBirth,
           patientName: values.patientName.trim(),
         });
         setSubmitting(false);
@@ -452,11 +464,11 @@ function UnwrappedPatientEncounterForm({
 
         const date = parseDate(value);
 
-        if (!date.isValid()) {
+        if (!date) {
           return;
         }
 
-        setFieldValue('dateOfBirth', date.format(DATE_FORMAT_DISPLAY));
+        setFieldValue('dateOfBirth', formatDisplay(date));
       };
 
       body.addEventListener('paste', pasteHandler);
@@ -655,10 +667,15 @@ function UnwrappedPatientEncounterForm({
   let dateOfBirthLabel = 'Date of Birth';
 
   if (values.dateOfBirth) {
-    const age = ageYears(parseDate(values.encounterDate), parseDate(values.dateOfBirth));
+    const encDate = parseDate(values.encounterDate);
+    const dobDate = parseDate(values.dateOfBirth);
 
-    if (!isNaN(age)) {
-      dateOfBirthLabel = `Date of Birth (${age} years old)`;
+    if (encDate && dobDate) {
+      const age = ageYears(encDate, dobDate);
+
+      if (!isNaN(age)) {
+        dateOfBirthLabel = `Date of Birth (${age} years old)`;
+      }
     }
   }
 

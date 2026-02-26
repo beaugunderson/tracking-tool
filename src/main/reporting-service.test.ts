@@ -1,5 +1,12 @@
+import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
-import { normalizeGlobPattern, usernameFromEncounterPath } from './reporting-service';
+import {
+  applyMigrations,
+  normalizeGlobPattern,
+  openDataStore,
+  usernameFromEncounterPath,
+} from './reporting-service';
 
 describe('normalizeGlobPattern', () => {
   it('converts Windows backslashes to forward slashes', () => {
@@ -107,5 +114,78 @@ describe('usernameFromEncounterPath', () => {
     // usernameFromEncounterPath should handle them.
     const nativePath = path.join('/some', 'root', 'carynstewart', 'encounters.json');
     expect(usernameFromEncounterPath(nativePath)).toBe('carynstewart');
+  });
+});
+
+describe('migration c1823bb1 (future DOB correction)', () => {
+  let tmpDir: string;
+  let dbPath: string;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'migration-test-'));
+    dbPath = path.join(tmpDir, 'encounters.json');
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  function insertDoc(doc: Record<string, unknown>): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const ds = openDataStore(dbPath);
+      ds.insert(doc, (err) => (err ? reject(err) : resolve()));
+    });
+  }
+
+  function findAll(ds: any): Promise<any[]> {
+    return new Promise((resolve, reject) => {
+      ds.find({ encounterType: 'patient' }, (err: Error | null, docs: any[]) =>
+        err ? reject(err) : resolve(docs),
+      );
+    });
+  }
+
+  it('corrects a future DOB by subtracting 100 years', async () => {
+    // Two-digit year "1/1/30" with current year 2026 → 2030 (future), so migration should fix
+    // Use a definitely-future four-digit year to avoid two-digit year parsing ambiguity
+    await insertDoc({
+      encounterType: 'patient',
+      dateOfBirth: '01/01/2090',
+    });
+
+    const ds = openDataStore(dbPath);
+    await applyMigrations(ds);
+
+    const docs = await findAll(ds);
+    expect(docs).toHaveLength(1);
+    expect(docs[0].dateOfBirth).toBe('1990-01-01');
+  });
+
+  it('leaves a past DOB unchanged', async () => {
+    await insertDoc({
+      encounterType: 'patient',
+      dateOfBirth: '03/25/1990',
+    });
+
+    const ds = openDataStore(dbPath);
+    await applyMigrations(ds);
+
+    const docs = await findAll(ds);
+    expect(docs).toHaveLength(1);
+    expect(docs[0].dateOfBirth).toBe('03/25/1990');
+  });
+
+  it('leaves an invalid DOB unchanged', async () => {
+    await insertDoc({
+      encounterType: 'patient',
+      dateOfBirth: 'not-a-date',
+    });
+
+    const ds = openDataStore(dbPath);
+    await applyMigrations(ds);
+
+    const docs = await findAll(ds);
+    expect(docs).toHaveLength(1);
+    expect(docs[0].dateOfBirth).toBe('not-a-date');
   });
 });

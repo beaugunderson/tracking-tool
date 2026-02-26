@@ -1,7 +1,12 @@
-import moment from 'moment';
-import { DATE_FORMAT_DATABASE, DATE_FORMAT_DISPLAY } from '../constants';
+import {
+  ageInYears,
+  formatDisplay,
+  parseDate as sharedParseDate,
+} from '../../../shared/date-utils';
+import { DATE_FORMAT_DATABASE } from '../constants';
 import { INTERVENTIONS } from '../patient-interventions';
 import { isNaN, isNumber } from 'lodash';
+import { parse } from 'date-fns';
 import { PatientEncounter } from '../forms/PatientEncounterForm';
 
 export type AgeBucket = '<= 39 years' | '40 to 64 years' | '>= 65 years';
@@ -11,43 +16,12 @@ export const EXCLUDE_STRING_VALUE = '__EXCLUDE__';
 
 const RE_SCORE = /\d+|n\/a/i;
 
-moment.parseTwoDigitYear = function parseTwoDigitYear(yearString) {
-  const currentYear = moment().year() - 2000;
-  const year = parseInt(yearString, 10);
-
-  // 18 <= 19; return 2018
-  if (year <= currentYear) {
-    return 2000 + year;
-  }
-
-  // 20 > 19; return 1920
-  return 1900 + year;
-};
-
-export function parseDate(date: string): moment.Moment {
-  return moment(
-    date ? date.trim() : '',
-    [
-      // slashes
-      'MM/DD/YYYY',
-      'M/D/YYYY',
-      'M/D/YY',
-
-      // dashes
-      'MM-DD-YYYY',
-      'M-D-YYYY',
-      'M-D-YY',
-
-      // database format
-      'YYYY-MM-DD',
-    ],
-    // strict mode
-    true,
-  );
+export function parseDate(date: string): Date | null {
+  return sharedParseDate(date);
 }
 
-export function ageYears(encounterDate: moment.Moment, dateOfBirth: moment.Moment): number {
-  return encounterDate.diff(dateOfBirth, 'years');
+export function ageYears(encounterDate: Date, dateOfBirth: Date): number {
+  return ageInYears(encounterDate, dateOfBirth);
 }
 
 // TODO update this to not extend PatientEncounter and encompass all optional fields correctly
@@ -58,10 +32,10 @@ export interface TransformedEncounter extends PatientEncounter {
   ageBucket?: AgeBucket;
 
   formattedDateOfBirth?: string;
-  parsedDateOfBirth?: moment.Moment;
+  parsedDateOfBirth?: Date;
 
   encounterDate: string;
-  parsedEncounterDate: moment.Moment;
+  parsedEncounterDate: Date;
   formattedEncounterType: string;
 
   doctorPrimary: string;
@@ -173,13 +147,15 @@ export function transformEncounter(
   swedishMapping = null,
 ): TransformedEncounter {
   let ageBucket: AgeBucket | undefined;
-  let parsedDateOfBirth: moment.Moment | undefined;
+  let parsedDateOfBirth: Date | undefined;
 
-  const parsedEncounterDate = moment(encounter.encounterDate, DATE_FORMAT_DATABASE);
+  const parsedEncounterDate = parse(encounter.encounterDate, DATE_FORMAT_DATABASE, new Date());
 
   if (encounter.encounterType === 'patient') {
-    parsedDateOfBirth = parseDate(encounter.dateOfBirth);
-    ageBucket = bucketAge(ageYears(parsedEncounterDate, parsedDateOfBirth));
+    parsedDateOfBirth = sharedParseDate(encounter.dateOfBirth) ?? undefined;
+    ageBucket = parsedDateOfBirth
+      ? bucketAge(ageInYears(parsedEncounterDate, parsedDateOfBirth))
+      : null;
   }
 
   const tests = [];
@@ -255,7 +231,7 @@ export function transformEncounter(
     ...encounter,
 
     ageBucket,
-    formattedDateOfBirth: parsedDateOfBirth && parsedDateOfBirth.format(DATE_FORMAT_DISPLAY),
+    formattedDateOfBirth: parsedDateOfBirth && formatDisplay(parsedDateOfBirth),
     parsedDateOfBirth,
 
     parsedEncounterDate,

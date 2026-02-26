@@ -6,11 +6,16 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    include: ['src/renderer/src/**/*.test.{ts,tsx}', 'src/main/**/*.test.ts'],
+    include: [
+      'src/renderer/src/**/*.test.{ts,tsx}',
+      'src/main/**/*.test.ts',
+      'src/shared/**/*.test.ts',
+    ],
     setupFiles: './src/renderer/src/setupTests.ts',
     environmentMatchGlobs: [
-      // Main process tests run in Node (no jsdom, no renderer setup)
+      // Main process and shared tests run in Node (no jsdom, no renderer setup)
       ['src/main/**/*.test.ts', 'node'],
+      ['src/shared/**/*.test.ts', 'node'],
     ],
   },
 });

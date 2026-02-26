@@ -1,4 +1,3 @@
-import moment from 'moment';
 import {
   ageYears,
   EXCLUDE_NUMBER_VALUE,
@@ -14,6 +13,7 @@ import {
   transformEncounter,
   transformEncounters,
 } from './data';
+import { formatDatabase } from '../../../shared/date-utils';
 import { PatientEncounter } from '../forms/PatientEncounterForm';
 
 function makeEncounter(overrides: Partial<PatientEncounter> = {}): PatientEncounter {
@@ -111,88 +111,149 @@ function makeEncounter(overrides: Partial<PatientEncounter> = {}): PatientEncoun
 describe('parseDate', () => {
   it('parses MM/DD/YYYY', () => {
     const d = parseDate('01/15/2023');
-    expect(d.isValid()).toBe(true);
-    expect(d.format('YYYY-MM-DD')).toBe('2023-01-15');
+    expect(d).not.toBeNull();
+    expect(formatDatabase(d!)).toBe('2023-01-15');
   });
 
   it('parses M/D/YYYY', () => {
     const d = parseDate('1/5/2023');
-    expect(d.isValid()).toBe(true);
-    expect(d.format('YYYY-MM-DD')).toBe('2023-01-05');
+    expect(d).not.toBeNull();
+    expect(formatDatabase(d!)).toBe('2023-01-05');
   });
 
   it('parses M/D/YY with two-digit year <= current year → 2000s', () => {
     const d = parseDate('1/1/18');
-    expect(d.isValid()).toBe(true);
-    expect(d.year()).toBe(2018);
+    expect(d).not.toBeNull();
+    expect(d!.getFullYear()).toBe(2018);
   });
 
   it('parses M/D/YY with two-digit year > current year → 1900s', () => {
     const d = parseDate('1/1/99');
-    expect(d.isValid()).toBe(true);
-    expect(d.year()).toBe(1999);
+    expect(d).not.toBeNull();
+    expect(d!.getFullYear()).toBe(1999);
+  });
+
+  it('two-digit year boundary: current year suffix → 2000s', () => {
+    const currentYearSuffix = new Date().getFullYear() - 2000;
+    const d = parseDate(`1/1/${currentYearSuffix}`);
+    expect(d).not.toBeNull();
+    expect(d!.getFullYear()).toBe(2000 + currentYearSuffix);
+  });
+
+  it('two-digit year boundary: current year + 1 suffix → 1900s', () => {
+    const nextYearSuffix = new Date().getFullYear() - 2000 + 1;
+    const d = parseDate(`1/1/${nextYearSuffix}`);
+    expect(d).not.toBeNull();
+    expect(d!.getFullYear()).toBe(1900 + nextYearSuffix);
   });
 
   it('parses MM-DD-YYYY', () => {
     const d = parseDate('01-15-2023');
-    expect(d.isValid()).toBe(true);
-    expect(d.format('YYYY-MM-DD')).toBe('2023-01-15');
+    expect(d).not.toBeNull();
+    expect(formatDatabase(d!)).toBe('2023-01-15');
   });
 
   it('parses M-D-YYYY', () => {
     const d = parseDate('1-5-2023');
-    expect(d.isValid()).toBe(true);
-    expect(d.format('YYYY-MM-DD')).toBe('2023-01-05');
+    expect(d).not.toBeNull();
+    expect(formatDatabase(d!)).toBe('2023-01-05');
   });
 
   it('parses M-D-YY', () => {
     const d = parseDate('1-5-23');
-    expect(d.isValid()).toBe(true);
-    expect(d.format('YYYY-MM-DD')).toBe('2023-01-05');
+    expect(d).not.toBeNull();
+    expect(formatDatabase(d!)).toBe('2023-01-05');
   });
 
   it('parses database format YYYY-MM-DD', () => {
     const d = parseDate('2023-01-15');
-    expect(d.isValid()).toBe(true);
-    expect(d.format('YYYY-MM-DD')).toBe('2023-01-15');
+    expect(d).not.toBeNull();
+    expect(formatDatabase(d!)).toBe('2023-01-15');
   });
 
-  it('returns invalid moment for empty string', () => {
-    expect(parseDate('').isValid()).toBe(false);
+  it('returns null for empty string', () => {
+    expect(parseDate('')).toBeNull();
   });
 
-  it('returns invalid moment for garbage input', () => {
-    expect(parseDate('not a date').isValid()).toBe(false);
+  it('returns null for garbage input', () => {
+    expect(parseDate('not a date')).toBeNull();
   });
 
   it('trims whitespace', () => {
     const d = parseDate('  01/15/2023  ');
-    expect(d.isValid()).toBe(true);
-    expect(d.format('YYYY-MM-DD')).toBe('2023-01-15');
+    expect(d).not.toBeNull();
+    expect(formatDatabase(d!)).toBe('2023-01-15');
   });
 });
 
 describe('ageYears', () => {
   it('calculates age in whole years', () => {
-    const encounter = moment('2023-06-15');
-    const dob = moment('1980-01-01');
+    const encounter = new Date(2023, 5, 15);
+    const dob = new Date(1980, 0, 1);
     expect(ageYears(encounter, dob)).toBe(43);
   });
 
   it('returns age before birthday in the encounter year', () => {
-    const encounter = moment('2023-06-15');
-    const dob = moment('1980-07-01');
+    const encounter = new Date(2023, 5, 15);
+    const dob = new Date(1980, 6, 1);
     expect(ageYears(encounter, dob)).toBe(42);
   });
 
   it('returns age on birthday', () => {
-    const encounter = moment('2023-06-15');
-    const dob = moment('1980-06-15');
+    const encounter = new Date(2023, 5, 15);
+    const dob = new Date(1980, 5, 15);
     expect(ageYears(encounter, dob)).toBe(43);
   });
 });
 
+describe('bucketAge (via transformEncounter)', () => {
+  it('returns null for NaN age (no dateOfBirth)', () => {
+    const enc = makeEncounter({ encounterType: 'patient', dateOfBirth: '' });
+    expect(transformEncounter(enc).ageBucket).toBeNull();
+  });
+
+  it('boundary: 39 → <= 39 years', () => {
+    const enc = makeEncounter({ dateOfBirth: '06/15/1984', encounterDate: '2023-06-15' });
+    expect(transformEncounter(enc).ageBucket).toBe('<= 39 years');
+  });
+
+  it('boundary: 40 → 40 to 64 years', () => {
+    const enc = makeEncounter({ dateOfBirth: '06/14/1983', encounterDate: '2023-06-15' });
+    expect(transformEncounter(enc).ageBucket).toBe('40 to 64 years');
+  });
+
+  it('boundary: 64 → 40 to 64 years', () => {
+    const enc = makeEncounter({ dateOfBirth: '06/16/1958', encounterDate: '2023-06-15' });
+    expect(transformEncounter(enc).ageBucket).toBe('40 to 64 years');
+  });
+
+  it('boundary: 65 → >= 65 years', () => {
+    const enc = makeEncounter({ dateOfBirth: '06/15/1958', encounterDate: '2023-06-15' });
+    expect(transformEncounter(enc).ageBucket).toBe('>= 65 years');
+  });
+});
+
 describe('transformEncounter', () => {
+  describe('parsedEncounterDate and formattedDateOfBirth', () => {
+    it('produces a parsedEncounterDate from encounterDate', () => {
+      const enc = makeEncounter({ encounterDate: '2023-06-15' });
+      const result = transformEncounter(enc);
+      expect(formatDatabase(result.parsedEncounterDate)).toBe('2023-06-15');
+    });
+
+    it('produces formattedDateOfBirth from dateOfBirth', () => {
+      const enc = makeEncounter({ dateOfBirth: '1990-03-25', encounterDate: '2023-06-15' });
+      const result = transformEncounter(enc);
+      expect(result.formattedDateOfBirth).toBe('03/25/1990');
+    });
+
+    it('produces formattedDateOfBirth from MM/DD/YYYY input', () => {
+      const enc = makeEncounter({ dateOfBirth: '03/25/1990', encounterDate: '2023-06-15' });
+      const result = transformEncounter(enc);
+      expect(result.formattedDateOfBirth).toBe('03/25/1990');
+    });
+  });
+
   describe('age bucketing', () => {
     it('buckets age <= 39', () => {
       const enc = makeEncounter({ dateOfBirth: '01/01/2000', encounterDate: '2023-06-15' });
@@ -247,7 +308,7 @@ describe('transformEncounter', () => {
     it('parses encounterDate', () => {
       const enc = makeEncounter({ encounterDate: '2023-06-15' });
       const result = transformEncounter(enc);
-      expect(result.parsedEncounterDate.format('YYYY-MM-DD')).toBe('2023-06-15');
+      expect(formatDatabase(result.parsedEncounterDate)).toBe('2023-06-15');
     });
 
     it('capitalizes encounter type', () => {

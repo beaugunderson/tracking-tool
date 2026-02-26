@@ -2,29 +2,12 @@ import async from 'async';
 import DataStore from '@seald-io/nedb';
 import fs from 'node:fs';
 import log from 'electron-log';
-import moment from 'moment';
 import os from 'node:os';
 import path from 'node:path';
 import { findLast, isEqual, pick } from 'lodash';
+import { formatDatabase, parseDate } from '../shared/date-utils';
 import { glob } from 'glob';
-
-const DATE_FORMAT_DATABASE = 'YYYY-MM-DD';
-
-// Match the renderer's two-digit year parsing
-(moment as any).parseTwoDigitYear = function parseTwoDigitYear(yearString: string) {
-  const currentYear = moment().year() - 2000;
-  const year = parseInt(yearString, 10);
-  if (year <= currentYear) return 2000 + year;
-  return 1900 + year;
-};
-
-function parseDate(date: string | undefined) {
-  return moment(
-    date ? date.trim() : '',
-    ['MM/DD/YYYY', 'M/D/YYYY', 'M/D/YY', 'MM-DD-YYYY', 'M-D-YYYY', 'M-D-YY', 'YYYY-MM-DD'],
-    true,
-  );
-}
+import { isAfter, subYears } from 'date-fns';
 
 // --- Data migrations (moved from src/data.ts) ---
 
@@ -53,10 +36,10 @@ const migrations: Migration[] = [
     query: { encounterType: 'patient' },
     transform: (encounter) => {
       const dateOfBirth = parseDate(encounter.dateOfBirth);
-      if (dateOfBirth.isValid() && dateOfBirth.isAfter(moment())) {
+      if (dateOfBirth && isAfter(dateOfBirth, new Date())) {
         return {
           ...encounter,
-          dateOfBirth: dateOfBirth.subtract(100, 'years').format(DATE_FORMAT_DATABASE),
+          dateOfBirth: formatDatabase(subYears(dateOfBirth, 100)),
         };
       }
       return encounter;

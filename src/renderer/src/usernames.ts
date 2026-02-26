@@ -1,4 +1,4 @@
-import moment from 'moment';
+import { isAfter, parseISO } from 'date-fns';
 
 export const USERNAMES = {
   'ailish.mackey': 'Ailish Mackey',
@@ -123,35 +123,35 @@ export const INTERNS = [
 
 export function isIntern(username: string | null, encounterDate: string): boolean {
   const lowercaseUsername = (username || '').toLowerCase();
-  const date = moment(encounterDate);
+  const date = parseISO(encounterDate);
 
-  if (lowercaseUsername === 'jonasa1' && date.isAfter(moment('2020-12-06'))) {
+  if (lowercaseUsername === 'jonasa1' && isAfter(date, parseISO('2020-12-06'))) {
     return false;
   }
 
-  if (lowercaseUsername === 'patrick.stephens' && date.isAfter(moment('2021-06-19'))) {
+  if (lowercaseUsername === 'patrick.stephens' && isAfter(date, parseISO('2021-06-19'))) {
     return false;
   }
 
-  if (lowercaseUsername === 'ailish.mackey' && date.isAfter(moment('2022-08-20'))) {
+  if (lowercaseUsername === 'ailish.mackey' && isAfter(date, parseISO('2022-08-20'))) {
     return false;
   }
 
-  if (lowercaseUsername === 'lauren.zemer' && date.isAfter(moment('2022-08-20'))) {
+  if (lowercaseUsername === 'lauren.zemer' && isAfter(date, parseISO('2022-08-20'))) {
     return false;
   }
 
-  if (lowercaseUsername === 'beatrice.terino' && date.isAfter(moment('2024-06-30'))) {
+  if (lowercaseUsername === 'beatrice.terino' && isAfter(date, parseISO('2024-06-30'))) {
     return false;
   }
 
-  if (lowercaseUsername === 'hannah.sjogren' && date.isAfter(moment('2024-08-01'))) {
+  if (lowercaseUsername === 'hannah.sjogren' && isAfter(date, parseISO('2024-08-01'))) {
     return false;
   }
 
   if (
     (lowercaseUsername === 'shannon.youmans' || lowercaseUsername === 'sabrina.figueroa') &&
-    date.isAfter(moment('2024-08-31'))
+    isAfter(date, parseISO('2024-08-31'))
   ) {
     return false;
   }

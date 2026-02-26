@@ -1,7 +1,4 @@
-import moment from 'moment';
+export { FIRST_TRACKING_DATE, OLDEST_POSSIBLE_AGE } from '../../shared/date-utils';
 
-export const DATE_FORMAT_DATABASE = 'YYYY-MM-DD';
-export const DATE_FORMAT_DISPLAY = 'MM/DD/YYYY';
-
-export const FIRST_TRACKING_DATE = moment('2018-11-01');
-export const OLDEST_POSSIBLE_AGE = 117;
+export const DATE_FORMAT_DATABASE = 'yyyy-MM-dd';
+export const DATE_FORMAT_DISPLAY = 'MM/dd/yyyy';

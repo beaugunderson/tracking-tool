@@ -1,10 +1,10 @@
-import moment from 'moment';
 import XRegExp from 'xregexp';
-import { DATE_FORMAT_DISPLAY } from './constants';
 import { deburr, endsWith, isString, mapValues, startsWith } from 'lodash';
 import { doubleMetaphone } from 'double-metaphone';
+import { formatDisplay, parseDate } from '../../shared/date-utils';
 import { levenshteinEditDistance } from 'levenshtein-edit-distance';
 import { Name, parseFullName } from 'parse-full-name';
+import { subDays } from 'date-fns';
 
 const RE_NON_LETTERS = XRegExp('[^\\pL -]', 'g');
 
@@ -230,5 +230,7 @@ export function obfuscateNumber(number: number | string): string {
 }
 
 export function obfuscateDate(date: string): string {
-  return moment(date).subtract(DATE_OFFSET, 'days').format(DATE_FORMAT_DISPLAY);
+  const parsed = parseDate(date);
+  if (!parsed) return date;
+  return formatDisplay(subDays(parsed, DATE_OFFSET));
 }

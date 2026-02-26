@@ -1,6 +1,6 @@
 import React from 'react';
-import { DATE_FORMAT_DISPLAY } from '../constants';
 import { EXCLUDE_STRING_VALUE, ReportProgress, transform, TransformedEncounter } from './data';
+import { formatDisplay } from '../../../shared/date-utils';
 import { Icon, Table } from 'semantic-ui-react';
 import { PageLoader } from '../components/PageLoader';
 import { sortBy } from 'lodash';
@@ -104,7 +104,7 @@ export class CrisisReport extends React.Component<CrisisReportProps, CrisisRepor
         <Table.Body>
           {crisisEncounters.map((encounter, i) => (
             <Table.Row key={i}>
-              <Table.Cell>{encounter.parsedEncounterDate.format(DATE_FORMAT_DISPLAY)}</Table.Cell>
+              <Table.Cell>{formatDisplay(encounter.parsedEncounterDate)}</Table.Cell>
               <Table.Cell>{usernameToName(encounter.username)}</Table.Cell>
               <Table.Cell>
                 <button
