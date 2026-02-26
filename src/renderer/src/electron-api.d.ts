@@ -1,5 +1,5 @@
 import type { Encounter } from './types';
-import type { Fix } from './data';
+import type { Fix } from '../../shared/fix';
 
 interface TrackingToolAPI {
   // Sync constants

@@ -8,7 +8,7 @@ import {
   type ReportProgress,
   type TransformedEncounter,
 } from '../../../shared/transform';
-import { Fix } from '../data';
+import { Fix } from '../../../shared/fix';
 import { formatDatabase, formatDisplay, parseDate } from '../../../shared/date-utils';
 import {
   namesRepresentSamePerson,

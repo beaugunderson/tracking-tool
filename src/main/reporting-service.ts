@@ -5,6 +5,7 @@ import log from 'electron-log';
 import os from 'node:os';
 import path from 'node:path';
 import { findLast, isEqual, pick } from 'lodash';
+import { type Fix } from '../shared/fix';
 import { formatDatabase, parseDate } from '../shared/date-utils';
 import { glob } from 'glob';
 import { isAfter, subYears } from 'date-fns';
@@ -73,43 +74,53 @@ export function applyMigrations(dataStore: DataStore): Promise<DataStore> {
     async.eachSeries(
       migrations,
       (migration: Migration, cbMigration: (err?: Error | null) => void) => {
-        dataStore.findOne({ migration: migration.id }, {}, (findErr: Error | null, found: any) => {
-          if (findErr) return cbMigration(findErr);
-          if (found) return cbMigration();
+        dataStore.findOne(
+          { migration: migration.id },
+          {},
+          (findErr: Error | null, found: unknown) => {
+            if (findErr) return cbMigration(findErr);
+            if (found) return cbMigration();
 
-          dataStore.find(migration.query, {}, (queryErr: Error | null, results: any[]) => {
-            if (queryErr) return cbMigration(queryErr);
+            dataStore.find<RawEncounter>(
+              migration.query,
+              {},
+              (queryErr: Error | null, results) => {
+                if (queryErr) return cbMigration(queryErr);
 
-            async.eachSeries(
-              results,
-              (result: any, cbEncounter: (err?: Error | null) => void) => {
-                const transformed = migration.transform(result);
-                if (!isEqual(result, transformed)) {
-                  dataStore.update(
-                    { _id: transformed._id },
-                    transformed,
-                    {},
-                    (updateErr: Error | null, n: number) => {
-                      if (updateErr || n !== 1) {
-                        cbEncounter(
-                          updateErr || new Error(`Update failed for _id "${transformed._id}"`),
-                        );
-                      } else {
-                        cbEncounter();
-                      }
-                    },
-                  );
-                } else {
-                  cbEncounter();
-                }
-              },
-              (encounterErr?: Error | null) => {
-                if (encounterErr) return cbMigration(encounterErr);
-                dataStore.insert({ migration: migration.id }, cbMigration as any);
+                async.eachSeries(
+                  results,
+                  (result: RawEncounter, cbEncounter: (err?: Error | null) => void) => {
+                    const transformed = migration.transform(result);
+                    if (!isEqual(result, transformed)) {
+                      dataStore.update(
+                        { _id: transformed._id },
+                        transformed,
+                        {},
+                        (updateErr: Error | null, n: number) => {
+                          if (updateErr || n !== 1) {
+                            cbEncounter(
+                              updateErr || new Error(`Update failed for _id "${transformed._id}"`),
+                            );
+                          } else {
+                            cbEncounter();
+                          }
+                        },
+                      );
+                    } else {
+                      cbEncounter();
+                    }
+                  },
+                  (encounterErr?: Error | null) => {
+                    if (encounterErr) return cbMigration(encounterErr);
+                    dataStore.insert({ migration: migration.id }, (insertErr) =>
+                      cbMigration(insertErr),
+                    );
+                  },
+                );
               },
             );
-          });
-        });
+          },
+        );
       },
       (err?: Error | null) => {
         if (err) reject(err);
@@ -178,15 +189,15 @@ async function copyFixFile(fixesFilePath: string) {
   return { file: destination, temporaryDirectory: copyPath };
 }
 
-async function getAllEncounters(filename: string): Promise<any[]> {
+async function getAllEncounters(filename: string): Promise<RawEncounter[]> {
   log.debug(`getAllEncounters: "${filename}"`);
   const dataStore = openDataStore(filename);
   const migratedStore = await applyMigrations(dataStore);
 
   return new Promise((resolve, reject) => {
-    migratedStore.find(
+    migratedStore.find<RawEncounter>(
       { encounterType: { $exists: true } },
-      (err: Error | null, results: any[]) => {
+      (err: Error | null, results) => {
         if (err) {
           log.debug(`getAllEncounters: error "${err}"`);
           reject(err);
@@ -198,7 +209,7 @@ async function getAllEncounters(filename: string): Promise<any[]> {
   });
 }
 
-export async function getFixes(filename: string): Promise<any[]> {
+export async function getFixes(filename: string): Promise<Fix[]> {
   log.debug(`getFixes: "${filename}"`);
   if (!fs.existsSync(filename)) return [];
 
@@ -210,9 +221,9 @@ export async function getFixes(filename: string): Promise<any[]> {
 
   return new Promise((resolve, reject) => {
     dataStore
-      .find({})
+      .find<Fix>({})
       .sort({ createdAt: 1 })
-      .exec((err: Error | null, results: any[]) => {
+      .exec((err: Error | null, results) => {
         if (err) reject(err);
         else resolve(results);
       });
@@ -239,7 +250,7 @@ export async function transform({
 
   const fixesFilePath = path.join(rootPath, 'fixes', 'fixes.json');
 
-  let fixes: any[] = [];
+  let fixes: Fix[] = [];
   if (fixMrns) {
     onProgress?.({ phase: 'Loading fixes', current: 0, total: 0 });
     const fixFile = await copyFixFile(fixesFilePath);
@@ -249,7 +260,7 @@ export async function transform({
   }
 
   const copiedUserEncounters = await copyEncounterFiles(rootPath, onProgress);
-  const allEncounters: any[] = [];
+  const allEncounters: RawEncounter[] = [];
   const total = copiedUserEncounters.files.length;
 
   for (let i = 0; i < total; i++) {
