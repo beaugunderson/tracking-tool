@@ -2,13 +2,12 @@ import async from 'async';
 import DataStore from '@seald-io/nedb';
 import fs from 'node:fs';
 import log from 'electron-log';
-import os from 'node:os';
 import path from 'node:path';
-import { findLast, isEqual, pick } from 'lodash';
 import { type Fix } from '../shared/fix';
 import { formatDatabase, parseDate } from '../shared/date-utils';
 import { glob } from 'glob';
 import { isAfter, subYears } from 'date-fns';
+import { isEqual, pick } from 'lodash';
 import { type RawEncounter, type ReportProgress, transformEncounters } from '../shared/transform';
 
 // --- Data migrations (moved from src/data.ts) ---
@@ -158,57 +157,6 @@ async function getEncounterFiles(rootPath: string): Promise<string[]> {
   return glob(pattern);
 }
 
-async function copyEncounterFiles(rootPath: string, onProgress?: ProgressCallback) {
-  const copyPath = fs.mkdtempSync(path.join(os.tmpdir(), 'reporting-'));
-  const encounterFiles = await getEncounterFiles(rootPath);
-  const copiedFiles: { username: string; filename: string }[] = [];
-  const total = encounterFiles.length;
-
-  for (let i = 0; i < total; i++) {
-    const file = encounterFiles[i];
-    const username = usernameFromEncounterPath(file);
-    onProgress?.({ phase: `Copying data for ${username}`, current: i + 1, total });
-    log.debug(`copyEncounterFiles: copying "${file}"`);
-    const destination = path.join(copyPath, `${username}.json`);
-    fs.copyFileSync(file, destination);
-    copiedFiles.push({ username, filename: destination });
-  }
-
-  return { files: copiedFiles, temporaryDirectory: copyPath };
-}
-
-async function copyFixFile(fixesFilePath: string) {
-  const copyPath = fs.mkdtempSync(path.join(os.tmpdir(), 'fixes-'));
-  const destination = path.join(copyPath, 'fixes.json');
-
-  if (fs.existsSync(fixesFilePath)) {
-    log.debug(`copyFixFile: copying "${fixesFilePath}"`);
-    fs.copyFileSync(fixesFilePath, destination);
-  }
-
-  return { file: destination, temporaryDirectory: copyPath };
-}
-
-async function getAllEncounters(filename: string): Promise<RawEncounter[]> {
-  log.debug(`getAllEncounters: "${filename}"`);
-  const dataStore = openDataStore(filename);
-  const migratedStore = await applyMigrations(dataStore);
-
-  return new Promise((resolve, reject) => {
-    migratedStore.find<RawEncounter>(
-      { encounterType: { $exists: true } },
-      (err: Error | null, results) => {
-        if (err) {
-          log.debug(`getAllEncounters: error "${err}"`);
-          reject(err);
-        } else {
-          resolve(results);
-        }
-      },
-    );
-  });
-}
-
 export async function getFixes(filename: string): Promise<Fix[]> {
   log.debug(`getFixes: "${filename}"`);
   if (!fs.existsSync(filename)) return [];
@@ -230,10 +178,74 @@ export async function getFixes(filename: string): Promise<Fix[]> {
   });
 }
 
+// --- Fast reporting pipeline (bypasses NeDB for read-only bulk access) ---
+
 /**
- * Main reporting pipeline. Copies encounter files to temp, opens NeDB,
- * runs migrations, applies fixes, transforms encounters, and returns
- * the transformed result (with Date fields that survive IPC structured clone).
+ * Read a NeDB file directly, bypassing the NeDB engine. NeDB files are
+ * newline-delimited JSON (append-only): later entries for the same _id
+ * override earlier ones, and $$deleted entries remove docs.
+ */
+function readNedbFileDirect<T extends { _id?: string }>(filename: string): T[] {
+  if (!fs.existsSync(filename)) return [];
+
+  const content = fs.readFileSync(filename, 'utf-8');
+  const byId = new Map<string, T>();
+
+  for (const line of content.split('\n')) {
+    if (!line) continue;
+    try {
+      const doc = JSON.parse(line);
+      if (doc.$$deleted && doc._id) {
+        byId.delete(doc._id);
+      } else if (doc._id) {
+        byId.set(doc._id, doc);
+      }
+    } catch {
+      // Skip malformed lines (partial writes, corruption)
+    }
+  }
+
+  return Array.from(byId.values());
+}
+
+/** Apply data migrations in memory (no NeDB queries needed). Idempotent. */
+function applyMigrationsInMemory(encounters: RawEncounter[]): RawEncounter[] {
+  return encounters.map((encounter) => {
+    let result = encounter;
+
+    if (result.encounterType === 'patient') {
+      const goalsOfCare =
+        result.facilitation ||
+        result.valuesAssessment ||
+        result.advancedIllness ||
+        result.formCompletion ||
+        false;
+      if (result.goalsOfCare !== goalsOfCare) {
+        result = { ...result, goalsOfCare };
+      }
+
+      const dateOfBirth = parseDate(result.dateOfBirth);
+      if (dateOfBirth && isAfter(dateOfBirth, new Date())) {
+        result = { ...result, dateOfBirth: formatDatabase(subYears(dateOfBirth, 100)) };
+      }
+    }
+
+    if (
+      (result.encounterType === 'patient' || result.encounterType === 'community') &&
+      result.externalSupportiveCare &&
+      !result.otherCommunityResources
+    ) {
+      result = { ...result, otherCommunityResources: true };
+    }
+
+    return result;
+  });
+}
+
+/**
+ * Main reporting pipeline. Reads encounter files directly (bypassing NeDB
+ * engine overhead), applies migrations in memory, uses indexed fix lookups,
+ * and transforms encounters.
  */
 export async function transform({
   rootPath,
@@ -246,60 +258,62 @@ export async function transform({
   fixMrns?: boolean;
   onProgress?: ProgressCallback;
 }) {
-  log.debug('transform: copying encounter files');
+  const t0 = performance.now();
 
-  const fixesFilePath = path.join(rootPath, 'fixes', 'fixes.json');
-
-  let fixes: Fix[] = [];
+  // Build fix index for O(1) lookups (replaces O(n) findLast per encounter)
+  let fixesByUniqueId: Map<string, Fix> | undefined;
   if (fixMrns) {
     onProgress?.({ phase: 'Loading fixes', current: 0, total: 0 });
-    const fixFile = await copyFixFile(fixesFilePath);
-    fixes = await getFixes(fixFile.file);
-    log.debug(`transform: removing temp "${fixFile.temporaryDirectory}"`);
-    fs.rmSync(fixFile.temporaryDirectory, { recursive: true, force: true });
+    const fixesFilePath = path.join(rootPath, 'fixes', 'fixes.json');
+    const fixes = readNedbFileDirect<Fix>(fixesFilePath);
+    fixesByUniqueId = new Map();
+    for (const fix of fixes) {
+      if (fix.uniqueId) {
+        fixesByUniqueId.set(fix.uniqueId, fix);
+      }
+    }
+    log.debug(`transform: indexed ${fixesByUniqueId.size} fixes`);
   }
 
-  const copiedUserEncounters = await copyEncounterFiles(rootPath, onProgress);
+  const encounterFiles = await getEncounterFiles(rootPath);
   const allEncounters: RawEncounter[] = [];
-  const total = copiedUserEncounters.files.length;
+  const total = encounterFiles.length;
 
   for (let i = 0; i < total; i++) {
-    const copiedUserEncounter = copiedUserEncounters.files[i];
-    onProgress?.({
-      phase: `Loading encounters for ${copiedUserEncounter.username}`,
-      current: i + 1,
-      total,
-    });
-    log.debug(`transform: getting encounters for "${copiedUserEncounter.filename}"`);
-    const encounters = await getAllEncounters(copiedUserEncounter.filename);
-    log.debug(
-      `transform: got ${encounters.length} encounters for "${copiedUserEncounter.filename}"`,
-    );
+    const file = encounterFiles[i];
+    const username = usernameFromEncounterPath(file);
+    onProgress?.({ phase: `Processing ${username}`, current: i + 1, total });
+
+    const rawDocs = readNedbFileDirect<RawEncounter>(file);
+    const rawEncounters = rawDocs.filter((doc) => doc.encounterType);
+    const encounters = applyMigrationsInMemory(rawEncounters);
 
     for (const encounter of encounters) {
-      if (fixMrns && encounter.encounterType === 'patient') {
-        const uniqueId = `${copiedUserEncounter.username}-${encounter._id}`;
-        const fix = pick(
-          findLast(fixes, { uniqueId }) || { uniqueId },
+      if (fixMrns && fixesByUniqueId && encounter.encounterType === 'patient') {
+        const uniqueId = `${username}-${encounter._id}`;
+        const fix = fixesByUniqueId.get(uniqueId);
+        const fixData = pick(
+          fix || { uniqueId },
           'dateOfBirth',
           'mrn',
           'providenceMrn',
           'uniqueId',
         );
-        allEncounters.push({ ...encounter, ...fix, username: copiedUserEncounter.username });
+        allEncounters.push({ ...encounter, ...fixData, username });
       } else {
-        allEncounters.push({ ...encounter, username: copiedUserEncounter.username });
+        allEncounters.push({ ...encounter, username });
       }
     }
   }
 
-  log.debug(`transform: removing temp "${copiedUserEncounters.temporaryDirectory}"`);
-  fs.rmSync(copiedUserEncounters.temporaryDirectory, { recursive: true, force: true });
+  const t1 = performance.now();
+  onProgress?.({ phase: 'Transforming encounters', current: total, total });
 
-  onProgress?.({ phase: 'Processing encounters', current: total, total });
-
-  log.debug(`transform: transforming ${allEncounters.length} encounters`);
+  log.debug(`transform: loaded ${allEncounters.length} encounters in ${Math.round(t1 - t0)}ms`);
   const transformed = transformEncounters(allEncounters, mapMrns);
-  log.debug(`transform: returning ${transformed.length} transformed encounters`);
+  const t2 = performance.now();
+  log.debug(
+    `transform: transformed ${transformed.length} encounters in ${Math.round(t2 - t1)}ms (total ${Math.round(t2 - t0)}ms)`,
+  );
   return transformed;
 }

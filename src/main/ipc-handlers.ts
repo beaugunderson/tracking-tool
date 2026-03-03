@@ -205,11 +205,13 @@ ipcMain.handle(
   'reporting:transform',
   async (event, options: { mapMrns?: boolean; fixMrns?: boolean }) => {
     const rootPath = store.get('root-path') as string;
-    return reportingService.transform({
+    const result = await reportingService.transform({
       ...options,
       rootPath,
       onProgress: (progress) => event.sender.send('reporting:progress', progress),
     });
+    // Return as JSON string — much faster than structured clone for large arrays
+    return JSON.stringify(result);
   },
 );
 
@@ -233,3 +235,4 @@ ipcMain.on('log:error', (_event, ...args: unknown[]) => log.error(...args));
 // --- Shell ---
 
 ipcMain.handle('shell:openExternal', (_event, url: string) => shell.openExternal(url));
+ipcMain.handle('shell:openLogFile', () => shell.openPath(log.transports.file.getFile().path));

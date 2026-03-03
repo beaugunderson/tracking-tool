@@ -514,6 +514,19 @@ export class App extends React.Component<{}, AppState> {
               <Icon name="paperclip" />
               Reports
             </div>
+
+            {currentUserIn(['beau', 'lindce2']) && (
+              <>
+                <div className="spacer" />
+                <div
+                  className="navigation-button"
+                  onClick={() => window.trackingTool.openLogFile()}
+                >
+                  <Icon name="file alternate outline" />
+                  Log
+                </div>
+              </>
+            )}
           </div>
 
           {showReportNavigation && (

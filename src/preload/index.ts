@@ -77,4 +77,5 @@ contextBridge.exposeInMainWorld('trackingTool', {
 
   // Shell
   openExternal: (url: string) => ipcRenderer.invoke('shell:openExternal', url),
+  openLogFile: () => ipcRenderer.invoke('shell:openLogFile'),
 });

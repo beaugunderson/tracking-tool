@@ -50,7 +50,7 @@ interface TrackingToolAPI {
   fixesGetAll(): Promise<Fix[]>;
 
   // Reporting
-  reportTransform(options: { mapMrns?: boolean; fixMrns?: boolean }): Promise<Encounter[]>;
+  reportTransform(options: { mapMrns?: boolean; fixMrns?: boolean }): Promise<string>;
   onReportProgress(
     callback: (progress: { phase: string; current: number; total: number }) => void,
   ): () => void;
@@ -69,6 +69,7 @@ interface TrackingToolAPI {
 
   // Shell
   openExternal(url: string): Promise<void>;
+  openLogFile(): Promise<string>;
 }
 
 declare global {

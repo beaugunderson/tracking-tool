@@ -156,7 +156,8 @@ export function scorePhq(scoreString: string) {
   return SCORE_MILD_MINIMAL_OR_NONE;
 }
 
-const TYPES_WITH_INTERVENTIONS = ['patient', 'community'];
+const TYPES_WITH_INTERVENTIONS = new Set(['patient', 'community']);
+const VALID_ENCOUNTER_TYPES = new Set(['community', 'patient', 'other', 'staff']);
 
 type MrnMapping = { [mrn: string]: string } | undefined;
 
@@ -238,7 +239,7 @@ export function transformEncounter(
 
   const interventions: string[] = [];
 
-  if (TYPES_WITH_INTERVENTIONS.includes(encounter.encounterType)) {
+  if (TYPES_WITH_INTERVENTIONS.has(encounter.encounterType)) {
     for (const intervention of INTERVENTION_FIELDS) {
       if (encounter[intervention.fieldName]) {
         interventions.push(intervention.name);
@@ -277,7 +278,7 @@ export function transformEncounter(
     gadScoreLabel,
     mocaScoreLabel,
 
-    numberOfInterventions: TYPES_WITH_INTERVENTIONS.includes(encounter.encounterType)
+    numberOfInterventions: TYPES_WITH_INTERVENTIONS.has(encounter.encounterType)
       ? interventions.length
       : EXCLUDE_NUMBER_VALUE,
 
@@ -291,43 +292,35 @@ export function inferMrns(encounters: RawEncounter[]): [MrnMapping, MrnMapping] 
   const providenceMapping: MrnMapping = {};
   const swedishMapping: MrnMapping = {};
 
-  let changed = true;
+  // Single pass: build mappings and detect conflicts
+  for (const encounter of encounters) {
+    if (!encounter.mrn || !encounter.providenceMrn) {
+      continue;
+    }
 
-  while (changed) {
-    changed = false;
+    const currentProvidenceMapping = providenceMapping[encounter.providenceMrn];
+    const currentSwedishMapping = swedishMapping[encounter.mrn];
 
-    for (const encounter of encounters) {
-      if (!encounter.mrn || !encounter.providenceMrn) {
-        continue;
-      }
+    if (
+      currentProvidenceMapping === EXCLUDE_STRING_VALUE ||
+      currentSwedishMapping === EXCLUDE_STRING_VALUE
+    ) {
+      continue;
+    }
 
-      const currentProvidenceMapping = providenceMapping[encounter.providenceMrn];
-      const currentSwedishMapping = swedishMapping[encounter.mrn];
-
-      if (
-        currentProvidenceMapping === EXCLUDE_STRING_VALUE ||
-        currentSwedishMapping === EXCLUDE_STRING_VALUE
-      ) {
-        continue;
-      }
-
-      if (!currentProvidenceMapping && !currentSwedishMapping) {
-        providenceMapping[encounter.providenceMrn] = encounter.mrn;
-        swedishMapping[encounter.mrn] = encounter.providenceMrn;
-        changed = true;
-      }
-
-      if (
-        (currentProvidenceMapping && currentProvidenceMapping !== encounter.mrn) ||
-        (currentSwedishMapping && currentSwedishMapping !== encounter.providenceMrn)
-      ) {
-        providenceMapping[encounter.providenceMrn] = EXCLUDE_STRING_VALUE;
-        swedishMapping[encounter.mrn] = EXCLUDE_STRING_VALUE;
-        changed = true;
-      }
+    if (!currentProvidenceMapping && !currentSwedishMapping) {
+      providenceMapping[encounter.providenceMrn] = encounter.mrn;
+      swedishMapping[encounter.mrn] = encounter.providenceMrn;
+    } else if (
+      (currentProvidenceMapping && currentProvidenceMapping !== encounter.mrn) ||
+      (currentSwedishMapping && currentSwedishMapping !== encounter.providenceMrn)
+    ) {
+      providenceMapping[encounter.providenceMrn] = EXCLUDE_STRING_VALUE;
+      swedishMapping[encounter.mrn] = EXCLUDE_STRING_VALUE;
     }
   }
 
+  // Propagate exclusions across the two maps
   for (const providence of Object.keys(providenceMapping)) {
     if (providenceMapping[providence] === EXCLUDE_STRING_VALUE) {
       continue;
@@ -355,18 +348,35 @@ export function transformEncounters(
   encounters: RawEncounter[],
   mapMrns = true,
 ): TransformedEncounter[] {
+  const t0 = performance.now();
+
   let providenceMapping: MrnMapping;
   let swedishMapping: MrnMapping;
 
   if (mapMrns) {
-    [providenceMapping, swedishMapping] = inferMrns(
-      encounters.filter((encounter) => encounter.encounterType === 'patient'),
+    const patientEncounters = encounters.filter(
+      (encounter) => encounter.encounterType === 'patient',
     );
+    [providenceMapping, swedishMapping] = inferMrns(patientEncounters);
   }
 
-  return encounters
-    .filter((encounter) =>
-      ['community', 'patient', 'other', 'staff'].includes(encounter.encounterType),
-    )
-    .map((encounter) => transformEncounter(encounter, providenceMapping, swedishMapping));
+  const t1 = performance.now();
+
+  const filtered = encounters.filter((encounter) =>
+    VALID_ENCOUNTER_TYPES.has(encounter.encounterType),
+  );
+
+  const t2 = performance.now();
+
+  const result = filtered.map((encounter) =>
+    transformEncounter(encounter, providenceMapping, swedishMapping),
+  );
+
+  const t3 = performance.now();
+
+  console.log(
+    `transformEncounters: inferMrns=${Math.round(t1 - t0)}ms, filter=${Math.round(t2 - t1)}ms, map=${Math.round(t3 - t2)}ms, total=${Math.round(t3 - t0)}ms (${encounters.length} encounters)`,
+  );
+
+  return result;
 }

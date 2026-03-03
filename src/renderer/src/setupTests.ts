@@ -46,4 +46,5 @@ window.trackingTool = {
   logError: vi.fn(),
 
   openExternal: vi.fn(),
+  openLogFile: vi.fn(),
 };
