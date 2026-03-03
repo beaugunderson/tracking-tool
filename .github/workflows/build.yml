@@ -22,7 +22,7 @@ jobs:
         id: version
         shell: bash
         run: |
-          OLD=$(git show HEAD~1:package.json | node -p "JSON.parse(require('fs').readFileSync('/dev/stdin','utf8')).version")
+          OLD=$(git show HEAD~1:package.json | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>process.stdout.write(JSON.parse(d).version))")
           NEW=$(node -p "require('./package.json').version")
           echo "old=$OLD new=$NEW"
           echo "version=$NEW" >> "$GITHUB_OUTPUT"
