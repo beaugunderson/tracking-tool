@@ -25,6 +25,7 @@ jobs:
           OLD=$(git show HEAD~1:package.json | node -p "JSON.parse(require('fs').readFileSync('/dev/stdin','utf8')).version")
           NEW=$(node -p "require('./package.json').version")
           echo "old=$OLD new=$NEW"
+          echo "version=$NEW" >> "$GITHUB_OUTPUT"
           if [ "$OLD" != "$NEW" ]; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
@@ -60,5 +61,5 @@ jobs:
         if: steps.version.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
         with:
-          name: windows-signed
+          name: Tracking-Tool-${{ steps.version.outputs.version }}
           path: 'release/*.exe'
