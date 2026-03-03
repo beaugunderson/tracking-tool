@@ -1,12 +1,9 @@
 import defaultMenu from 'electron-default-menu';
-import log from 'electron-log';
 import { app, BrowserWindow, dialog, globalShortcut, Menu, shell } from 'electron';
 import { join } from 'node:path';
 
 import './ipc-handlers';
 import 'electron-context-menu';
-
-log.info(`Tracking Tool v${app.getVersion()} starting`);
 
 let mainWindow: BrowserWindow | null = null;
 let showExitPrompt = true;

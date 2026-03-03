@@ -8,7 +8,10 @@ import { app, BrowserWindow, clipboard, dialog, ipcMain, shell } from 'electron'
 
 import * as reportingService from './reporting-service';
 
+log.info(`Tracking Tool v${app.getVersion()} starting`);
+
 const store = new ElectronStore();
+log.info(`Config: ${store.path}`);
 
 let encountersDb: DataStore | null = null;
 let fixesDb: DataStore | null = null;
