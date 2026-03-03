@@ -152,6 +152,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
   };
 
   async componentDidMount() {
+    log.debug('InteractiveReport: loading');
     this.resize();
 
     window.addEventListener('resize', this.resize);
@@ -161,6 +162,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       const encounters = await transform(true, true, (loadProgress) =>
         this.setState({ loadProgress }),
       );
+      log.debug(`InteractiveReport: loaded ${encounters.length} encounters`);
       this.setState({ encounters, loadProgress: null }, async () => this.renderCharts());
     } catch (err) {
       this.setState({ loadError: err instanceof Error ? err.message : String(err) });

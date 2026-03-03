@@ -1,6 +1,8 @@
 import './LinkMrnReport.css';
 import React, { useCallback } from 'react';
 import { Button, Checkbox, Input, Radio, Table } from 'semantic-ui-react';
+
+const log = { debug: (...args: unknown[]) => window.trackingTool.logDebug(...args) };
 import { chain, Dictionary, each, groupBy, map, sortBy } from 'lodash';
 import { ErrorMessage } from '../ErrorMessage';
 import {
@@ -484,6 +486,7 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
         const allEncounters = await transform(mapMrns, true, (loadProgress) =>
           this.setState({ loadProgress }),
         );
+        log.debug(`LinkMrnReport: loaded ${allEncounters.length} encounters`);
         this.setState({ loadProgress: null });
         const encounters = allEncounters.filter(
           (encounter) => encounter.encounterType === 'patient',
@@ -507,6 +510,7 @@ export class LinkMrnReport extends React.Component<LinkMrnReportProps, LinkMrnRe
   }
 
   async componentDidMount() {
+    log.debug('LinkMrnReport: loading');
     await window.trackingTool.fixesOpen();
     await this.loadEncounters(this.state.mrnInferenceEnabled);
   }

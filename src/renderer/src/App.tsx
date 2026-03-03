@@ -188,9 +188,9 @@ export class App extends React.Component<{}, AppState> {
       const now = new Date();
       const monthInterval = { start: startOfMonth(now), end: endOfMonth(now) };
 
-      const monthEncounters = transformEncounters(results as PatientEncounter[]).filter(
-        (encounter) => isWithinInterval(encounter.parsedEncounterDate, monthInterval),
-      );
+      const monthEncounters = transformEncounters(results as PatientEncounter[], true, (msg) =>
+        window.trackingTool.logDebug(msg),
+      ).filter((encounter) => isWithinInterval(encounter.parsedEncounterDate, monthInterval));
 
       const gads = monthEncounters.filter((encounter) => !!encounter.gad).length;
       const mocas = monthEncounters.filter((encounter) => !!encounter.moca).length;

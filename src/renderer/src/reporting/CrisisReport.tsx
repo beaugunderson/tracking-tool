@@ -4,6 +4,8 @@ import {
   type ReportProgress,
   type TransformedEncounter,
 } from '../../../shared/transform';
+
+const log = { debug: (...args: unknown[]) => window.trackingTool.logDebug(...args) };
 import { formatDisplay } from '../../../shared/date-utils';
 import { Icon, Table } from 'semantic-ui-react';
 import { PageLoader } from '../components/PageLoader';
@@ -30,11 +32,13 @@ export class CrisisReport extends React.Component<CrisisReportProps, CrisisRepor
   };
 
   async componentDidMount() {
+    log.debug('CrisisReport: loading');
     this.setState({ loadStartTime: Date.now() });
     try {
       const encounters = await transform(true, true, (loadProgress) =>
         this.setState({ loadProgress }),
       );
+      log.debug(`CrisisReport: loaded ${encounters.length} encounters`);
       this.setState({ encounters, loadProgress: null });
     } catch (err) {
       this.setState({ loadError: err instanceof Error ? err.message : String(err) });

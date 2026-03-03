@@ -48,16 +48,13 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
   };
 
   async componentDidMount() {
-    log.debug('GridReport componentDidMount');
-
+    log.debug('GridReport: loading');
     this.setState({ loadStartTime: Date.now() });
     try {
       const encounters = await transform(true, true, (loadProgress) =>
         this.setState({ loadProgress }),
       );
-
-      log.debug(`GridReport componentDidMount: loaded ${encounters.length} encounters`);
-
+      log.debug(`GridReport: loaded ${encounters.length} encounters`);
       this.setState({ encounters, loadProgress: null });
     } catch (err) {
       this.setState({ loadError: err instanceof Error ? err.message : String(err) });

@@ -2,12 +2,13 @@ import async from 'async';
 import DataStore from '@seald-io/nedb';
 import fs from 'node:fs';
 import log from 'electron-log';
+import os from 'node:os';
 import path from 'node:path';
 import { type Fix } from '../shared/fix';
 import { formatDatabase, parseDate } from '../shared/date-utils';
 import { glob } from 'glob';
 import { isAfter, subYears } from 'date-fns';
-import { isEqual, pick } from 'lodash';
+import { isEqual } from 'lodash';
 import { type RawEncounter, type ReportProgress, transformEncounters } from '../shared/transform';
 
 // --- Data migrations (moved from src/data.ts) ---
@@ -181,14 +182,10 @@ export async function getFixes(filename: string): Promise<Fix[]> {
 // --- Fast reporting pipeline (bypasses NeDB for read-only bulk access) ---
 
 /**
- * Read a NeDB file directly, bypassing the NeDB engine. NeDB files are
- * newline-delimited JSON (append-only): later entries for the same _id
- * override earlier ones, and $$deleted entries remove docs.
+ * Parse NeDB content (newline-delimited JSON, append-only): later entries
+ * for the same _id override earlier ones, and $$deleted entries remove docs.
  */
-function readNedbFileDirect<T extends { _id?: string }>(filename: string): T[] {
-  if (!fs.existsSync(filename)) return [];
-
-  const content = fs.readFileSync(filename, 'utf-8');
+function parseNedbContent<T extends { _id?: string }>(content: string): T[] {
   const byId = new Map<string, T>();
 
   for (const line of content.split('\n')) {
@@ -206,6 +203,12 @@ function readNedbFileDirect<T extends { _id?: string }>(filename: string): T[] {
   }
 
   return Array.from(byId.values());
+}
+
+/** Read and parse a NeDB file directly, bypassing the NeDB engine. */
+function readNedbFileDirect<T extends { _id?: string }>(filename: string): T[] {
+  if (!fs.existsSync(filename)) return [];
+  return parseNedbContent<T>(fs.readFileSync(filename, 'utf-8'));
 }
 
 /** Apply data migrations in memory (no NeDB queries needed). Idempotent. */
@@ -272,48 +275,96 @@ export async function transform({
         fixesByUniqueId.set(fix.uniqueId, fix);
       }
     }
-    log.debug(`transform: indexed ${fixesByUniqueId.size} fixes`);
   }
 
+  const tFixes = performance.now();
+
   const encounterFiles = await getEncounterFiles(rootPath);
-  const allEncounters: RawEncounter[] = [];
   const total = encounterFiles.length;
 
-  for (let i = 0; i < total; i++) {
-    const file = encounterFiles[i];
-    const username = usernameFromEncounterPath(file);
+  const tGlob = performance.now();
+
+  // Copy encounter files to local temp directory first — reading from local disk
+  // is much faster than reading from a network drive (S:\), especially for 73+ files.
+  const tmpDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'tracking-tool-'));
+  onProgress?.({ phase: 'Copying encounter files', current: 0, total });
+  const CONCURRENCY = 10;
+  const localFiles: { username: string; localPath: string }[] = [];
+  for (let i = 0; i < total; i += CONCURRENCY) {
+    const batch = encounterFiles.slice(i, i + CONCURRENCY);
+    const results = await Promise.all(
+      batch.map(async (file) => {
+        const username = usernameFromEncounterPath(file);
+        const localPath = path.join(tmpDir, `${username}.json`);
+        await fs.promises.copyFile(file, localPath);
+        return { username, localPath };
+      }),
+    );
+    localFiles.push(...results);
+    onProgress?.({ phase: 'Copying encounter files', current: localFiles.length, total });
+  }
+
+  const tCopy = performance.now();
+
+  // Read from local temp copies
+  onProgress?.({ phase: 'Reading encounter files', current: 0, total });
+  const fileContents: { username: string; content: string }[] = [];
+  for (let i = 0; i < localFiles.length; i += CONCURRENCY) {
+    const batch = localFiles.slice(i, i + CONCURRENCY);
+    const results = await Promise.all(
+      batch.map(async ({ username, localPath }) => ({
+        username,
+        content: await fs.promises.readFile(localPath, 'utf-8'),
+      })),
+    );
+    fileContents.push(...results);
+    onProgress?.({ phase: 'Reading encounter files', current: fileContents.length, total });
+  }
+
+  const tRead = performance.now();
+
+  // Clean up temp directory (fire-and-forget)
+  fs.promises
+    .rm(tmpDir, { recursive: true })
+    .catch((err) => log.error('Failed to clean temp dir', err));
+
+  // Parse, migrate, and apply fixes
+  const allEncounters: RawEncounter[] = [];
+  for (let i = 0; i < fileContents.length; i++) {
+    const { username, content } = fileContents[i];
     onProgress?.({ phase: `Processing ${username}`, current: i + 1, total });
 
-    const rawDocs = readNedbFileDirect<RawEncounter>(file);
+    const rawDocs = parseNedbContent<RawEncounter>(content);
     const rawEncounters = rawDocs.filter((doc) => doc.encounterType);
     const encounters = applyMigrationsInMemory(rawEncounters);
 
     for (const encounter of encounters) {
+      encounter.username = username;
       if (fixMrns && fixesByUniqueId && encounter.encounterType === 'patient') {
         const uniqueId = `${username}-${encounter._id}`;
         const fix = fixesByUniqueId.get(uniqueId);
-        const fixData = pick(
-          fix || { uniqueId },
-          'dateOfBirth',
-          'mrn',
-          'providenceMrn',
-          'uniqueId',
-        );
-        allEncounters.push({ ...encounter, ...fixData, username });
-      } else {
-        allEncounters.push({ ...encounter, username });
+        if (fix) {
+          if (fix.dateOfBirth !== undefined) encounter.dateOfBirth = fix.dateOfBirth;
+          if (fix.mrn !== undefined) encounter.mrn = fix.mrn;
+          if (fix.providenceMrn !== undefined) encounter.providenceMrn = fix.providenceMrn;
+        }
       }
+      allEncounters.push(encounter);
     }
   }
 
-  const t1 = performance.now();
+  const tParse = performance.now();
   onProgress?.({ phase: 'Transforming encounters', current: total, total });
 
-  log.debug(`transform: loaded ${allEncounters.length} encounters in ${Math.round(t1 - t0)}ms`);
-  const transformed = transformEncounters(allEncounters, mapMrns);
-  const t2 = performance.now();
   log.debug(
-    `transform: transformed ${transformed.length} encounters in ${Math.round(t2 - t1)}ms (total ${Math.round(t2 - t0)}ms)`,
+    `transform: fixes=${Math.round(tFixes - t0)}ms (${fixesByUniqueId?.size ?? 0} indexed), glob=${Math.round(tGlob - tFixes)}ms (${total} files), copy=${Math.round(tCopy - tGlob)}ms, read=${Math.round(tRead - tCopy)}ms, parse+migrate=${Math.round(tParse - tRead)}ms (${allEncounters.length} encounters)`,
+  );
+
+  const transformed = transformEncounters(allEncounters, mapMrns, (msg) => log.debug(msg));
+  const tTransform = performance.now();
+
+  log.debug(
+    `transform: transformEncounters=${Math.round(tTransform - tParse)}ms, total=${Math.round(tTransform - t0)}ms`,
   );
   return transformed;
 }

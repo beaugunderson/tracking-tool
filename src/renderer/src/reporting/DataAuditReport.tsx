@@ -5,6 +5,8 @@ import {
   type ReportProgress,
   type TransformedEncounter,
 } from '../../../shared/transform';
+
+const log = { debug: (...args: unknown[]) => window.trackingTool.logDebug(...args) };
 import { FIRST_TRACKING_DATE, OLDEST_POSSIBLE_AGE } from '../constants';
 import { formatDisplay } from '../../../shared/date-utils';
 import { Icon, Table } from 'semantic-ui-react';
@@ -33,11 +35,13 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
   };
 
   async componentDidMount() {
+    log.debug('DataAuditReport: loading');
     this.setState({ loadStartTime: Date.now() });
     try {
       const encounters = await transform(true, true, (loadProgress) =>
         this.setState({ loadProgress }),
       );
+      log.debug(`DataAuditReport: loaded ${encounters.length} encounters`);
       this.setState({ encounters, loadProgress: null });
     } catch (err) {
       this.setState({ loadError: err instanceof Error ? err.message : String(err) });

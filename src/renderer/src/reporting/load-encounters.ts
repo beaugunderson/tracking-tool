@@ -16,12 +16,15 @@ export async function transform(
     cleanup = window.trackingTool.onReportProgress(onProgress);
   }
   try {
+    const tIpc0 = performance.now();
     const json = (await window.trackingTool.reportTransform({
       mapMrns,
       fixMrns,
     })) as string;
+    const tIpc1 = performance.now();
 
     const encounters = JSON.parse(json) as TransformedEncounter[];
+    const tParse = performance.now();
 
     // Reconvert date fields (JSON serialized them as ISO strings)
     for (const encounter of encounters) {
@@ -30,6 +33,11 @@ export async function transform(
         encounter.parsedDateOfBirth = new Date(encounter.parsedDateOfBirth);
       }
     }
+    const tDates = performance.now();
+
+    window.trackingTool.logDebug(
+      `load-encounters: ipc=${Math.round(tIpc1 - tIpc0)}ms, JSON.parse=${Math.round(tParse - tIpc1)}ms (${(json.length / 1024 / 1024).toFixed(1)}MB), dates=${Math.round(tDates - tParse)}ms (${encounters.length} encounters)`,
+    );
 
     return encounters;
   } finally {

@@ -247,45 +247,31 @@ export function transformEncounter(
     }
   }
 
-  return {
-    ...encounter,
-
-    ageBucket,
-    formattedDateOfBirth: parsedDateOfBirth && formatDisplay(parsedDateOfBirth),
-    parsedDateOfBirth,
-
-    parsedEncounterDate,
-
-    formattedEncounterType:
-      encounter.encounterType[0].toUpperCase() + encounter.encounterType.slice(1),
-
-    tests,
-
-    doctorPrimary: (encounter.md && encounter.md[0]) || EXCLUDE_STRING_VALUE,
-
-    interventions,
-
-    mrn: swedishMrn || EXCLUDE_STRING_VALUE,
-    providenceMrn: providenceMrn || EXCLUDE_STRING_VALUE,
-
-    providenceOrSwedishMrn: providenceMrn || swedishMrn || EXCLUDE_STRING_VALUE,
-
-    parsedNumberOfTasks,
-
-    parsedNumberOfTasksMinusDocumentation,
-
-    phqScoreLabel,
-    gadScoreLabel,
-    mocaScoreLabel,
-
-    numberOfInterventions: TYPES_WITH_INTERVENTIONS.has(encounter.encounterType)
-      ? interventions.length
-      : EXCLUDE_NUMBER_VALUE,
-
-    timeSpentHours: parseInt(encounter.timeSpent, 10) / 60,
-
-    uniqueId: `${encounter.username}-${encounter._id}`,
-  };
+  // Mutate in place to avoid creating 180K new objects via spread
+  const result = encounter as unknown as TransformedEncounter;
+  result.ageBucket = ageBucket;
+  result.formattedDateOfBirth = parsedDateOfBirth ? formatDisplay(parsedDateOfBirth) : undefined;
+  result.parsedDateOfBirth = parsedDateOfBirth;
+  result.parsedEncounterDate = parsedEncounterDate;
+  result.formattedEncounterType =
+    encounter.encounterType[0].toUpperCase() + encounter.encounterType.slice(1);
+  result.tests = tests;
+  result.doctorPrimary = (encounter.md && encounter.md[0]) || EXCLUDE_STRING_VALUE;
+  result.interventions = interventions;
+  result.mrn = swedishMrn || EXCLUDE_STRING_VALUE;
+  result.providenceMrn = providenceMrn || EXCLUDE_STRING_VALUE;
+  result.providenceOrSwedishMrn = providenceMrn || swedishMrn || EXCLUDE_STRING_VALUE;
+  result.parsedNumberOfTasks = parsedNumberOfTasks;
+  result.parsedNumberOfTasksMinusDocumentation = parsedNumberOfTasksMinusDocumentation;
+  result.phqScoreLabel = phqScoreLabel;
+  result.gadScoreLabel = gadScoreLabel;
+  result.mocaScoreLabel = mocaScoreLabel;
+  result.numberOfInterventions = TYPES_WITH_INTERVENTIONS.has(encounter.encounterType)
+    ? interventions.length
+    : EXCLUDE_NUMBER_VALUE;
+  result.timeSpentHours = parseInt(encounter.timeSpent, 10) / 60;
+  result.uniqueId = `${encounter.username}-${encounter._id}`;
+  return result;
 }
 
 export function inferMrns(encounters: RawEncounter[]): [MrnMapping, MrnMapping] {
@@ -347,6 +333,7 @@ export function inferMrns(encounters: RawEncounter[]): [MrnMapping, MrnMapping] 
 export function transformEncounters(
   encounters: RawEncounter[],
   mapMrns = true,
+  log?: (message: string) => void,
 ): TransformedEncounter[] {
   const t0 = performance.now();
 
@@ -374,7 +361,7 @@ export function transformEncounters(
 
   const t3 = performance.now();
 
-  console.log(
+  log?.(
     `transformEncounters: inferMrns=${Math.round(t1 - t0)}ms, filter=${Math.round(t2 - t1)}ms, map=${Math.round(t3 - t2)}ms, total=${Math.round(t3 - t0)}ms (${encounters.length} encounters)`,
   );
 

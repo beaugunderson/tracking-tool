@@ -211,7 +211,13 @@ ipcMain.handle(
       onProgress: (progress) => event.sender.send('reporting:progress', progress),
     });
     // Return as JSON string — much faster than structured clone for large arrays
-    return JSON.stringify(result);
+    const t0 = performance.now();
+    const json = JSON.stringify(result);
+    const t1 = performance.now();
+    log.debug(
+      `reporting:transform: JSON.stringify=${Math.round(t1 - t0)}ms (${(json.length / 1024 / 1024).toFixed(1)}MB, ${result.length} encounters)`,
+    );
+    return json;
   },
 );
 
