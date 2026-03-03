@@ -3,7 +3,9 @@ import { app, BrowserWindow, dialog, globalShortcut, Menu, shell } from 'electro
 import { join } from 'node:path';
 
 import './ipc-handlers';
-import 'electron-context-menu';
+import contextMenu from 'electron-context-menu';
+
+contextMenu();
 
 let mainWindow: BrowserWindow | null = null;
 let showExitPrompt = true;
