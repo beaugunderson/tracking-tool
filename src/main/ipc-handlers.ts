@@ -204,6 +204,61 @@ ipcMain.handle('fixes:getAll', async () => {
 
 // --- Reporting ---
 
+/** Fields needed by reports — strip everything else before IPC to reduce payload. */
+const REPORT_FIELDS = new Set([
+  // Computed by transformEncounter
+  '_id',
+  'ageBucket',
+  'doctorPrimary',
+  'formattedDateOfBirth',
+  'formattedEncounterType',
+  'gadScoreLabel',
+  'interventions',
+  'mocaScoreLabel',
+  'mrn',
+  'numberOfInterventions',
+  'parsedDateOfBirth',
+  'parsedEncounterDate',
+  'parsedNumberOfTasks',
+  'parsedNumberOfTasksMinusDocumentation',
+  'parsedTimeSpent',
+  'phqScoreLabel',
+  'providenceMrn',
+  'providenceOrSwedishMrn',
+  'tests',
+  'timeSpentHours',
+  'uniqueId',
+  // Raw fields still needed by reports
+  'activity',
+  'clinic',
+  'dateOfBirth',
+  'diagnosisStage',
+  'diagnosisType',
+  'encounterDate',
+  'encounterType',
+  'limitedEnglishProficiency',
+  'location',
+  'mandmMortalityAndMorbidity',
+  'numberOfTasks',
+  'patientName',
+  'psychotherapy',
+  'sciRxAssistance',
+  'suicidehomicide',
+  'timeSpent',
+  'transplant',
+  'username',
+]);
+
+function projectEncounter(encounter: Record<string, unknown>): Record<string, unknown> {
+  const projected: Record<string, unknown> = {};
+  for (const key of REPORT_FIELDS) {
+    if (key in encounter) {
+      projected[key] = encounter[key];
+    }
+  }
+  return projected;
+}
+
 ipcMain.handle(
   'reporting:transform',
   async (event, options: { mapMrns?: boolean; fixMrns?: boolean }) => {
@@ -213,12 +268,14 @@ ipcMain.handle(
       rootPath,
       onProgress: (progress) => event.sender.send('reporting:progress', progress),
     });
-    // Return as JSON string — much faster than structured clone for large arrays
+    // Project to report fields only, then return as JSON string (much faster than structured clone)
     const t0 = performance.now();
-    const json = JSON.stringify(result);
+    const projected = result.map((e) => projectEncounter(e as unknown as Record<string, unknown>));
     const t1 = performance.now();
+    const json = JSON.stringify(projected);
+    const t2 = performance.now();
     log.debug(
-      `reporting:transform: JSON.stringify=${Math.round(t1 - t0)}ms (${(json.length / 1024 / 1024).toFixed(1)}MB, ${result.length} encounters)`,
+      `reporting:transform: project=${Math.round(t1 - t0)}ms, JSON.stringify=${Math.round(t2 - t1)}ms (${(json.length / 1024 / 1024).toFixed(1)}MB, ${result.length} encounters)`,
     );
     return json;
   },

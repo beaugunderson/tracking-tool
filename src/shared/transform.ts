@@ -55,6 +55,7 @@ export interface TransformedEncounter extends RawEncounter {
   numberOfInterventions: number;
   parsedNumberOfTasks: number;
   parsedNumberOfTasksMinusDocumentation: number;
+  parsedTimeSpent: number;
   gadScoreLabel?: string;
   mocaScoreLabel?: string;
   phqScoreLabel?: string;
@@ -269,7 +270,8 @@ export function transformEncounter(
   result.numberOfInterventions = TYPES_WITH_INTERVENTIONS.has(encounter.encounterType)
     ? interventions.length
     : EXCLUDE_NUMBER_VALUE;
-  result.timeSpentHours = parseInt(encounter.timeSpent, 10) / 60;
+  result.parsedTimeSpent = parseInt(encounter.timeSpent, 10) || 0;
+  result.timeSpentHours = result.parsedTimeSpent / 60;
   result.uniqueId = `${encounter.username}-${encounter._id}`;
   return result;
 }

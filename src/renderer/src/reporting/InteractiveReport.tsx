@@ -29,20 +29,10 @@ import {
   SCORE_SEVERE,
   type TransformedEncounter,
 } from '../../../shared/transform';
-import {
-  isBoolean,
-  isNaN,
-  isString,
-  keys,
-  map,
-  maxBy,
-  minBy,
-  sum,
-  sumBy,
-  values,
-  zipObject,
-} from 'lodash';
-import { MENTAL_HEALTH_INTERVENTION_NAMES } from '../patient-interventions';
+import { isBoolean, isNaN, isString, map, maxBy, minBy, zipObject } from 'lodash';
+import { MENTAL_HEALTH_INTERVENTION_NAMES as MENTAL_HEALTH_INTERVENTION_NAMES_ARRAY } from '../patient-interventions';
+
+const MENTAL_HEALTH_INTERVENTION_SET = new Set(MENTAL_HEALTH_INTERVENTION_NAMES_ARRAY);
 import { OTHER_ENCOUNTER_OPTIONS } from '../forms/OtherEncounterForm';
 import { PageLoader } from '../components/PageLoader';
 import { transform } from './load-encounters';
@@ -295,176 +285,104 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     const colors = ['#6baed6'];
     const paddedWidth = windowWidth - 100;
 
-    // #region grouped reducers
-    const idKey = (d: TransformedEncounter) => d._id;
-    const bisect = d3.bisector(idKey);
-
-    function add(elements: TransformedEncounter[], item: TransformedEncounter) {
-      const pos = bisect.right(elements, idKey(item));
-
-      elements.splice(pos, 0, item);
-
-      return elements;
-    }
-
-    function remove(elements: TransformedEncounter[], item: TransformedEncounter) {
-      const pos = bisect.left(elements, idKey(item));
-
-      if (idKey(elements[pos]) === idKey(item)) {
-        elements.splice(pos, 1);
-      }
-
-      return elements;
-    }
-
-    function init(): TransformedEncounter[] {
-      return [];
-    }
-    // #endregion
-
-    // #region totals
+    // #region totals — single shared groupAll with incremental counters
     log.debug('renderNumber() calls');
 
-    function renderNumber(
-      selector: string,
-      group: crossfilter.GroupAll<TransformedEncounter, {}>,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      accessor: (d: any) => number | string = (d) => d,
-    ) {
+    interface NumberStats {
+      totalTasks: number;
+      validTasks: number;
+      totalMinutes: number;
+      validEntryCount: number;
+      mrnCounts: Map<string, number>;
+      mentalHealthInterventions: number;
+    }
+
+    function countMentalHealth(d: TransformedEncounter): number {
+      let count = 0;
+      for (const intervention of d.interventions) {
+        if (MENTAL_HEALTH_INTERVENTION_SET.has(intervention)) count++;
+      }
+      return count;
+    }
+
+    /* eslint-disable no-param-reassign -- crossfilter reduce API requires mutation */
+    function addStats(stats: NumberStats, d: TransformedEncounter): NumberStats {
+      stats.totalTasks += d.parsedNumberOfTasks;
+      stats.mentalHealthInterventions += countMentalHealth(d);
+      if (d.providenceOrSwedishMrn !== EXCLUDE_STRING_VALUE) {
+        stats.validTasks += d.parsedNumberOfTasks;
+        stats.totalMinutes += d.parsedTimeSpent;
+        stats.validEntryCount += 1;
+        const mrn = d.providenceOrSwedishMrn;
+        stats.mrnCounts.set(mrn, (stats.mrnCounts.get(mrn) || 0) + 1);
+      }
+      return stats;
+    }
+
+    function removeStats(stats: NumberStats, d: TransformedEncounter): NumberStats {
+      stats.totalTasks -= d.parsedNumberOfTasks;
+      stats.mentalHealthInterventions -= countMentalHealth(d);
+      if (d.providenceOrSwedishMrn !== EXCLUDE_STRING_VALUE) {
+        stats.validTasks -= d.parsedNumberOfTasks;
+        stats.totalMinutes -= d.parsedTimeSpent;
+        stats.validEntryCount -= 1;
+        const mrn = d.providenceOrSwedishMrn;
+        const count = (stats.mrnCounts.get(mrn) || 0) - 1;
+        if (count <= 0) stats.mrnCounts.delete(mrn);
+        else stats.mrnCounts.set(mrn, count);
+      }
+      return stats;
+    }
+    /* eslint-enable no-param-reassign */
+
+    function initStats(): NumberStats {
+      return {
+        totalTasks: 0,
+        validTasks: 0,
+        totalMinutes: 0,
+        validEntryCount: 0,
+        mrnCounts: new Map(),
+        mentalHealthInterventions: 0,
+      };
+    }
+
+    const statsGroup = ndx.groupAll<NumberStats>().reduce(addStats, removeStats, initStats);
+
+    function renderNumber(selector: string, accessor: (s: NumberStats) => number) {
       const number = dc.numberDisplay(selector);
       number
         .formatNumber(d3.format(',.1~f'))
-        .group(group)
+        .group(statsGroup)
         .transitionDuration(0)
         .valueAccessor(accessor);
       number.render();
     }
 
-    renderNumber(
-      '#total-tasks',
-      ndx.groupAll().reduceSum((d) => d.parsedNumberOfTasks),
-    );
+    renderNumber('#total-tasks', (s) => s.totalTasks);
 
-    renderNumber(
-      '#average-minutes-per-entry',
-      ndx.groupAll<TransformedEncounter[]>().reduce(add, remove, init),
-      (entries: TransformedEncounter[]) => {
-        let minuteCount = 0;
-        let entryCount = 0;
+    renderNumber('#average-minutes-per-entry', (s) => {
+      const value = s.totalMinutes / s.validEntryCount;
+      return isNaN(value) ? 0 : value;
+    });
 
-        entries.forEach((entry) => {
-          if (entry.providenceOrSwedishMrn === EXCLUDE_STRING_VALUE) {
-            return;
-          }
+    renderNumber('#average-tasks-per-entry', (s) => {
+      const value = s.validTasks / s.validEntryCount;
+      return isNaN(value) ? 0 : value;
+    });
 
-          minuteCount += parseInt(entry.timeSpent, 10);
-          entryCount += 1;
-        });
+    renderNumber('#average-tasks', (s) => {
+      const value = s.validTasks / s.mrnCounts.size;
+      return isNaN(value) ? 0 : value;
+    });
 
-        const value = minuteCount / entryCount;
+    renderNumber('#average-time', (s) => {
+      const value = s.totalMinutes / s.mrnCounts.size;
+      return isNaN(value) ? 0 : value;
+    });
 
-        return isNaN(value) ? 0 : value;
-      },
-    );
+    renderNumber('#unique-patients', (s) => s.mrnCounts.size);
 
-    renderNumber(
-      '#average-tasks-per-entry',
-      ndx.groupAll<TransformedEncounter[]>().reduce(add, remove, init),
-      (entries: TransformedEncounter[]) => {
-        let taskCount = 0;
-        let entryCount = 0;
-
-        entries.forEach((entry) => {
-          if (entry.providenceOrSwedishMrn === EXCLUDE_STRING_VALUE) {
-            return;
-          }
-
-          taskCount += entry.parsedNumberOfTasks;
-          entryCount += 1;
-        });
-
-        const value = taskCount / entryCount;
-
-        return isNaN(value) ? 0 : value;
-      },
-    );
-
-    renderNumber(
-      '#average-tasks',
-      ndx.groupAll<TransformedEncounter[]>().reduce(add, remove, init),
-      (entries: TransformedEncounter[]) => {
-        const byMrn = {};
-
-        entries.forEach((entry) => {
-          if (entry.providenceOrSwedishMrn === EXCLUDE_STRING_VALUE) {
-            return;
-          }
-
-          if (!byMrn[entry.providenceOrSwedishMrn]) {
-            byMrn[entry.providenceOrSwedishMrn] = 0;
-          }
-
-          byMrn[entry.providenceOrSwedishMrn] += entry.parsedNumberOfTasks;
-        });
-
-        const value = sum(values(byMrn)) / keys(byMrn).length;
-
-        return isNaN(value) ? 0 : value;
-      },
-    );
-
-    renderNumber(
-      '#average-time',
-      ndx.groupAll<TransformedEncounter[]>().reduce(add, remove, init),
-      (entries: TransformedEncounter[]) => {
-        const byMrn = {};
-
-        entries.forEach((entry) => {
-          if (entry.providenceOrSwedishMrn === EXCLUDE_STRING_VALUE) {
-            return;
-          }
-
-          if (!byMrn[entry.providenceOrSwedishMrn]) {
-            byMrn[entry.providenceOrSwedishMrn] = 0;
-          }
-
-          byMrn[entry.providenceOrSwedishMrn] += parseInt(entry.timeSpent, 10);
-        });
-
-        const value = sum(values(byMrn)) / keys(byMrn).length;
-
-        return isNaN(value) ? 0 : value;
-      },
-    );
-
-    renderNumber(
-      '#unique-patients',
-      ndx.groupAll<TransformedEncounter[]>().reduce(add, remove, init),
-      (entries: TransformedEncounter[]) => {
-        const mrns = new Set();
-
-        entries.forEach((entry) => {
-          if (entry.providenceOrSwedishMrn === EXCLUDE_STRING_VALUE) {
-            return;
-          }
-
-          mrns.add(entry.providenceOrSwedishMrn);
-        });
-
-        return mrns.size;
-      },
-    );
-
-    renderNumber(
-      '#total-intervention-techniques',
-      ndx
-        .groupAll()
-        .reduceSum((d) =>
-          sumBy(d.interventions, (intervention) =>
-            MENTAL_HEALTH_INTERVENTION_NAMES.includes(intervention) ? 1 : 0,
-          ),
-        ),
-    );
+    renderNumber('#total-intervention-techniques', (s) => s.mentalHealthInterventions);
 
     log.debug('end renderNumber() calls');
     // #endregion
@@ -593,18 +511,17 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     const timeBinWidth = 10;
 
     const timeDimension = ndx.dimension((d) => {
-      let timeSpent = parseInt(d.timeSpent, 10);
+      const { parsedTimeSpent } = d;
 
-      if (timeSpent <= timeRange[0]) {
-        // eslint-disable-next-line prefer-destructuring
-        timeSpent = timeRange[0];
+      if (parsedTimeSpent <= timeRange[0]) {
+        return 0;
       }
 
-      if (timeSpent >= timeRange[1]) {
-        timeSpent = timeRange[1] - timeBinWidth;
+      if (parsedTimeSpent >= timeRange[1]) {
+        return timeBinWidth * Math.floor((timeRange[1] - timeBinWidth) / timeBinWidth);
       }
 
-      return timeBinWidth * Math.floor(timeSpent / timeBinWidth);
+      return timeBinWidth * Math.floor(parsedTimeSpent / timeBinWidth);
     });
 
     const timeGroup = timeDimension.group();
@@ -989,9 +906,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     const interventionTechniquesDimension = ndx.dimension(
       (d) =>
         d.interventions.map((intervention) =>
-          MENTAL_HEALTH_INTERVENTION_NAMES.includes(intervention)
-            ? intervention
-            : EXCLUDE_STRING_VALUE,
+          MENTAL_HEALTH_INTERVENTION_SET.has(intervention) ? intervention : EXCLUDE_STRING_VALUE,
         ),
       true,
     );
@@ -1019,7 +934,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
 
     const interventionDimension = ndx.dimension((d) => {
       const interventions = d.interventions.map((intervention) =>
-        MENTAL_HEALTH_INTERVENTION_NAMES.includes(intervention)
+        MENTAL_HEALTH_INTERVENTION_SET.has(intervention)
           ? 'Intervention techniques'
           : intervention,
       );
