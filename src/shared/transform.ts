@@ -248,8 +248,9 @@ export function transformEncounter(
     }
   }
 
-  // Mutate in place to avoid creating 180K new objects via spread
-  const result = encounter as unknown as TransformedEncounter;
+  // Shallow-clone to avoid corrupting NeDB's in-memory cache (the original
+  // mrn/providenceMrn fields get overwritten with EXCLUDE_STRING_VALUE below).
+  const result = { ...encounter } as unknown as TransformedEncounter;
   result.ageBucket = ageBucket;
   result.formattedDateOfBirth = parsedDateOfBirth ? formatDisplay(parsedDateOfBirth) : undefined;
   result.parsedDateOfBirth = parsedDateOfBirth;

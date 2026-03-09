@@ -556,6 +556,13 @@ describe('transformEncounter', () => {
       expect(result.providenceOrSwedishMrn).toBe(EXCLUDE_STRING_VALUE);
     });
 
+    it('does not mutate the original encounter object', () => {
+      const enc = makeEncounter({ mrn: '', providenceMrn: 'p1' });
+      transformEncounter(enc);
+      expect(enc.mrn).toBe('');
+      expect(enc.providenceMrn).toBe('p1');
+    });
+
     it('does not apply excluded mappings', () => {
       const enc = makeEncounter({ mrn: 's1', providenceMrn: '' });
       const result = transformEncounter(enc, null, { s1: EXCLUDE_STRING_VALUE });
