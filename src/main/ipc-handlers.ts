@@ -61,7 +61,7 @@ ipcMain.handle('db:open', async (_event, username: string) => {
 
   log.debug(`db:open: opening "${filename}"`);
 
-  encountersDb = reportingService.openDataStore(filename);
+  encountersDb = await reportingService.openDataStore(filename);
   await reportingService.applyMigrations(encountersDb);
 
   log.debug('db:open: migrations complete');
@@ -161,12 +161,14 @@ ipcMain.handle('fixes:open', async () => {
     fs.copyFileSync(fixesFile, path.join(backupDir, `${Date.now()}.json`));
   }
 
-  fixesDb = new DataStore({
+  const ds = new DataStore({
     autoload: true,
     compareStrings: (a: string, b: string) => a.toLowerCase().localeCompare(b.toLowerCase()),
     filename: fixesFile,
     timestampData: true,
   });
+  await ds.autoloadPromise;
+  fixesDb = ds;
 });
 
 ipcMain.handle('fixes:insert', async (_event, doc: object) => {

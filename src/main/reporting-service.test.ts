@@ -130,9 +130,9 @@ describe('migration c1823bb1 (future DOB correction)', () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  function insertDoc(doc: Record<string, unknown>): Promise<void> {
+  async function insertDoc(doc: Record<string, unknown>): Promise<void> {
+    const ds = await openDataStore(dbPath);
     return new Promise((resolve, reject) => {
-      const ds = openDataStore(dbPath);
       ds.insert(doc, (err) => (err ? reject(err) : resolve()));
     });
   }
@@ -153,7 +153,7 @@ describe('migration c1823bb1 (future DOB correction)', () => {
       dateOfBirth: '01/01/2090',
     });
 
-    const ds = openDataStore(dbPath);
+    const ds = await openDataStore(dbPath);
     await applyMigrations(ds);
 
     const docs = await findAll(ds);
@@ -167,7 +167,7 @@ describe('migration c1823bb1 (future DOB correction)', () => {
       dateOfBirth: '03/25/1990',
     });
 
-    const ds = openDataStore(dbPath);
+    const ds = await openDataStore(dbPath);
     await applyMigrations(ds);
 
     const docs = await findAll(ds);
@@ -181,7 +181,7 @@ describe('migration c1823bb1 (future DOB correction)', () => {
       dateOfBirth: 'not-a-date',
     });
 
-    const ds = openDataStore(dbPath);
+    const ds = await openDataStore(dbPath);
     await applyMigrations(ds);
 
     const docs = await findAll(ds);

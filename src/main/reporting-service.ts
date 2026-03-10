@@ -132,13 +132,15 @@ export function applyMigrations(dataStore: DataStore): Promise<DataStore> {
 
 // --- I/O functions ---
 
-export function openDataStore(filename: string): DataStore {
-  return new DataStore({
+export async function openDataStore(filename: string): Promise<DataStore> {
+  const ds = new DataStore({
     autoload: true,
     compareStrings: (a: string, b: string) => a.toLowerCase().localeCompare(b.toLowerCase()),
     filename,
     timestampData: true,
   });
+  await ds.autoloadPromise;
+  return ds;
 }
 
 type ProgressCallback = (progress: ReportProgress) => void;
@@ -167,6 +169,7 @@ export async function getFixes(filename: string): Promise<Fix[]> {
     filename,
     timestampData: true,
   });
+  await dataStore.autoloadPromise;
 
   return new Promise((resolve, reject) => {
     dataStore
