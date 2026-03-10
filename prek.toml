@@ -1,0 +1,11 @@
+# Configuration file for `prek`, a git hook framework written in Rust.
+# See https://prek.j178.dev for more information.
+#:schema https://www.schemastore.org/prek.json
+
+[[repos]]
+repo = "local"
+hooks = [
+    { id = "prettier", name = "prettier", entry = "pnpm exec prettier --write", language = "system", types_or = ["javascript", "jsx", "ts", "tsx", "json", "css", "scss", "markdown", "yaml"] },
+    { id = "eslint", name = "eslint", entry = "pnpm exec eslint --fix", language = "system", types_or = ["ts", "tsx"] },
+    { id = "tsc", name = "tsc", entry = "pnpm exec tsc --noEmit", language = "system", types_or = ["ts", "tsx"], pass_filenames = false },
+]
