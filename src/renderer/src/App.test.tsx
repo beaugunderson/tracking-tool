@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { App } from './App';
+import { INITIAL_VALUES as PATIENT_INITIAL_VALUES } from './forms/PatientEncounterForm';
 import { vi } from 'vitest';
 
 // Helper: render App, wait for async componentDidMount
@@ -113,6 +114,52 @@ describe('App page navigation', () => {
     it('navigating to Other form', () => {
       clickNavButton('Other');
       expect(screen.getByText('New Other Encounter')).toBeInTheDocument();
+    });
+  });
+
+  describe('new encounter forms after editing', () => {
+    it('clears stale encounter data when navigating to a new Patient form', async () => {
+      const existing = {
+        ...PATIENT_INITIAL_VALUES(),
+        _id: 'enc-1',
+        patientName: 'Doe, Jane',
+        encounterDate: '2024-01-15',
+        dateOfBirth: '1980-01-01',
+        timeSpent: '30',
+      };
+
+      setupMocks({ rootPath: '/some/path', username: 'testuser' });
+      vi.mocked(window.trackingTool.dbSearch).mockResolvedValue([existing]);
+
+      const { container } = await renderApp();
+
+      const row = container.querySelector('#encounter-table tbody tr');
+      await act(async () => {
+        fireEvent.click(row!);
+      });
+
+      expect(screen.getByDisplayValue('Doe, Jane')).toBeInTheDocument();
+
+      function clickNav(label: string) {
+        const button = Array.from(container.querySelectorAll('.navigation-button')).find((el) =>
+          el.textContent?.includes(label),
+        );
+
+        if (!button) {
+          throw new Error(`Navigation button "${label}" not found`);
+        }
+
+        fireEvent.click(button);
+      }
+
+      await act(async () => {
+        clickNav('Encounters');
+      });
+      await act(async () => {
+        clickNav('Patient');
+      });
+
+      expect(screen.queryByDisplayValue('Doe, Jane')).not.toBeInTheDocument();
     });
   });
 

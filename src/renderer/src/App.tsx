@@ -404,6 +404,7 @@ export class App extends React.Component<{}, AppState> {
   // TODO: add switching logic here (e.g. if form has been touched require confirmation)
   handlePageChange = (page: Page) => {
     this.setState({
+      encounter: null,
       page,
       showReportNavigation: REPORT_PAGES.includes(page),
     });
