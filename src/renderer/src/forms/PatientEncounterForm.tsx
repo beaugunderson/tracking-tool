@@ -57,7 +57,8 @@ export type PatientEncounter = InitialInterventionValues & {
 
   clinic: string;
   dateOfBirth: string;
-  diagnosisFreeText: string;
+  // Present on historical encounters only; never shown or edited
+  diagnosisFreeText?: string;
   diagnosisStage: string;
   diagnosisType: string;
   encounterDate: string;
@@ -76,7 +77,6 @@ export type PatientEncounter = InitialInterventionValues & {
 export const INITIAL_VALUES = (): PatientEncounter => ({
   clinic: '',
   dateOfBirth: '',
-  diagnosisFreeText: '',
   diagnosisStage: '',
   diagnosisType: '',
   encounterDate: today(),
@@ -408,7 +408,6 @@ function UnwrappedPatientEncounterForm({
         location: enc.location,
         md: enc.md,
         diagnosisType: enc.diagnosisType,
-        diagnosisFreeText: enc.diagnosisFreeText,
         diagnosisStage: enc.diagnosisStage,
         transplant: !!enc.transplant,
       });
@@ -821,16 +820,6 @@ function UnwrappedPatientEncounterForm({
           selection
           selectOnBlur={false}
           value={values.diagnosisType}
-        />
-
-        <Form.Field
-          control={Input}
-          disabled
-          error={!!(touched.diagnosisFreeText && errors.diagnosisFreeText)}
-          id="input-diagnosis-free-text"
-          label="Diagnosis"
-          name="diagnosisFreeText"
-          value={values.diagnosisType === 'Malignant' ? values.diagnosisFreeText : ''}
         />
 
         <Form.Field
