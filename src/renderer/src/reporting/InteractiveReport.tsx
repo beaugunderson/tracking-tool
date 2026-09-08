@@ -33,6 +33,7 @@ import { isBoolean, isNaN, isString, map, maxBy, minBy, zipObject } from 'lodash
 import { MENTAL_HEALTH_INTERVENTION_NAMES as MENTAL_HEALTH_INTERVENTION_NAMES_ARRAY } from '../patient-interventions';
 
 const MENTAL_HEALTH_INTERVENTION_SET = new Set(MENTAL_HEALTH_INTERVENTION_NAMES_ARRAY);
+import { monthRange, monthTicks, monthTitle, showValueLabels } from './month-axis';
 import { OTHER_ENCOUNTER_OPTIONS } from '../forms/OtherEncounterForm';
 import { PageLoader } from '../components/PageLoader';
 import { transform } from './load-encounters';
@@ -393,15 +394,27 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .group()
       .reduceSum((d) => d.parsedNumberOfTasks);
 
+    // Fixed domain covering every month in range, so months with no tasks still take a slot
+    // and the axis stays put while other charts are brushed
+    const monthKeys = encounterDateGroup.all().map((d) => d.key as string);
+    const months =
+      monthKeys.length > 0 ? monthRange(monthKeys[0], monthKeys[monthKeys.length - 1]) : [];
+    const monthBandWidth =
+      (windowWidth - VERTICAL_CHART_MARGINS.left - VERTICAL_CHART_MARGINS.right) /
+      Math.max(months.length, 1);
+    const ticks = monthTicks(months, monthBandWidth);
+    const tickLabels = new Map(ticks.map((tick) => [tick.key, tick.label]));
+
     encountersByDateChart
       .width(windowWidth)
       .height(150)
       .brushOn(true)
-      .x(d3.scaleBand())
+      .x(d3.scaleBand().domain(months))
       .xUnits(dc.units.ordinal)
-      .elasticX(true)
+      .elasticX(false)
       .elasticY(true)
-      .renderLabel(true)
+      .renderLabel(showValueLabels(monthBandWidth))
+      .title((d) => `${monthTitle(d.key as string)}: ${d3.format(',')(d.value as number)} tasks`)
       .yAxisLabel('Tasks')
       // @ts-expect-error dc.js yAxisPadding typing mismatch
       .yAxisPadding('15%')
@@ -409,10 +422,10 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .group(encounterDateGroup)
       .margins(VERTICAL_CHART_MARGINS);
 
-    encountersByDateChart.xAxis().tickFormat((d) => {
-      const tokens = d.split('-');
-      return `${tokens[1]}/${tokens[0]}`;
-    });
+    encountersByDateChart
+      .xAxis()
+      .tickValues(ticks.map((tick) => tick.key))
+      .tickFormat((d) => tickLabels.get(d as string) ?? '');
 
     encountersByDateChart.yAxis().ticks(7);
     encountersByDateChart.yAxisMin = () => 0;
