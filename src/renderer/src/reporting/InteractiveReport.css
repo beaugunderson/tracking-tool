@@ -10,6 +10,11 @@ div.dc-chart {
   font-size: 12px;
 }
 
+.chart-hover-readout {
+  margin-left: 1em;
+  color: #555;
+}
+
 .reset {
   cursor: pointer;
 }

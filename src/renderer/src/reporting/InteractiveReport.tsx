@@ -404,6 +404,8 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       Math.max(months.length, 1);
     const ticks = monthTicks(months, monthBandWidth);
     const tickLabels = new Map(ticks.map((tick) => [tick.key, tick.label]));
+    const monthReadout = (d: { key: unknown; value: unknown }) =>
+      `${monthTitle(d.key as string)}: ${d3.format(',')(d.value as number)} tasks`;
 
     encountersByDateChart
       .width(windowWidth)
@@ -414,7 +416,18 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .elasticX(false)
       .elasticY(true)
       .renderLabel(showValueLabels(monthBandWidth))
-      .title((d) => `${monthTitle(d.key as string)}: ${d3.format(',')(d.value as number)} tasks`)
+      .title(monthReadout)
+      // Bars are too narrow for a value label over six years, so the month under the mouse
+      // is written next to the chart title as soon as the pointer enters a bar
+      .on('pretransition', (chart) => {
+        const readout = d3.select('#encounter-date-readout');
+        chart
+          .selectAll('rect.bar')
+          .on('mouseenter', (_event: MouseEvent, d: { data: { key: unknown; value: unknown } }) =>
+            readout.text(monthReadout(d.data)),
+          )
+          .on('mouseleave', () => readout.text(''));
+      })
       .yAxisLabel('Tasks')
       // @ts-expect-error dc.js yAxisPadding typing mismatch
       .yAxisPadding('15%')
@@ -1229,6 +1242,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
 
         <div id="encounter-date-chart">
           <strong>Tasks by Month</strong>
+          <span className="chart-hover-readout" id="encounter-date-readout" />
           <div className="clear" />
         </div>
 
