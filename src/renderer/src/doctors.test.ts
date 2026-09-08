@@ -2,7 +2,7 @@ import { DOCTORS, isInactive, RAW_DOCTORS } from './doctors';
 
 describe('isInactive', () => {
   it('returns false for active doctor', () => {
-    expect(isInactive('Abrams, Deborah')).toBe(false);
+    expect(isInactive('Alassas, Mohamed')).toBe(false);
   });
 
   it('returns true for inactive doctor', () => {

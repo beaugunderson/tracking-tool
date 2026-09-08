@@ -5,7 +5,7 @@ type Doctor = {
 };
 
 export const RAW_DOCTORS: readonly Doctor[] = [
-  { text: 'Abrams, Deborah' },
+  { text: 'Abrams, Deborah', inactive: true },
   { text: 'Agena, Joanna', inactive: true },
   { text: 'Alassas, Mohamed' },
   { text: 'Alshaban, Ahmed', inactive: true },
@@ -16,6 +16,7 @@ export const RAW_DOCTORS: readonly Doctor[] = [
   { text: 'Batchelder, Ami', inactive: true },
   { text: 'Benitez Kruidenier, Sandra', inactive: true },
   { text: 'Benkers, Tara', inactive: true },
+  { text: 'Bennett, Claire' },
   { text: 'Bensinger, William', inactive: true },
   { text: 'Bhark, Sandy' },
   { text: 'Blanshan, Stephanie', inactive: true },
@@ -32,6 +33,7 @@ export const RAW_DOCTORS: readonly Doctor[] = [
   { text: 'Carlin, Delainey' },
   { text: 'Chen, Grace' },
   { text: 'Chitila, Phoebe', inactive: true },
+  { text: 'Clark, Vanessa' },
   { text: 'Clay, Martha', inactive: true },
   { text: 'Cobbs, Charles' },
   { text: 'Cram, Samantha' },
@@ -116,6 +118,7 @@ export const RAW_DOCTORS: readonly Doctor[] = [
   { text: 'Menendez, Carolyn' },
   { text: 'Menon, Raman' },
   { text: 'Milhoan, Linda' },
+  { text: 'Millen, Johnna' },
   { text: 'Miller, Yuko' },
   { text: 'Montgomery, Susan' },
   { text: 'Moore, David', inactive: true },
@@ -157,6 +160,7 @@ export const RAW_DOCTORS: readonly Doctor[] = [
   { text: 'Robin, Jeffrey', inactive: true },
   { text: 'Rogers, Jeffrey' },
   { text: 'Romine, Perrin' },
+  { text: 'Ryan, Alison' },
   { text: 'Ryu, Lio' },
   { text: 'Santana-Davila, Rafael' },
   { text: 'Sarkar, Reith' },
