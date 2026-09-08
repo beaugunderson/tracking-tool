@@ -19,18 +19,28 @@ interface Migration {
   transform: (encounter: RawEncounter) => RawEncounter;
 }
 
+/**
+ * Goals of Care is either checked directly on the form or, on encounters
+ * predating the field, implied by the four legacy Advanced Care Planning
+ * interventions it replaced. Never turns an existing true back into false.
+ */
+function deriveGoalsOfCare(encounter: RawEncounter): boolean {
+  return Boolean(
+    encounter.goalsOfCare ||
+    encounter.facilitation ||
+    encounter.valuesAssessment ||
+    encounter.advancedIllness ||
+    encounter.formCompletion,
+  );
+}
+
 const migrations: Migration[] = [
   {
     id: '0b0ac661-956b-43e4-a130-7fba4425651f',
     query: { encounterType: 'patient' },
     transform: (encounter) => ({
       ...encounter,
-      goalsOfCare:
-        encounter.facilitation ||
-        encounter.valuesAssessment ||
-        encounter.advancedIllness ||
-        encounter.formCompletion ||
-        false,
+      goalsOfCare: deriveGoalsOfCare(encounter),
     }),
   },
   {
@@ -215,17 +225,12 @@ function readNedbFileDirect<T extends { _id?: string }>(filename: string): T[] {
 }
 
 /** Apply data migrations in memory (no NeDB queries needed). Idempotent. */
-function applyMigrationsInMemory(encounters: RawEncounter[]): RawEncounter[] {
+export function applyMigrationsInMemory(encounters: RawEncounter[]): RawEncounter[] {
   return encounters.map((encounter) => {
     let result = encounter;
 
     if (result.encounterType === 'patient') {
-      const goalsOfCare =
-        result.facilitation ||
-        result.valuesAssessment ||
-        result.advancedIllness ||
-        result.formCompletion ||
-        false;
+      const goalsOfCare = deriveGoalsOfCare(result);
       if (result.goalsOfCare !== goalsOfCare) {
         result = { ...result, goalsOfCare };
       }

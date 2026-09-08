@@ -3,6 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {
   applyMigrations,
+  applyMigrationsInMemory,
   normalizeGlobPattern,
   openDataStore,
   usernameFromEncounterPath,
@@ -187,5 +188,71 @@ describe('migration c1823bb1 (future DOB correction)', () => {
     const docs = await findAll(ds);
     expect(docs).toHaveLength(1);
     expect(docs[0].dateOfBirth).toBe('not-a-date');
+  });
+});
+
+describe('migration 0b0ac661 (Goals of Care)', () => {
+  let tmpDir: string;
+  let dbPath: string;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'migration-test-'));
+    dbPath = path.join(tmpDir, 'encounters.json');
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  async function insertDoc(doc: Record<string, unknown>): Promise<void> {
+    const ds = await openDataStore(dbPath);
+    return new Promise((resolve, reject) => {
+      ds.insert(doc, (err) => (err ? reject(err) : resolve()));
+    });
+  }
+
+  function findAll(ds: any): Promise<any[]> {
+    return new Promise((resolve, reject) => {
+      ds.find({ encounterType: 'patient' }, (err: Error | null, docs: any[]) =>
+        err ? reject(err) : resolve(docs),
+      );
+    });
+  }
+
+  it('keeps goalsOfCare checked on an encounter without the legacy fields (in memory)', () => {
+    const [result] = applyMigrationsInMemory([
+      {
+        encounterType: 'patient',
+        encounterDate: '2024-05-01',
+        timeSpent: '30',
+        goalsOfCare: true,
+      },
+    ]);
+    expect(result.goalsOfCare).toBe(true);
+  });
+
+  it('derives goalsOfCare from the legacy fields (in memory)', () => {
+    const [fromLegacy, none] = applyMigrationsInMemory([
+      {
+        encounterType: 'patient',
+        encounterDate: '2018-12-01',
+        timeSpent: '30',
+        valuesAssessment: true,
+      },
+      { encounterType: 'patient', encounterDate: '2018-12-01', timeSpent: '30' },
+    ]);
+    expect(fromLegacy.goalsOfCare).toBe(true);
+    expect(none.goalsOfCare).toBe(false);
+  });
+
+  it('keeps goalsOfCare checked on an encounter without the legacy fields (persistent)', async () => {
+    await insertDoc({ encounterType: 'patient', goalsOfCare: true });
+
+    const ds = await openDataStore(dbPath);
+    await applyMigrations(ds);
+
+    const docs = await findAll(ds);
+    expect(docs).toHaveLength(1);
+    expect(docs[0].goalsOfCare).toBe(true);
   });
 });
