@@ -22,6 +22,7 @@ export const USERNAMES = {
   'kristen.sievert': 'Kristen Sievert',
   'lauren.zemer': 'Lauren Zemer',
   'linsey.hunt': 'Linsey Hunt',
+  'lisa.leitzelar': 'Lisa Leitzelar',
   'lucy.gunter': 'Lacy Gunter',
   'maia.bachman': 'Maia Bachman',
   'marilyn.oakes-greens': 'Marilyn Oakes-Greenspan',
