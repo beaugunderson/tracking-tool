@@ -19,6 +19,7 @@ import { EncounterFormProps } from '../types';
 import { FormikErrors, useFormik } from 'formik';
 import { InterventionField } from '../components/InterventionField';
 import { isEmpty } from 'lodash';
+import { isMultipleOfFive, TIME_SPENT_MULTIPLE_ERROR } from '../../../shared/time-spent';
 
 export type CommunityEncounter = InitialCommunityInterventionValues & {
   _id?: string;
@@ -72,6 +73,10 @@ function UnwrappedCommunityEncounterForm({
           errors[field] = 'Field is required';
         }
       });
+
+      if (!errors.timeSpent && !isMultipleOfFive(values.timeSpent)) {
+        errors.timeSpent = TIME_SPENT_MULTIPLE_ERROR;
+      }
 
       return errors;
     },

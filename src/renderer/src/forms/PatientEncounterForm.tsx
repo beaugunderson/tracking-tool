@@ -45,6 +45,7 @@ import {
   interventionOptions,
 } from '../patient-interventions';
 import { InterventionField, ScoredInterventionField } from '../components/InterventionField';
+import { isMultipleOfFive, TIME_SPENT_MULTIPLE_ERROR } from '../../../shared/time-spent';
 
 const debug = Debug('tracking-tool:patient-encounter-form');
 
@@ -308,8 +309,8 @@ function UnwrappedPatientEncounterForm({
         errors.dateOfBirth = 'Must be younger than 117 years old';
       }
 
-      if (!/(0|5)$/.test(values.timeSpent)) {
-        errors.timeSpent = 'Must be rounded to the nearest multiple of 5';
+      if (!errors.timeSpent && !isMultipleOfFive(values.timeSpent)) {
+        errors.timeSpent = TIME_SPENT_MULTIPLE_ERROR;
       }
 
       return errors;

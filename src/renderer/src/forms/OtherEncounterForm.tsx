@@ -10,6 +10,7 @@ import { EncounterFormProps } from '../types';
 import { find, isEmpty } from 'lodash';
 import { FormikErrors, useFormik } from 'formik';
 import { InfoButtonLabel } from '../InfoButtonLabel';
+import { isMultipleOfFive, TIME_SPENT_MULTIPLE_ERROR } from '../../../shared/time-spent';
 import { nameToFieldName } from '../patient-interventions';
 
 function addFieldNames(options: { name: string; description: string }[]) {
@@ -188,6 +189,10 @@ function UnwrappedOtherEncounterForm({
           errors[field] = 'Field is required';
         }
       });
+
+      if (!errors.timeSpent && !isMultipleOfFive(values.timeSpent)) {
+        errors.timeSpent = TIME_SPENT_MULTIPLE_ERROR;
+      }
 
       return errors;
     },

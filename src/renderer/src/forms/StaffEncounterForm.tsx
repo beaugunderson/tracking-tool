@@ -12,6 +12,7 @@ import {
 import { EncounterFormProps } from '../types';
 import { FormikErrors, FormikProps, withFormik } from 'formik';
 import { isEmpty } from 'lodash';
+import { isMultipleOfFive, TIME_SPENT_MULTIPLE_ERROR } from '../../../shared/time-spent';
 
 export type StaffEncounter = {
   _id?: string;
@@ -145,6 +146,10 @@ export const StaffEncounterForm = withFormik<StaffEncounterFormProps, StaffEncou
         errors[field] = 'Field is required';
       }
     });
+
+    if (!errors.timeSpent && !isMultipleOfFive(values.timeSpent)) {
+      errors.timeSpent = TIME_SPENT_MULTIPLE_ERROR;
+    }
 
     return errors;
   },

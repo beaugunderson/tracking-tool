@@ -14,7 +14,14 @@ export function InfoButton({ content, ...rest }: InfoButtonProps) {
   }
 
   return (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <Popup {...rest} content={content} horizontalOffset={12} on="hover" trigger={HELP_ICON} />
+    <Popup
+      // eslint-disable-next-line react/jsx-props-no-spreading
+      {...rest}
+      content={content}
+      horizontalOffset={12}
+      hoverable
+      on="hover"
+      trigger={HELP_ICON}
+    />
   );
 }

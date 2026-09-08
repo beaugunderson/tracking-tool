@@ -133,6 +133,12 @@ body {
   right: 0;
 }
 
+// Info bubbles open upward from their icon; in a short window the bubble for a
+// field at the bottom of a form reaches the navigation bar and must sit above it
+.ui.popup {
+  z-index: 1000001;
+}
+
 @media print {
   #navigation-wrapper {
     visibility: hidden;
