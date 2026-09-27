@@ -133,7 +133,7 @@
     "@vitejs/plugin-react": "^5",
     "delectron": "^0.0.1-security",
     "devtron": "^1.4.0",
-    "electron": "^33.0.0",
+    "electron": "^40.8.5",
     "electron-builder": "^26.0.17",
     "electron-vite": "^5",
     "eslint": "^9.39.3",
