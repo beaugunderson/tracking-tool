@@ -13,6 +13,26 @@ import { sortBy } from 'lodash';
 import { transform } from './load-encounters';
 import { usernameToName } from '../usernames';
 
+// Patient interventions that put an encounter on the Intervention Report, with the label shown
+// in its Crises column.
+export const REPORTED_INTERVENTIONS: readonly [keyof TransformedEncounter, string][] = [
+  ['adultProtection', 'APS'],
+  ['behavioralSafetyPlan', 'Behavioral/Safety Plan'],
+  ['childProtection', 'CPS'],
+  ['mandmMortalityAndMorbidity', 'M&M'],
+  ['psychotherapy', 'Psychotherapy'],
+  ['sciRxAssistance', 'SCI RX Assistance'],
+  ['suicidehomicide', 'Suicide/homicide'],
+];
+
+export function reportedInterventions(encounter: TransformedEncounter): string[] {
+  if (encounter.encounterType !== 'patient') {
+    return [];
+  }
+
+  return REPORTED_INTERVENTIONS.filter(([field]) => encounter[field]).map(([, label]) => label);
+}
+
 interface CrisisReportProps {}
 
 interface CrisisReportState {
@@ -59,42 +79,9 @@ export class CrisisReport extends React.Component<CrisisReportProps, CrisisRepor
     }
 
     const crisisEncounters = sortBy(
-      encounters.filter((encounter) => {
-        if (encounter.encounterType !== 'patient') {
-          return false;
-        }
-
-        return (
-          encounter.mandmMortalityAndMorbidity ||
-          encounter.psychotherapy ||
-          encounter.sciRxAssistance ||
-          encounter.suicidehomicide
-        );
-      }),
+      encounters.filter((encounter) => reportedInterventions(encounter).length > 0),
       'parsedEncounterDate',
     ).reverse();
-
-    function crises(encounter: TransformedEncounter) {
-      const crisisNames = [];
-
-      if (encounter.mandmMortalityAndMorbidity) {
-        crisisNames.push('M&M');
-      }
-
-      if (encounter.psychotherapy) {
-        crisisNames.push('Psychotherapy');
-      }
-
-      if (encounter.sciRxAssistance) {
-        crisisNames.push('SCI RX Assistance');
-      }
-
-      if (encounter.suicidehomicide) {
-        crisisNames.push('Suicide/homicide');
-      }
-
-      return crisisNames.join(', ');
-    }
 
     return (
       <Table>
@@ -137,7 +124,7 @@ export class CrisisReport extends React.Component<CrisisReportProps, CrisisRepor
                   <Icon name="copy" />
                 </button>
               </Table.Cell>
-              <Table.Cell>{crises(encounter)}</Table.Cell>
+              <Table.Cell>{reportedInterventions(encounter).join(', ')}</Table.Cell>
               <Table.Cell>{encounter.location}</Table.Cell>
               <Table.Cell>{encounter.clinic}</Table.Cell>
             </Table.Row>
