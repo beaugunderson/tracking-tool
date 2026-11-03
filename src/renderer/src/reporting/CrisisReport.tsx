@@ -9,29 +9,10 @@ const log = { debug: (...args: unknown[]) => window.trackingTool.logDebug(...arg
 import { formatDisplay } from '../../../shared/date-utils';
 import { Icon, Table } from 'semantic-ui-react';
 import { PageLoader } from '../components/PageLoader';
+import { reportedInterventions } from '../../../shared/report-fields';
 import { sortBy } from 'lodash';
 import { transform } from './load-encounters';
 import { usernameToName } from '../usernames';
-
-// Patient interventions that put an encounter on the Intervention Report, with the label shown
-// in its Crises column.
-export const REPORTED_INTERVENTIONS: readonly [keyof TransformedEncounter, string][] = [
-  ['adultProtection', 'APS'],
-  ['behavioralSafetyPlan', 'Behavioral/Safety Plan'],
-  ['childProtection', 'CPS'],
-  ['mandmMortalityAndMorbidity', 'M&M'],
-  ['psychotherapy', 'Psychotherapy'],
-  ['sciRxAssistance', 'SCI RX Assistance'],
-  ['suicidehomicide', 'Suicide/homicide'],
-];
-
-export function reportedInterventions(encounter: TransformedEncounter): string[] {
-  if (encounter.encounterType !== 'patient') {
-    return [];
-  }
-
-  return REPORTED_INTERVENTIONS.filter(([field]) => encounter[field]).map(([, label]) => label);
-}
 
 interface CrisisReportProps {}
 
@@ -91,6 +72,7 @@ export class CrisisReport extends React.Component<CrisisReportProps, CrisisRepor
             <Table.HeaderCell>Social Worker</Table.HeaderCell>
             <Table.HeaderCell>Providence MRN</Table.HeaderCell>
             <Table.HeaderCell>MRN</Table.HeaderCell>
+            <Table.HeaderCell>Patient Name</Table.HeaderCell>
             <Table.HeaderCell>Crises</Table.HeaderCell>
             <Table.HeaderCell>Location</Table.HeaderCell>
             <Table.HeaderCell>Clinic</Table.HeaderCell>
@@ -124,6 +106,7 @@ export class CrisisReport extends React.Component<CrisisReportProps, CrisisRepor
                   <Icon name="copy" />
                 </button>
               </Table.Cell>
+              <Table.Cell>{encounter.patientName}</Table.Cell>
               <Table.Cell>{reportedInterventions(encounter).join(', ')}</Table.Cell>
               <Table.Cell>{encounter.location}</Table.Cell>
               <Table.Cell>{encounter.clinic}</Table.Cell>

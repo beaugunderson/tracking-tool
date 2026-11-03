@@ -7,6 +7,7 @@ import path from 'node:path';
 import { app, BrowserWindow, clipboard, dialog, ipcMain, shell } from 'electron';
 
 import * as reportingService from './reporting-service';
+import { projectEncounter } from '../shared/report-fields';
 
 log.info(`Tracking Tool v${app.getVersion()} starting`);
 
@@ -205,61 +206,6 @@ ipcMain.handle('fixes:getAll', async () => {
 });
 
 // --- Reporting ---
-
-/** Fields needed by reports — strip everything else before IPC to reduce payload. */
-const REPORT_FIELDS = new Set([
-  // Computed by transformEncounter
-  '_id',
-  'ageBucket',
-  'doctorPrimary',
-  'formattedDateOfBirth',
-  'formattedEncounterType',
-  'gadScoreLabel',
-  'interventions',
-  'mocaScoreLabel',
-  'mrn',
-  'numberOfInterventions',
-  'parsedDateOfBirth',
-  'parsedEncounterDate',
-  'parsedNumberOfTasks',
-  'parsedNumberOfTasksMinusDocumentation',
-  'parsedTimeSpent',
-  'phqScoreLabel',
-  'providenceMrn',
-  'providenceOrSwedishMrn',
-  'tests',
-  'timeSpentHours',
-  'uniqueId',
-  // Raw fields still needed by reports
-  'activity',
-  'clinic',
-  'dateOfBirth',
-  'diagnosisStage',
-  'diagnosisType',
-  'encounterDate',
-  'encounterType',
-  'limitedEnglishProficiency',
-  'location',
-  'mandmMortalityAndMorbidity',
-  'numberOfTasks',
-  'patientName',
-  'psychotherapy',
-  'sciRxAssistance',
-  'suicidehomicide',
-  'timeSpent',
-  'transplant',
-  'username',
-]);
-
-function projectEncounter(encounter: Record<string, unknown>): Record<string, unknown> {
-  const projected: Record<string, unknown> = {};
-  for (const key of REPORT_FIELDS) {
-    if (key in encounter) {
-      projected[key] = encounter[key];
-    }
-  }
-  return projected;
-}
 
 ipcMain.handle(
   'reporting:transform',
