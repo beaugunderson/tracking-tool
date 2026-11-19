@@ -4,6 +4,7 @@ import { Button, Checkbox, CheckboxProps, Table } from 'semantic-ui-react';
 import { eachMonthOfInterval, format, parse, startOfMonth } from 'date-fns';
 import { isIntern } from '../usernames';
 import { MONTHLY_REPORT_OPTIONS, ROW_TYPE } from '../options';
+import { monthlyCounts } from './monthly-counts';
 import { PageLoader } from '../components/PageLoader';
 import { type ReportProgress, type TransformedEncounter } from '../../../shared/transform';
 import { transform } from './load-encounters';
@@ -24,7 +25,7 @@ interface GridReportProps {}
 
 interface GridReportState {
   encounters: TransformedEncounter[] | null;
-  filterDocumentationTasks?: boolean;
+  excludeDocumentationOnly?: boolean;
   loadError?: string | null;
   loadProgress?: ReportProgress | null;
   loadStartTime?: number;
@@ -33,17 +34,17 @@ interface GridReportState {
 export class GridReport extends React.Component<GridReportProps, GridReportState> {
   state: GridReportState = {
     encounters: null,
-    filterDocumentationTasks: false,
+    excludeDocumentationOnly: false,
   };
 
   handlePrint = () => window.print();
 
-  changeIncludeDocumentation: (
+  changeExcludeDocumentationOnly: (
     event: React.FormEvent<HTMLInputElement>,
     data: CheckboxProps,
   ) => void = (event, data) => {
     this.setState({
-      filterDocumentationTasks: data.checked,
+      excludeDocumentationOnly: data.checked,
     });
   };
 
@@ -69,38 +70,16 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
   ) {
     log.debug(`rowsForPemutation: ${clinic}, ${location}, [${types.join(', ')}]`);
 
-    const { encounters } = this.state;
+    const { encounters, excludeDocumentationOnly } = this.state;
 
-    const interns = months.map(() => 0);
-    const nonInterns = months.map(() => 0);
-    const staff = months.map(() => 0);
-
-    const field = this.state.filterDocumentationTasks
-      ? 'parsedNumberOfTasksMinusDocumentation'
-      : 'parsedNumberOfTasks';
-
-    for (const encounter of encounters) {
-      for (let i = 0; i < months.length; i++) {
-        if (
-          (encounter.encounterType === 'community' ||
-            encounter.encounterType === 'patient' ||
-            encounter.encounterType === 'staff') &&
-          ((encounter.clinic === clinic && encounter.location === location) ||
-            (encounter.encounterType === 'community' &&
-              encounter.location === location &&
-              clinic === 'Community')) &&
-          encounter.encounterDate.slice(0, 7) === format(months[i], 'yyyy-MM')
-        ) {
-          if (encounter.encounterType === 'staff') {
-            staff[i] += encounter[field];
-          } else if (isIntern(encounter.username, encounter.encounterDate)) {
-            interns[i] += encounter[field];
-          } else {
-            nonInterns[i] += encounter[field];
-          }
-        }
-      }
-    }
+    const { interns, nonInterns, staff } = monthlyCounts(
+      encounters,
+      clinic,
+      location,
+      months.map((month) => format(month, 'yyyy-MM')),
+      !!excludeDocumentationOnly,
+      isIntern,
+    );
 
     log.debug(`rowsForPemutation returning`);
 
@@ -165,7 +144,10 @@ export class GridReport extends React.Component<GridReportProps, GridReportState
       <div>
         <Button onClick={this.handlePrint}>Print</Button>
         &nbsp;&nbsp;&nbsp;
-        <Checkbox label="Remove documentation tasks" onChange={this.changeIncludeDocumentation} />
+        <Checkbox
+          label="Exclude documentation-only encounters"
+          onChange={this.changeExcludeDocumentationOnly}
+        />
       </div>
     );
 

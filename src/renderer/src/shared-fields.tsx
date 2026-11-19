@@ -125,25 +125,11 @@ const TIME_SPENT_OTHER_LABEL = (
   </label>
 );
 
-const NUMBER_OF_TASKS_PATIENT_LABEL = (
-  <label>
-    Number of Tasks{' '}
-    <InfoButton
-      content="The number of tasks associated with the encounter, equal to the number of lines you would have completed in the old spreadsheet format. Include 1 task for documentation. For example, discussion with MD, seeing patient, coordinating with PFA, and starting documentation would equal 4 tasks. If completing documentation on another day without a patient encounter, enter 1 task"
-      wide
-    />
-  </label>
-);
-
-const NUMBER_OF_TASKS_OTHER_LABEL = (
-  <label>
-    Number of Tasks{' '}
-    <InfoButton
-      content="The number of tasks associated with the encounter, equal to the number of lines you would have completed in the old spreadsheet format"
-      wide
-    />
-  </label>
-);
+/**
+ * Tasks are not tracked, but older versions of the app require a number in this field to save an
+ * edit, so new encounters store '0' to stay editable from an older build.
+ */
+export const LEGACY_NUMBER_OF_TASKS = '0';
 
 type EncounterTimeSpentFieldProps = FieldProps & {
   patient?: boolean;
@@ -163,30 +149,6 @@ export function EncounterTimeSpentField({
       error={error}
       label={patient ? TIME_SPENT_PATIENT_LABEL : TIME_SPENT_OTHER_LABEL}
       name="timeSpent"
-      onBlur={onBlur}
-      onChange={onChange}
-      value={value}
-    />
-  );
-}
-
-type EncounterNumberOfTasksFieldProps = FieldProps & {
-  patient?: boolean;
-};
-
-export function EncounterNumberOfTasksField({
-  error,
-  onBlur,
-  onChange,
-  patient,
-  value,
-}: EncounterNumberOfTasksFieldProps) {
-  return (
-    <Form.Field
-      control={Input}
-      error={error}
-      label={patient ? NUMBER_OF_TASKS_PATIENT_LABEL : NUMBER_OF_TASKS_OTHER_LABEL}
-      name="numberOfTasks"
       onBlur={onBlur}
       onChange={onChange}
       value={value}

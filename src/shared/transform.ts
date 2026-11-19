@@ -16,6 +16,7 @@ export interface RawEncounter {
   encounterDate: string;
   encounterType: 'patient' | 'community' | 'staff' | 'other';
   timeSpent: string;
+  /** Not entered or reported; forms write '0' so older app versions can still edit the encounter. */
   numberOfTasks?: string;
   location?: string;
   clinic?: string;
@@ -53,8 +54,8 @@ export interface TransformedEncounter extends RawEncounter {
   doctorPrimary: string;
   interventions: string[];
   numberOfInterventions: number;
-  parsedNumberOfTasks: number;
-  parsedNumberOfTasksMinusDocumentation: number;
+  /** Documentation is the only intervention and no tests were given. */
+  documentationOnly: boolean;
   parsedTimeSpent: number;
   gadScoreLabel?: string;
   mocaScoreLabel?: string;
@@ -193,12 +194,6 @@ export function transformEncounter(
     tests.push('PHQ');
   }
 
-  const parsedNumberOfTasks = parseInt(encounter.numberOfTasks, 10) || 0;
-
-  const parsedNumberOfTasksMinusDocumentation = encounter.documentation
-    ? Math.max(parsedNumberOfTasks - 1, 0)
-    : parsedNumberOfTasks;
-
   let gadScoreLabel: string | undefined;
   let mocaScoreLabel: string | undefined;
   let phqScoreLabel: string | undefined;
@@ -263,8 +258,8 @@ export function transformEncounter(
   result.mrn = swedishMrn || EXCLUDE_STRING_VALUE;
   result.providenceMrn = providenceMrn || EXCLUDE_STRING_VALUE;
   result.providenceOrSwedishMrn = providenceMrn || swedishMrn || EXCLUDE_STRING_VALUE;
-  result.parsedNumberOfTasks = parsedNumberOfTasks;
-  result.parsedNumberOfTasksMinusDocumentation = parsedNumberOfTasksMinusDocumentation;
+  result.documentationOnly =
+    interventions.length === 1 && interventions[0] === 'Documentation' && tests.length === 0;
   result.phqScoreLabel = phqScoreLabel;
   result.gadScoreLabel = gadScoreLabel;
   result.mocaScoreLabel = mocaScoreLabel;

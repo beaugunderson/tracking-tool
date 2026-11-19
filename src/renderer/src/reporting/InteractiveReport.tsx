@@ -246,7 +246,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     const userChart = dc.rowChart('#user-chart');
 
     // bar charts
-    const dayOfWeekChart = dc.barChart('#number-of-tasks-chart');
+    const dayOfWeekChart = dc.barChart('#weekday-chart');
     const encountersByDateChart = dc.barChart('#encounter-date-chart');
     const numberOfInterventionsChart = dc.barChart('#number-of-interventions-chart');
     const timeChart = dc.barChart('#time-chart');
@@ -265,18 +265,19 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     }
 
     if (filterDocumentationTasks) {
-      filteredEncounters = filteredEncounters.map((encounter) => {
-        const interventions = encounter.interventions.filter(
-          (intervention) => intervention !== 'Documentation',
-        );
+      filteredEncounters = filteredEncounters
+        .filter((encounter) => !encounter.documentationOnly)
+        .map((encounter) => {
+          const interventions = encounter.interventions.filter(
+            (intervention) => intervention !== 'Documentation',
+          );
 
-        return {
-          ...encounter,
-          interventions,
-          numberOfInterventions: interventions.length,
-          parsedNumberOfTasks: encounter.parsedNumberOfTasksMinusDocumentation,
-        };
-      });
+          return {
+            ...encounter,
+            interventions,
+            numberOfInterventions: interventions.length,
+          };
+        });
     }
 
     log.debug('end filtering encounters');
@@ -290,8 +291,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     log.debug('renderNumber() calls');
 
     interface NumberStats {
-      totalTasks: number;
-      validTasks: number;
+      totalEncounters: number;
       totalMinutes: number;
       validEntryCount: number;
       mrnCounts: Map<string, number>;
@@ -308,10 +308,9 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
 
     /* eslint-disable no-param-reassign -- crossfilter reduce API requires mutation */
     function addStats(stats: NumberStats, d: TransformedEncounter): NumberStats {
-      stats.totalTasks += d.parsedNumberOfTasks;
+      stats.totalEncounters += 1;
       stats.mentalHealthInterventions += countMentalHealth(d);
       if (d.providenceOrSwedishMrn !== EXCLUDE_STRING_VALUE) {
-        stats.validTasks += d.parsedNumberOfTasks;
         stats.totalMinutes += d.parsedTimeSpent;
         stats.validEntryCount += 1;
         const mrn = d.providenceOrSwedishMrn;
@@ -321,10 +320,9 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     }
 
     function removeStats(stats: NumberStats, d: TransformedEncounter): NumberStats {
-      stats.totalTasks -= d.parsedNumberOfTasks;
+      stats.totalEncounters -= 1;
       stats.mentalHealthInterventions -= countMentalHealth(d);
       if (d.providenceOrSwedishMrn !== EXCLUDE_STRING_VALUE) {
-        stats.validTasks -= d.parsedNumberOfTasks;
         stats.totalMinutes -= d.parsedTimeSpent;
         stats.validEntryCount -= 1;
         const mrn = d.providenceOrSwedishMrn;
@@ -338,8 +336,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
 
     function initStats(): NumberStats {
       return {
-        totalTasks: 0,
-        validTasks: 0,
+        totalEncounters: 0,
         totalMinutes: 0,
         validEntryCount: 0,
         mrnCounts: new Map(),
@@ -359,20 +356,15 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       number.render();
     }
 
-    renderNumber('#total-tasks', (s) => s.totalTasks);
+    renderNumber('#total-encounters', (s) => s.totalEncounters);
 
     renderNumber('#average-minutes-per-entry', (s) => {
       const value = s.totalMinutes / s.validEntryCount;
       return isNaN(value) ? 0 : value;
     });
 
-    renderNumber('#average-tasks-per-entry', (s) => {
-      const value = s.validTasks / s.validEntryCount;
-      return isNaN(value) ? 0 : value;
-    });
-
-    renderNumber('#average-tasks', (s) => {
-      const value = s.validTasks / s.mrnCounts.size;
+    renderNumber('#average-encounters', (s) => {
+      const value = s.validEntryCount / s.mrnCounts.size;
       return isNaN(value) ? 0 : value;
     });
 
@@ -390,11 +382,9 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
 
     // #region encounters by day
     const encounterDateDimension = ndx.dimension((d) => format(d.parsedEncounterDate, 'yyyy-MM'));
-    const encounterDateGroup = encounterDateDimension
-      .group()
-      .reduceSum((d) => d.parsedNumberOfTasks);
+    const encounterDateGroup = encounterDateDimension.group().reduceCount();
 
-    // Fixed domain covering every month in range, so months with no tasks still take a slot
+    // Fixed domain covering every month in range, so months with no encounters still take a slot
     // and the axis stays put while other charts are brushed
     const monthKeys = encounterDateGroup.all().map((d) => d.key as string);
     const months =
@@ -405,7 +395,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     const ticks = monthTicks(months, monthBandWidth);
     const tickLabels = new Map(ticks.map((tick) => [tick.key, tick.label]));
     const monthReadout = (d: { key: unknown; value: unknown }) =>
-      `${monthTitle(d.key as string)}: ${d3.format(',')(d.value as number)} tasks`;
+      `${monthTitle(d.key as string)}: ${d3.format(',')(d.value as number)} encounters`;
 
     encountersByDateChart
       .width(windowWidth)
@@ -428,7 +418,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
           )
           .on('mouseleave', () => readout.text(''));
       })
-      .yAxisLabel('Tasks')
+      .yAxisLabel('Encounters')
       // @ts-expect-error dc.js yAxisPadding typing mismatch
       .yAxisPadding('15%')
       .dimension(encounterDateDimension)
@@ -457,7 +447,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
 
       return weekday;
     });
-    const dayOfWeekGroup = dayOfWeekDimension.group().reduceSum((d) => d.parsedNumberOfTasks);
+    const dayOfWeekGroup = dayOfWeekDimension.group().reduceCount();
 
     dayOfWeekChart
       .width(paddedWidth / 3)
@@ -468,7 +458,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
       .elasticX(true)
       .elasticY(true)
       .renderLabel(true)
-      .yAxisLabel('Tasks')
+      .yAxisLabel('Encounters')
       // @ts-expect-error dc.js yAxisPadding typing mismatch
       .yAxisPadding('10%')
       .dimension(dayOfWeekDimension)
@@ -759,9 +749,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
 
     // #region by encounter type
     const encounterTypeDimension = ndx.dimension((d) => d.formattedEncounterType);
-    const encounterTypeGroup = encounterTypeDimension
-      .group()
-      .reduceSum((d) => (d.encounterType === 'other' ? 1 : d.parsedNumberOfTasks));
+    const encounterTypeGroup = encounterTypeDimension.group().reduceCount();
 
     encounterTypeChart
       .width(paddedWidth / 4)
@@ -888,7 +876,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
 
       return usernameToName(d.username);
     });
-    const userGroup = userDimension.group().reduceSum((d) => d.parsedNumberOfTasks);
+    const userGroup = userDimension.group().reduceCount();
 
     userChart
       .width(paddedWidth / 3)
@@ -994,7 +982,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
     const locationDimension = ndx.dimension((d) =>
       d.location ? d.location : EXCLUDE_STRING_VALUE,
     );
-    const locationGroup = locationDimension.group().reduceSum((d) => d.parsedNumberOfTasks);
+    const locationGroup = locationDimension.group().reduceCount();
 
     locationChart
       .width(paddedWidth / 3)
@@ -1013,7 +1001,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
 
     // #region by clinic
     const clinicDimension = ndx.dimension((d) => d.clinic || EXCLUDE_STRING_VALUE);
-    const clinicGroup = clinicDimension.group().reduceSum((d) => d.parsedNumberOfTasks);
+    const clinicGroup = clinicDimension.group().reduceCount();
 
     clinicChart
       .width(paddedWidth / 3)
@@ -1182,13 +1170,13 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
           */}
         </div>
 
-        <Statistic.Group widths="6">
+        <Statistic.Group widths="5">
           <Statistic>
             <Statistic.Value>
-              <span id="total-tasks" />
+              <span id="total-encounters" />
             </Statistic.Value>
 
-            <Statistic.Label>Total tasks</Statistic.Label>
+            <Statistic.Label>Total encounters</Statistic.Label>
           </Statistic>
 
           <Statistic>
@@ -1201,18 +1189,10 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
 
           <Statistic>
             <Statistic.Value>
-              <span id="average-tasks-per-entry" />
+              <span id="average-encounters" />
             </Statistic.Value>
 
-            <Statistic.Label>Average tasks/entry</Statistic.Label>
-          </Statistic>
-
-          <Statistic>
-            <Statistic.Value>
-              <span id="average-tasks" />
-            </Statistic.Value>
-
-            <Statistic.Label>Average tasks/patient</Statistic.Label>
+            <Statistic.Label>Average encounters/patient</Statistic.Label>
           </Statistic>
 
           <Statistic>
@@ -1241,13 +1221,13 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
         <br />
 
         <div id="encounter-date-chart">
-          <strong>Tasks by Month</strong>
+          <strong>Encounters by Month</strong>
           <span className="chart-hover-readout" id="encounter-date-readout" />
           <div className="clear" />
         </div>
 
-        <div id="number-of-tasks-chart">
-          <strong>Number of Tasks by Weekday</strong>
+        <div id="weekday-chart">
+          <strong>Encounters by Weekday</strong>
           <div className="clear" />
         </div>
 
@@ -1263,18 +1243,18 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
 
         <div>
           <div id="location-chart">
-            <strong>Tasks per Location</strong>
+            <strong>Encounters per Location</strong>
             <div className="clear" />
           </div>
 
           <div id="clinic-chart">
-            <strong>Tasks per Clinic</strong>
+            <strong>Encounters per Clinic</strong>
             <div className="clear" />
           </div>
 
           <div id="user-chart">
             <strong>
-              Tasks per Social Worker &nbsp;&nbsp;&nbsp;
+              Encounters per Social Worker &nbsp;&nbsp;&nbsp;
               <Checkbox label="Hide" onChange={this.handleHideSocialWorkersChange} />
             </strong>
             <div className="clear" />
@@ -1324,7 +1304,7 @@ export class InteractiveReport extends React.Component<ReportProps, ReportState>
         </div>
 
         <div id="encounter-type-chart">
-          <strong>Tasks per Type</strong>
+          <strong>Encounters per Type</strong>
           <div className="clear" />
         </div>
 

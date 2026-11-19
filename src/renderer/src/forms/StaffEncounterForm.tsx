@@ -4,8 +4,8 @@ import {
   EncounterClinicField,
   EncounterDateField,
   EncounterLocationField,
-  EncounterNumberOfTasksField,
   EncounterTimeSpentField,
+  LEGACY_NUMBER_OF_TASKS,
   SubmitButtons,
   today,
 } from '../shared-fields';
@@ -31,11 +31,11 @@ const INITIAL_VALUES = (): StaffEncounter => ({
   encounterDate: today(),
   encounterType: 'staff',
   location: '',
-  numberOfTasks: '',
+  numberOfTasks: LEGACY_NUMBER_OF_TASKS,
   timeSpent: '',
 });
 
-const NUMERIC_FIELDS = ['numberOfTasks', 'timeSpent'];
+const NUMERIC_FIELDS = ['timeSpent'];
 
 const REQUIRED_FIELDS = ['clinic', 'encounterDate', 'location'];
 
@@ -94,19 +94,12 @@ class UnwrappedStaffEncounterForm extends React.Component<
           />
         </Form.Group>
 
-        <Form.Group widths="equal">
+        <Form.Group widths={2}>
           <EncounterTimeSpentField
             error={!!(touched.timeSpent && errors.timeSpent)}
             onBlur={this.handleBlur}
             onChange={this.handleChange}
             value={values.timeSpent}
-          />
-
-          <EncounterNumberOfTasksField
-            error={!!(touched.numberOfTasks && errors.numberOfTasks)}
-            onBlur={this.handleBlur}
-            onChange={this.handleChange}
-            value={values.numberOfTasks}
           />
         </Form.Group>
 

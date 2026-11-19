@@ -89,10 +89,6 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
       return encounter.numberOfInterventions === 0;
     }
 
-    function abnormalNumberOfTasks(encounter: TransformedEncounter) {
-      return encounter.parsedNumberOfTasks >= 10;
-    }
-
     function abnormalTimeSpent(encounter: TransformedEncounter) {
       return encounter.timeSpentHours > 200 / 60;
     }
@@ -107,7 +103,6 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
           abnormalDateOfBirth(encounter) ||
           abnormalEncounterDate(encounter) ||
           abnormalInterventions(encounter) ||
-          abnormalNumberOfTasks(encounter) ||
           abnormalTimeSpent(encounter)
         );
       }),
@@ -130,7 +125,6 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
               <Table.HeaderCell>Location</Table.HeaderCell>
               <Table.HeaderCell>Clinic</Table.HeaderCell>
               <Table.HeaderCell>Interventions</Table.HeaderCell>
-              <Table.HeaderCell>Tasks</Table.HeaderCell>
               <Table.HeaderCell>Time Spent</Table.HeaderCell>
             </Table.Row>
           </Table.Header>
@@ -178,9 +172,6 @@ export class DataAuditReport extends React.Component<DataAuditReportProps, DataA
                 <Table.Cell>{encounter.clinic}</Table.Cell>
                 <Table.Cell negative={abnormalInterventions(encounter)}>
                   {encounter.encounterType === 'patient' && encounter.numberOfInterventions}
-                </Table.Cell>
-                <Table.Cell negative={abnormalNumberOfTasks(encounter)}>
-                  {encounter.numberOfTasks}
                 </Table.Cell>
                 <Table.Cell negative={abnormalTimeSpent(encounter)}>
                   {encounter.timeSpent}

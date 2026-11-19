@@ -119,7 +119,7 @@ export async function insertExamples() {
       // 10% of the time flip the transplant flag
       transplant: Math.random() > 0.1 ? patient.transplant : !patient.transplant,
 
-      numberOfTasks: `${1 + Math.floor(sampledInterventions.length * Math.random())}`,
+      numberOfTasks: '0',
 
       timeSpent: `${Math.ceil((Math.random() * sampledInterventions.length * 10) / 5) * 5}`,
     };

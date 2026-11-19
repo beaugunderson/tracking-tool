@@ -47,7 +47,7 @@ const ENCOUNTER_TYPE = {
     {
       name: 'Documentation',
       description:
-        'When tracking an encounter where time/tasks includes documentation mark all categories that apply including Documentation. If completing documentation on the following day, enter a new encounter, mark Documentation only',
+        'When tracking an encounter where time includes documentation mark all categories that apply including Documentation. If completing documentation on the following day, enter a new encounter, mark Documentation only',
     },
     {
       name: 'Transplant Assessment',

@@ -10,8 +10,8 @@ import { Divider, Dropdown, Form, Grid, Header } from 'semantic-ui-react';
 import {
   EncounterDateField,
   EncounterLocationField,
-  EncounterNumberOfTasksField,
   EncounterTimeSpentField,
+  LEGACY_NUMBER_OF_TASKS,
   SubmitButtons,
   today,
 } from '../shared-fields';
@@ -36,12 +36,12 @@ const INITIAL_VALUES = (): CommunityEncounter => ({
   encounterDate: today(),
   encounterType: 'community',
   location: '',
-  numberOfTasks: '',
+  numberOfTasks: LEGACY_NUMBER_OF_TASKS,
   timeSpent: '',
   ...communityInitialInterventionValues,
 });
 
-const NUMERIC_FIELDS = ['numberOfTasks', 'timeSpent'];
+const NUMERIC_FIELDS = ['timeSpent'];
 
 const REQUIRED_FIELDS = ['encounterDate', 'location'];
 
@@ -220,19 +220,12 @@ function UnwrappedCommunityEncounterForm({
 
       <Divider hidden />
 
-      <Form.Group widths="equal">
+      <Form.Group widths={2}>
         <EncounterTimeSpentField
           error={!!(touched.timeSpent && errors.timeSpent)}
           onBlur={handleBlur}
           onChange={handleChange}
           value={values.timeSpent}
-        />
-
-        <EncounterNumberOfTasksField
-          error={!!(touched.numberOfTasks && errors.numberOfTasks)}
-          onBlur={handleBlur}
-          onChange={handleChange}
-          value={values.numberOfTasks}
         />
       </Form.Group>
 

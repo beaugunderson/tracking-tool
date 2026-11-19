@@ -8,7 +8,6 @@ function throughReportPipeline(raw: Partial<RawEncounter>): TransformedEncounter
     _id: 'abc123',
     encounterDate: '2026-11-02',
     encounterType: 'patient',
-    numberOfTasks: '1',
     timeSpent: '15',
     username: 'testuser',
     ...raw,

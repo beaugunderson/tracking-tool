@@ -1,5 +1,5 @@
 /**
- * Helpers for the Tasks by Month chart's x axis. Month keys are 'yyyy-MM'.
+ * Helpers for the Encounters by Month chart's x axis. Month keys are 'yyyy-MM'.
  */
 
 const MONTH_NAMES = [

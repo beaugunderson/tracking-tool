@@ -21,8 +21,8 @@ import {
   EncounterClinicField,
   EncounterDateField,
   EncounterLocationField,
-  EncounterNumberOfTasksField,
   EncounterTimeSpentField,
+  LEGACY_NUMBER_OF_TASKS,
   SubmitButtons,
   today,
 } from '../shared-fields';
@@ -85,7 +85,7 @@ export const INITIAL_VALUES = (): PatientEncounter => ({
   location: '',
   md: [],
   mrn: '',
-  numberOfTasks: '',
+  numberOfTasks: LEGACY_NUMBER_OF_TASKS,
   patientName: '',
   providenceMrn: '',
   timeSpent: '',
@@ -94,7 +94,7 @@ export const INITIAL_VALUES = (): PatientEncounter => ({
   ...initialInterventionValues,
 });
 
-const NUMERIC_FIELDS = ['numberOfTasks', 'timeSpent'];
+const NUMERIC_FIELDS = ['timeSpent'];
 
 const REQUIRED_FIELDS = [
   'clinic',
@@ -889,21 +889,13 @@ function UnwrappedPatientEncounterForm({
 
       <Divider hidden />
 
-      <Form.Group widths="equal">
+      <Form.Group widths={2}>
         <EncounterTimeSpentField
           error={!!(touched.timeSpent && errors.timeSpent)}
           onBlur={handleBlur}
           onChange={handleChange}
           patient
           value={values.timeSpent}
-        />
-
-        <EncounterNumberOfTasksField
-          error={!!(touched.numberOfTasks && errors.numberOfTasks)}
-          onBlur={handleBlur}
-          onChange={handleChange}
-          patient
-          value={values.numberOfTasks}
         />
       </Form.Group>
 

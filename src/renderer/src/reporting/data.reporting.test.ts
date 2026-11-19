@@ -29,7 +29,7 @@ function makeEncounter(overrides: Partial<PatientEncounter> = {}): PatientEncoun
     location: 'First Hill',
     md: [],
     mrn: '',
-    numberOfTasks: '',
+    numberOfTasks: '0',
     patientName: '',
     providenceMrn: '',
     timeSpent: '60',
@@ -570,32 +570,30 @@ describe('transformEncounter', () => {
     });
   });
 
-  describe('numberOfTasks parsing', () => {
-    it('parses string to int', () => {
-      const enc = makeEncounter({ numberOfTasks: '5' });
-      expect(transformEncounter(enc).parsedNumberOfTasks).toBe(5);
+  describe('documentationOnly', () => {
+    it('is true when Documentation is the only intervention', () => {
+      const enc = makeEncounter({ documentation: true });
+      expect(transformEncounter(enc).documentationOnly).toBe(true);
     });
 
-    it('defaults to 0 for non-numeric', () => {
-      const enc = makeEncounter({ numberOfTasks: '' });
-      expect(transformEncounter(enc).parsedNumberOfTasks).toBe(0);
+    it('is false when another intervention is also checked', () => {
+      const enc = makeEncounter({ documentation: true, careCoordination: true });
+      expect(transformEncounter(enc).documentationOnly).toBe(false);
     });
 
-    it('subtracts 1 when documentation is true', () => {
-      const enc = makeEncounter({ numberOfTasks: '5', documentation: true });
-      const result = transformEncounter(enc);
-      expect(result.parsedNumberOfTasks).toBe(5);
-      expect(result.parsedNumberOfTasksMinusDocumentation).toBe(4);
+    it('is false when a test was given alongside Documentation', () => {
+      const enc = makeEncounter({ documentation: true, phq: true, phqScore: '4' });
+      expect(transformEncounter(enc).documentationOnly).toBe(false);
     });
 
-    it('does not go below 0 when subtracting documentation', () => {
-      const enc = makeEncounter({ numberOfTasks: '0', documentation: true });
-      expect(transformEncounter(enc).parsedNumberOfTasksMinusDocumentation).toBe(0);
+    it('is false without Documentation', () => {
+      const enc = makeEncounter({ careCoordination: true });
+      expect(transformEncounter(enc).documentationOnly).toBe(false);
     });
 
-    it('no subtraction when documentation is false', () => {
-      const enc = makeEncounter({ numberOfTasks: '5', documentation: false });
-      expect(transformEncounter(enc).parsedNumberOfTasksMinusDocumentation).toBe(5);
+    it('is false for staff encounters, which have no interventions', () => {
+      const enc = makeEncounter({ encounterType: 'staff', documentation: true });
+      expect(transformEncounter(enc).documentationOnly).toBe(false);
     });
   });
 
